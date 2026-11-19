@@ -1,0 +1,411 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>진용·하림 별 커버</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one white sheet; bold title, two name columns, a heart of hand-drawn stars, two detail columns.
+     Single look on purpose (a printed card on white stock), so no dark theme. */
+  :root {
+    color-scheme: light;
+    --paper: #fbfbf8;
+    --ink: #161616;
+    --soft: #4d4d4a;
+    --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--korean);
+  }
+
+  .card {
+    min-height: 100%;
+    box-sizing: border-box;
+    max-width: 440px;
+    margin: 0 auto;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    padding-block: 44px 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .title {
+    margin: 0;
+    text-align: center;
+    line-height: 1.02;
+  }
+
+  .title__latin {
+    display: block;
+    font-family: var(--latin);
+    font-weight: 800;
+    font-size: clamp(24px, 7.7vw, 36px);
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+  }
+
+  .title__korean {
+    display: block;
+    margin-top: 2px;
+    font-weight: 700;
+    font-size: clamp(30px, 9vw, 38px);
+    letter-spacing: -0.04em;
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    text-align: center;
+  }
+
+  .people {
+    margin-top: 22px;
+    row-gap: 14px;
+  }
+
+  .person {
+    display: grid;
+    gap: 1px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .person__role,
+  .person__name {
+    font-weight: 500;
+  }
+
+  .person__latin {
+    font-family: var(--latin);
+    font-weight: 500;
+    font-size: 12.5px;
+  }
+
+  .person__name {
+    margin-top: 12px;
+  }
+
+  .heart {
+    flex: 1;
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+    margin-block: 18px;
+  }
+
+  .heart canvas {
+    display: block;
+    width: min(100%, 340px);
+    max-width: 100%;
+    aspect-ratio: 1 / 0.96;
+  }
+
+  .details {
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  .details span {
+    display: block;
+  }
+
+  .details__sub {
+    font-weight: 400;
+    color: var(--soft);
+  }
+</style>
+
+<main class="card" aria-label="커버">
+  <h1 class="title">
+    <span class="title__latin">WEDDING INVITATION</span>
+    <span class="title__korean">청첩장</span>
+  </h1>
+
+  <div class="pair people">
+    <p class="person">
+      <span class="person__role">신랑</span>
+      <span class="person__latin">Groom</span>
+      <span class="person__name">서진용</span>
+      <span class="person__latin">Seo Jinyong</span>
+    </p>
+    <p class="person">
+      <span class="person__role">신부</span>
+      <span class="person__latin">Bride</span>
+      <span class="person__name">장하림</span>
+      <span class="person__latin">Jang Harim</span>
+    </p>
+  </div>
+
+  <div class="heart">
+    <canvas id="stars" role="img" aria-label="크레파스로 그린 별들이 모여 만든 하트"></canvas>
+  </div>
+
+  <div class="pair details">
+    <p>
+      <span>2027년 3월 6일 토요일</span>
+      <span>오후 5시</span>
+    </p>
+    <p>
+      <span>식물관PH</span>
+      <span class="details__sub">Sikmulgwan PH</span>
+    </p>
+  </div>
+</main>
+
+<script>
+  // Hand-drawn star heart. Positions come from a seeded random generator so every visit draws the same picture.
+  const CANVAS = document.getElementById('stars');
+  const CONTEXT = CANVAS.getContext('2d');
+  const STAR_COLORS = ['#e2452c', '#2f8fe0', '#f5c93a', '#2f9a52', '#ec8fb8', '#f19a2b'];
+  const SEED = 20270306;
+  const POP_MS = 300;
+  const STAGGER_MS = 22;
+
+  const createRandom = (seed) => {
+    let state = seed >>> 0;
+
+    return () => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+
+  // Parametric heart outline (x = 16 sin^3 t, ...), normalised to about -1..1 with y pointing down.
+  const HEART_OUTLINE = Array.from({ length: 120 }, (_, index) => {
+    const t = (index / 120) * Math.PI * 2;
+    const x = 16 * Math.sin(t) ** 3;
+    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+
+    return [x / 17, -(y + 2.5) / 15.5];
+  });
+
+  const isInsideHeart = (x, y) => {
+    let inside = false;
+
+    for (let index = 0, previous = HEART_OUTLINE.length - 1; index < HEART_OUTLINE.length; previous = index, index += 1) {
+      const [xi, yi] = HEART_OUTLINE[index];
+      const [xj, yj] = HEART_OUTLINE[previous];
+      const crosses = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+
+      if (crosses) {
+        inside = !inside;
+      }
+    }
+
+    return inside;
+  };
+
+  const buildStars = (width, height) => {
+    const random = createRandom(SEED);
+    const stars = [];
+    const scale = width / 2.25;
+    const centerX = width / 2;
+    const centerY = height * 0.5;
+    const sizes = [];
+    const BIG_COUNT = 30;
+
+    for (let index = 0; index < BIG_COUNT; index += 1) {
+      sizes.push(scale * (0.15 + random() * 0.09));
+    }
+
+    for (let index = 0; index < 90; index += 1) {
+      sizes.push(scale * (0.04 + random() * 0.04));
+    }
+
+    sizes.forEach((radius, index) => {
+      const isBig = index < BIG_COUNT;
+      // Big stars stay inside the outline; small ones may sit right on it so the heart's edge reads clearly.
+      const inset = isBig ? (radius / scale) * 0.55 : 0;
+
+      for (let attempt = 0; attempt < 500; attempt += 1) {
+        const nx = random() * 2 - 1;
+        const ny = random() * 2 - 1;
+        const fits = isInsideHeart(nx, ny) && isInsideHeart(nx * (1 + inset), ny * (1 + inset));
+
+        if (!fits) {
+          continue;
+        }
+
+        const x = centerX + nx * scale;
+        const y = centerY + ny * scale;
+        const overlapLimit = isBig ? 0.8 : 0.62;
+        const collides = stars.some((star) => Math.hypot(star.x - x, star.y - y) < (star.radius + radius) * overlapLimit);
+
+        if (collides) {
+          continue;
+        }
+
+        stars.push({
+          x,
+          y,
+          radius,
+          rotation: random() * Math.PI * 2,
+          arms: Array.from({ length: 5 }, () => 0.82 + random() * 0.32),
+          inner: 0.4 + random() * 0.1,
+          // Cycle through the palette with a random step so neighbours differ and no color dominates.
+          color: STAR_COLORS[(stars.length * 5 + Math.floor(random() * 2)) % STAR_COLORS.length],
+          grainSeed: Math.floor(random() * 1e9),
+        });
+        break;
+      }
+    });
+
+    // Bottom tip first, so the heart fills upward.
+    return stars.sort((a, b) => b.y - a.y);
+  };
+
+  const traceStar = (star) => {
+    const random = createRandom(star.grainSeed);
+    const points = [];
+
+    for (let index = 0; index < 10; index += 1) {
+      const isTip = index % 2 === 0;
+      const angle = star.rotation + (index * Math.PI) / 5;
+      const length = isTip ? star.radius * star.arms[index / 2] : star.radius * star.inner;
+      points.push([Math.cos(angle) * length, Math.sin(angle) * length]);
+    }
+
+    // Each edge is split into short wobbly steps, like a crayon pushed around by hand.
+    const STEPS = 5;
+    const wobble = star.radius * 0.055;
+
+    CONTEXT.beginPath();
+
+    points.forEach(([px, py], index) => {
+      const [nx, ny] = points[(index + 1) % points.length];
+
+      if (index === 0) {
+        CONTEXT.moveTo(px + (random() - 0.5) * wobble, py + (random() - 0.5) * wobble);
+      }
+
+      for (let step = 1; step <= STEPS; step += 1) {
+        const t = step / STEPS;
+        const jitter = step === STEPS ? 0.6 : 1;
+        CONTEXT.lineTo(
+          px + (nx - px) * t + (random() - 0.5) * wobble * jitter,
+          py + (ny - py) * t + (random() - 0.5) * wobble * jitter,
+        );
+      }
+    });
+
+    CONTEXT.closePath();
+  };
+
+  // Crayon look: a slightly uneven fill, pale grain specks, and a soft darker edge.
+  const drawStar = (star, progress) => {
+    if (progress <= 0) {
+      return;
+    }
+
+    const overshoot = progress < 1 ? Math.sin(progress * Math.PI) * 0.16 : 0;
+    const size = Math.min(progress, 1) + overshoot;
+    const random = createRandom(star.grainSeed + 7);
+
+    CONTEXT.save();
+    CONTEXT.translate(star.x, star.y);
+    CONTEXT.scale(size, size);
+    traceStar(star);
+    CONTEXT.fillStyle = star.color;
+    CONTEXT.fill();
+    CONTEXT.save();
+    CONTEXT.clip();
+    CONTEXT.globalAlpha = 0.28;
+    CONTEXT.fillStyle = '#ffffff';
+
+    const specks = Math.round(star.radius * 5);
+
+    for (let index = 0; index < specks; index += 1) {
+      const sx = (random() - 0.5) * star.radius * 2;
+      const sy = (random() - 0.5) * star.radius * 2;
+      CONTEXT.fillRect(sx, sy, 0.6 + random() * 1.4, 0.6 + random() * 0.8);
+    }
+
+    CONTEXT.restore();
+    // A rough edge in the same color, slightly darker, instead of a clean outline.
+    CONTEXT.globalAlpha = 0.5;
+    CONTEXT.lineJoin = 'round';
+    CONTEXT.lineWidth = Math.max(0.8, star.radius * 0.07);
+    CONTEXT.strokeStyle = star.color;
+    CONTEXT.filter = 'brightness(0.86)';
+    CONTEXT.stroke();
+    CONTEXT.restore();
+  };
+
+  let stars = [];
+  let startTime = 0;
+  let frameId = 0;
+
+  const render = (now) => {
+    const width = CANVAS.clientWidth;
+    const height = CANVAS.clientHeight;
+    const elapsed = now - startTime;
+    let isDone = true;
+
+    CONTEXT.clearRect(0, 0, width, height);
+
+    stars.forEach((star, index) => {
+      const progress = Math.max(0, Math.min((elapsed - index * STAGGER_MS) / POP_MS, 1));
+
+      if (progress < 1) {
+        isDone = false;
+      }
+
+      drawStar(star, progress);
+    });
+
+    frameId = isDone ? 0 : requestAnimationFrame(render);
+  };
+
+  const setUp = () => {
+    const ratio = window.devicePixelRatio || 1;
+    const width = CANVAS.clientWidth;
+    const height = CANVAS.clientHeight;
+
+    CANVAS.width = Math.round(width * ratio);
+    CANVAS.height = Math.round(height * ratio);
+    CONTEXT.setTransform(ratio, 0, 0, ratio, 0, 0);
+    stars = buildStars(width, height);
+  };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const play = () => {
+    cancelAnimationFrame(frameId);
+    setUp();
+    startTime = performance.now() - (prefersReducedMotion ? 1e6 : 0);
+    frameId = requestAnimationFrame(render);
+  };
+
+  let resizeTimer = 0;
+
+  const handleResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      cancelAnimationFrame(frameId);
+      setUp();
+      startTime = performance.now() - 1e6;
+      frameId = requestAnimationFrame(render);
+    }, 150);
+  };
+
+  play();
+  window.addEventListener('resize', handleResize);
+  CANVAS.addEventListener('click', play);
+</script>

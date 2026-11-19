@@ -1,0 +1,266 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>진용·하림 사진</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Photos: a Cover Flow strip. The centered photo faces the viewer, the rest turn away in 3D on
+     either side. No reflection and no captions. Drag, swipe, tap a side photo, or use the arrow keys.
+     Single look on purpose (a printed card), so no dark theme. */
+  :root {
+    color-scheme: light;
+    --paper: #fbfbf8;
+    --ink: #1f1f1d;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .photos {
+    box-sizing: border-box;
+    max-width: 440px;
+    margin: 0 auto;
+    padding-block: 48px 56px;
+    overflow: hidden;
+  }
+
+  .flow {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    height: var(--flow-height, 300px);
+    perspective: 380px;
+    perspective-origin: 50% 45%;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    outline: none;
+  }
+
+  .flow:focus-visible {
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+
+  .flow.is-dragging {
+    cursor: grabbing;
+  }
+
+  .flow__item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--flow-size, 220px);
+    height: var(--flow-size, 220px);
+    margin: calc(var(--flow-size, 220px) / -2) 0 0 calc(var(--flow-size, 220px) / -2);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  .flow__item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    box-shadow: 0 10px 24px rgba(30, 28, 24, 0.16);
+  }
+
+</style>
+
+<section class="photos" aria-label="사진">
+  <div class="flow" id="flow" tabindex="0" role="region" aria-roledescription="회전 사진첩" aria-label="사진 14장, 좌우로 넘겨 보세요"></div>
+</section>
+
+<script>
+  // Cover Flow. One float, `position`, says which photo is centered; every frame lays the items out from it.
+  const FLOW_PHOTOS = [
+    ['01', '넓은 제주 들판 한가운데 선 두 사람의 원경'],
+    ['02', '신랑이 신부의 볼에 입맞추는 모습'],
+    ['03', '서로 마주 보며 웃는 두 사람'],
+    ['04', '하늘을 올려다보며 함께 걷는 두 사람'],
+    ['05', '앞에 선 신랑과 그 뒤에 선 신부'],
+    ['07', '베일 아래에서 입맞추는 두 사람'],
+    ['08', '들판을 바라보는 신부의 뒷모습'],
+    ['09', '들판에 홀로 선 신부'],
+    ['10', '들판에 홀로 선 신랑'],
+    ['11', '역광 속에서 입맞추는 두 사람'],
+    ['12', '역광 속에서 미소 짓는 두 사람'],
+    ['13', '노을 지는 바닷가에 선 두 사람'],
+    ['14', '바닷가에서 마주 보며 걷는 두 사람'],
+    ['15', '바닷가에서 신부를 뒤에서 안은 신랑'],
+  ];
+  const FLOW_TILT_DEG = 62;
+  const FLOW_SNAP_MS = 420;
+  const FLOW_VISIBLE = 5;
+
+  const flowStage = document.getElementById('flow');
+  const flowItems = FLOW_PHOTOS.map(([number, alt]) => {
+    const item = document.createElement('div');
+    const image = document.createElement('img');
+
+    item.className = 'flow__item';
+    image.src = `photos/photo-${number}-sm.jpg`;
+    image.alt = alt;
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    image.draggable = false;
+    item.appendChild(image);
+    flowStage.appendChild(item);
+
+    return item;
+  });
+
+  const flowReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let flowPosition = Math.floor(FLOW_PHOTOS.length / 2);
+  let flowSize = 220;
+  let flowFrame = 0;
+
+  const clampPosition = (value) => {
+    return Math.max(0, Math.min(FLOW_PHOTOS.length - 1, value));
+  };
+
+  const layoutFlow = () => {
+    flowItems.forEach((item, index) => {
+      const offset = index - flowPosition;
+      const distance = Math.abs(offset);
+      const side = Math.sign(offset);
+      const turn = Math.min(distance, 1);
+      // The first neighbour slides out to the side; the rest stack closely behind it.
+      const x = side * (turn * flowSize * 0.74 + Math.max(distance - 1, 0) * flowSize * 0.17);
+      const z = -turn * flowSize * 0.55;
+      const rotation = -side * FLOW_TILT_DEG * turn;
+      const isHidden = distance > FLOW_VISIBLE;
+
+      item.style.transform = `translate3d(${x}px, 0, ${z}px) rotateY(${rotation}deg)`;
+      item.style.zIndex = String(1000 - Math.round(distance * 10));
+      item.style.visibility = isHidden ? 'hidden' : 'visible';
+      item.firstChild.setAttribute('aria-hidden', Math.round(flowPosition) === index ? 'false' : 'true');
+    });
+  };
+
+  const resizeFlow = () => {
+    flowSize = Math.round(Math.min(flowStage.clientWidth * 0.52, 230));
+    flowStage.style.setProperty('--flow-size', `${flowSize}px`);
+    flowStage.style.setProperty('--flow-height', `${Math.round(flowSize * 1.22)}px`);
+    layoutFlow();
+  };
+
+  // Ease the strip to a whole index.
+  const animateTo = (target) => {
+    const from = flowPosition;
+    const to = clampPosition(Math.round(target));
+    const start = performance.now();
+
+    cancelAnimationFrame(flowFrame);
+
+    if (flowReducedMotion) {
+      flowPosition = to;
+      layoutFlow();
+
+      return;
+    }
+
+    const step = (now) => {
+      const t = Math.min((now - start) / FLOW_SNAP_MS, 1);
+      const eased = 1 - (1 - t) ** 3;
+
+      flowPosition = from + (to - from) * eased;
+      layoutFlow();
+
+      if (t < 1) {
+        flowFrame = requestAnimationFrame(step);
+      }
+    };
+
+    flowFrame = requestAnimationFrame(step);
+  };
+
+  let dragStartX = 0;
+  let dragStartPosition = 0;
+  let dragLastX = 0;
+  let dragLastTime = 0;
+  let dragVelocity = 0;
+  let dragMoved = false;
+  let dragPointer = null;
+
+  const handleFlowPointerDown = (event) => {
+    if (dragPointer !== null) {
+      return;
+    }
+
+    cancelAnimationFrame(flowFrame);
+    dragPointer = event.pointerId;
+    dragStartX = event.clientX;
+    dragLastX = event.clientX;
+    dragLastTime = performance.now();
+    dragStartPosition = flowPosition;
+    dragVelocity = 0;
+    dragMoved = false;
+    flowStage.setPointerCapture(event.pointerId);
+    flowStage.classList.add('is-dragging');
+  };
+
+  const handleFlowPointerMove = (event) => {
+    if (event.pointerId !== dragPointer) {
+      return;
+    }
+
+    const now = performance.now();
+    const deltaX = event.clientX - dragStartX;
+
+    if (Math.abs(deltaX) > 4) {
+      dragMoved = true;
+    }
+
+    dragVelocity = (event.clientX - dragLastX) / Math.max(now - dragLastTime, 1);
+    dragLastX = event.clientX;
+    dragLastTime = now;
+    flowPosition = clampPosition(dragStartPosition - deltaX / (flowSize * 0.38));
+    layoutFlow();
+  };
+
+  const handleFlowPointerUp = (event) => {
+    if (event.pointerId !== dragPointer) {
+      return;
+    }
+
+    dragPointer = null;
+    flowStage.classList.remove('is-dragging');
+
+    if (!dragMoved) {
+      // A tap on a side photo brings it to the center.
+      const hit = document.elementFromPoint(event.clientX, event.clientY)?.closest('.flow__item');
+      const index = flowItems.indexOf(hit);
+
+      animateTo(index >= 0 ? index : flowPosition);
+
+      return;
+    }
+
+    // A quick flick carries on a little further.
+    animateTo(flowPosition - dragVelocity * 2.2);
+  };
+
+  const handleFlowKeyDown = (event) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      animateTo(Math.round(flowPosition) - 1);
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      animateTo(Math.round(flowPosition) + 1);
+    }
+  };
+
+  flowStage.addEventListener('pointerdown', handleFlowPointerDown);
+  flowStage.addEventListener('pointermove', handleFlowPointerMove);
+  flowStage.addEventListener('pointerup', handleFlowPointerUp);
+  flowStage.addEventListener('pointercancel', handleFlowPointerUp);
+  flowStage.addEventListener('keydown', handleFlowKeyDown);
+  window.addEventListener('resize', resizeFlow);
+  resizeFlow();
+</script>

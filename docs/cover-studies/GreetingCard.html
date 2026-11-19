@@ -1,0 +1,75 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>진용·하림 인사말</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one photo in a white instant-photo frame, then the greeting set in the cover's sans,
+     centered on the same axis as the cover title. Nothing else.
+     Single look on purpose (a printed card), so no dark theme. */
+  :root {
+    color-scheme: light;
+    --paper: #fbfbf8;
+    --frame: #ffffff;
+    --ink: #1f1f1d;
+    --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .greeting {
+    box-sizing: border-box;
+    max-width: 440px;
+    margin: 0 auto;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 56px;
+  }
+
+  /* Instant-photo frame: even white sides, a little more at the bottom. */
+  .print {
+    margin: 0;
+    padding: 3.2% 3.2% 9%;
+    background: var(--frame);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 22px rgba(40, 36, 30, 0.1);
+  }
+
+  .print img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  .note {
+    margin: 32px 0 0;
+    text-align: center;
+    font-family: var(--korean);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.95;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
+  }
+</style>
+
+<main class="greeting" aria-label="인사말">
+  <figure class="print">
+    <img src="photos/photo-06.jpg" alt="서로에게 기대어 웃는 진용과 하림">
+  </figure>
+
+  <p class="note">
+    겨울 끝자락에 만난 두 사람이<br>
+    봄을 몇 번이나 함께 맞았습니다.<br>
+    이제 서로의 계절이 되어<br>
+    한 집에서 봄을 기다리려 합니다.<br>
+    햇살 가득한 온실에서 내딛는<br>
+    저희의 첫걸음을 지켜봐 주세요.
+  </p>
+</main>

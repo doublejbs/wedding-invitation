@@ -1,0 +1,16 @@
+<!-- Placeholder couple image. Replace with public/images/couple.png (background-removed transparent PNG)
+     and update COUPLE_IMAGE_SRC in src/data/InvitationData.ts. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 460">
+  <g fill="#8c8479">
+    <!-- Groom silhouette -->
+    <circle cx="150" cy="120" r="52" />
+    <path d="M60 460 C60 300 90 210 150 205 C210 210 245 300 245 460 Z" />
+  </g>
+  <g fill="#b3a99c">
+    <!-- Bride silhouette -->
+    <circle cx="258" cy="146" r="46" />
+    <path d="M190 290 C190 236 220 214 258 212 C296 214 326 236 326 290 L350 460 L166 460 Z" />
+    <path d="M214 140 C206 196 214 236 224 252 L292 252 C302 236 310 196 302 140 C296 110 220 110 214 140 Z" fill-opacity="0.85" />
+  </g>
+  <path d="M233 252 L283 252 L258 300 Z" fill="#f4efe7" />
+</svg>

@@ -1,0 +1,390 @@
+<title>청첩장 레퍼런스 보드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one narrow reading column; sticky filter chips; references as a ruled list grouped by section, like an index card drawer */
+  :root {
+    --bg: #f6f6f3;
+    --surface: #ffffff;
+    --ink: #1d201e;
+    --muted: #5f645f;
+    --line: #dcddd6;
+    --accent: #a3262e;
+    --accent-soft: #f4e3e3;
+    --chip: #ecece6;
+    --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
+    --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141615; --surface: #1c1f1d; --ink: #ecede8; --muted: #a2a69f;
+      --line: #2f3330; --accent: #e5747a; --accent-soft: #3a2224; --chip: #262a27;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141615; --surface: #1c1f1d; --ink: #ecede8; --muted: #a2a69f;
+    --line: #2f3330; --accent: #e5747a; --accent-soft: #3a2224; --chip: #262a27;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 64px;
+  }
+  header { display: grid; gap: 10px; margin-bottom: 20px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 7vw, 38px);
+    line-height: 1.25;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lead { margin: 0; color: var(--muted); max-width: 60ch; }
+
+  .picks {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .picks h2 { font-size: 14px; margin: 0; color: var(--accent); font-weight: 600; }
+  .picks ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .picks li { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: baseline; }
+  .picks .for { font-size: 12px; color: var(--muted); }
+  .picks a { color: var(--ink); font-weight: 500; text-decoration-color: var(--line); text-underline-offset: 3px; }
+
+  .filters {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--bg);
+    padding-block: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg);
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none;
+    border: 1px solid transparent;
+    background: var(--chip);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .chip:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  section { margin-top: 28px; }
+  section h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  section > p { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
+  ol.refs { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .ref { border-bottom: 1px solid var(--line); padding-block: 14px; display: grid; gap: 4px; min-width: 0; }
+  .ref a.title {
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  .ref a.title::after { content: " ↗"; color: var(--muted); font-weight: 400; }
+  .ref a.title:hover { color: var(--accent); }
+  .ref .note { margin: 0; color: var(--muted); font-size: 14px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+  .tag { background: var(--chip); padding: 1px 8px; border-radius: 6px; }
+  .tag.star { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .empty { color: var(--muted); padding: 24px 0; }
+  footer { margin-top: 40px; font-size: 12px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">모바일 청첩장 · 레퍼런스 보드</span>
+    <h1>세 가지 시안을 위한 <em>참고 사례</em></h1>
+    <p class="lead">봉투·런칭·에디토리얼 시안에 참고할 사이트, 데모, 템플릿을 모았습니다. 링크는 새 탭으로 열립니다.</p>
+  </header>
+
+  <div class="picks">
+    <h2>먼저 볼 것</h2>
+    <ul>
+      <li><span class="for">봉투</span><a href="https://www.framer.com/community/marketplace/templates/together-vows/" target="_blank" rel="noopener noreferrer">Together Vows — 봉투 여는 청첩장 템플릿</a></li>
+      <li><span class="for">런칭</span><a href="https://www.awwwards.com/sites/susie-jay-a-journey-of-love" target="_blank" rel="noopener noreferrer">Susie &amp; Jay — 2026 수상 청첩장</a></li>
+      <li><span class="for">FFF 결</span><a href="https://contra.com/p/ZUQZoRkX-interactive-cinematic-wedding-invitation-with-mouse-driven-ux" target="_blank" rel="noopener noreferrer">마우스로 움직이는 시네마틱 청첩장</a></li>
+      <li><span class="for">손글씨</span><a href="https://www.instagram.com/wedding_peach_project/p/DXbc7TFkfK5/" target="_blank" rel="noopener noreferrer">웨딩피치 — 양가 손글씨 모바일 청첩장</a></li>
+      <li><span class="for">글자 모션</span><a href="https://tympanus.net/codrops/?p=76992" target="_blank" rel="noopener noreferrer">Blurry Text Reveal on Scroll</a></li>
+      <li><span class="for">코드</span><a href="https://awesome.ecosyste.ms/projects/github.com%2Fmiryangjung%2Fwedding-invitation" target="_blank" rel="noopener noreferrer">MiryangJung/wedding-invitation</a></li>
+    </ul>
+  </div>
+
+  <nav class="filters" aria-label="분류 필터" id="filters"></nav>
+  <div id="list"></div>
+
+  <footer>
+    검색 결과 설명을 바탕으로 정리했으며(인스타그램 게시물은 2026.11 직접 열어 확인), 일부 링크는 직접 열어 확인하지 않았습니다. 무료 템플릿·코드는 사용 전 라이선스를 확인하세요.
+  </footer>
+</div>
+
+<script>
+  const FILTERS = [
+    { id: 'all', label: '전체' },
+    { id: 'wedding', label: '청첩장' },
+    { id: 'instagram', label: '인스타그램' },
+    { id: 'motion', label: '스크롤·글자 모션' },
+    { id: 'interaction', label: 'FFF 인터랙션' },
+    { id: 'code', label: '코드' },
+    { id: 'browse', label: '둘러보기' },
+  ];
+
+  const SECTIONS = [
+    {
+      id: 'awards', cat: 'wedding', title: '해외 수상 청첩장',
+      desc: 'Awwwards에서 상을 받은 웨딩 사이트',
+      items: [
+        ['Susie & Jay: A Journey of Love', 'https://www.awwwards.com/sites/susie-jay-a-journey-of-love', '2026.6 Honorable Mention. 3D 모션, RSVP, 갤러리까지 갖춘 최신작', ['런칭'], true],
+        ['Danilo & Sharon', 'https://awwwards.com/sites/danilo-sharon', '2024 Honorable Mention 커플 청첩장', ['런칭']],
+        ['Just Married booth', 'https://www.awwwards.com/sites/just-married-booth', '영화 같은 스토리텔링과 GSAP 스크롤 연출', ['런칭']],
+        ['Wedding to Sardinia', 'https://www.awwwards.com/sites/wedding-to-sardinia', '2022 수상, 사르데냐 결혼식 사이트', ['런칭']],
+        ['Michelle & Tonye – Wedding Day', 'https://www.awwwards.com/sites/michelle-tonye-wedding-day', '2021 Honorable Mention', ['런칭']],
+        ['Colin & Dewi\'s wedding', 'https://www.awwwards.com/sites/colin-dewi-s-wedding', '참석 응답 후 확인·감사 메일이 자동 발송', ['런칭']],
+        ['MARRIED.GR', 'https://www.awwwards.com/sites/married-gr', '테마 8종짜리 청첩장 빌더', ['둘 다']],
+        ['Boutique Weddings', 'https://www.awwwards.com/sites/boutique-weddings-2', '2025 수상 웨딩 업체 사이트. 분위기 참고', ['런칭']],
+        ['Avagyan Wedding Photography', 'https://www.awwwards.com/sites/avagyan-wedding-photography', '2025~26 수상 웨딩 사진 사이트', ['런칭']],
+      ],
+    },
+    {
+      id: 'templates', cat: 'wedding', title: '인터랙션 청첩장 템플릿·제작 사례',
+      desc: 'Framer 템플릿과 프리랜서 제작물',
+      items: [
+        ['Together Vows (Framer)', 'https://www.framer.com/community/marketplace/templates/together-vows/', '봉투가 열리는 인터랙션 + RSVP 폼', ['봉투'], true],
+        ['Wedfully (Framer)', 'https://www.framer.com/marketplace/templates/wedfully/', '사진 등장, 스크롤 하트, 러브스토리 타임라인', ['봉투']],
+        ['Champagne (Framer)', 'https://www.framer.com/community/marketplace/templates/champagne/', '모던한 청첩장 템플릿', ['런칭']],
+        ['WeddCard (Framer)', 'https://www.framer.com/community/marketplace/templates/weddcard/', '모바일 우선 레이아웃', ['둘 다']],
+        ['시네마틱 청첩장 (Contra)', 'https://contra.com/p/ZUQZoRkX-interactive-cinematic-wedding-invitation-with-mouse-driven-ux', '마우스 움직임에 반응하는 연출. FFF 결에 가장 가까움', ['FFF'], true],
+        ['Interactive Wedding Hub (Contra)', 'https://contra.com/p/2erqoZqL-custom-interactive-wedding-hub-or', '맞춤 인터랙티브 웨딩 허브', ['런칭']],
+        ['Klára & Miroslav', 'https://contra.com/p/qqqEcAFM-klara-and-miroslav-wedding-website', '개인 청첩장 제작 사례', ['런칭']],
+        ['Jessica & Andrew', 'https://contra.com/p/BLU6vXrq-jessica-and-andrew-wedding-website', '개인 청첩장 제작 사례', ['런칭']],
+        ['The Vow Story', 'https://contra.com/p/sLm3vsUZ-the-vow-story-editorial-wedding-photography-website', '호버로 드러나는 사진, 드래그로 돌리는 캐러셀', ['FFF']],
+        ['Web Invites 포트폴리오 (Notion)', 'https://pareshbafna.notion.site/Portfolio-Web-Invites-323fa71653ca80f0b409fc78c745f944', '웹 청첩장 작업 모음', ['둘 다']],
+        ['Dribbble – Wedding Invitation Website', 'https://dribbble.com/Megham149', '청첩장 웹 UI 시안', ['둘 다']],
+        ['Geminus Studio (Dribbble)', 'https://dribbble.com/geminusstudio', '모바일 청첩장 UI', ['둘 다']],
+      ],
+    },
+    {
+      id: 'korea', cat: 'wedding', title: '국내 사례',
+      desc: '국내는 인터랙션에 공들인 사례가 드물어 차별화 여지가 큼',
+      items: [
+        ['스크롤 연출 모바일 청첩장 (크몽)', 'https://kmong.com/gig/822952', '패럴랙스로 영상처럼 보이는 청첩장', ['런칭']],
+        ['트렌디 감성 청첩장 (크몽)', 'https://kmong.com/gig/707956', '감성 디자인 청첩장', ['봉투']],
+        ['핀터레스트 무드 웨딩 디자인 (크몽)', 'https://kmong.com/gig/787863', '웨딩 포스터·청첩장', ['봉투']],
+        ['손그림 웨딩 일러스트 (크몽)', 'https://kmong.com/gig/817416', '사진을 손그림 일러스트로', ['봉투']],
+        ['모바일 청첩장 빌더 제작기 (velog)', 'https://velog.io/@byunghun-jake/side-project-invitation-card-builder', '정적 페이지로 성능을 챙긴 사이드 프로젝트', ['코드']],
+      ],
+    },
+    {
+      id: 'insta-posts', cat: 'instagram', title: '인스타그램 모바일 청첩장 게시물',
+      desc: '2026.11 직접 열어 본 게시물 중 모바일 청첩장만. 로그인 없이 계정당 최근 12개 정도만 확인',
+      items: [
+        ['웨딩피치 — 3번째 모바일 청첩장', 'https://www.instagram.com/wedding_peach_project/p/DXbc7TFkfK5/', '신랑·신부와 양가 부모님 손글씨로 만듦. 흑백 사진 + 분홍 하트 스티커, 하트 로켓 프레임, 우표 장식의 힙·키치 무드', ['에디토리얼'], true],
+        ['웨딩피치 — 2번째 모바일 청첩장', 'https://www.instagram.com/wedding_peach_project/reel/DRRe3rpklCb/', '빈티지 레이스 액자 + 필기체 "Save the Date". 영화 글귀로 인사말, 손글씨·손그림', ['에디토리얼'], true],
+        ['웨딩피치 — 청첩장 액자', 'https://www.instagram.com/wedding_peach_project/p/DTp3Rmmks-L/', '모바일 청첩장을 인쇄해 액자로. "링크는 사라져도 집에 걸어둔다"는 컨셉', ['에디토리얼']],
+        ['넛츠 — 모바일 청첩장 1탄 (2026.3)', 'https://www.instagram.com/nutscard/p/DWTYQHkEmSz/', '흑백 미니멀. 갤러리, 축하 메시지, 달력 카운트다운, 참석 여부 팝업, 영화 엔딩 같은 마무리', ['런칭'], true],
+        ['넛츠 — 모바일 청첩장 2탄 (2026.11)', 'https://www.instagram.com/nutscard/p/DfReF8CEjWG/', '봉투·스크랩북 감성. 처음 보내주신 영상의 원본', ['봉투'], true],
+        ['위드인마인 — 흑백 텍스트형 디자인', 'https://www.instagram.com/within_mine/p/DWYbE43CZsv/', '흑백 사진 + 깔끔한 텍스트에 필기체를 섞어 심심하지 않게', ['에디토리얼']],
+        ['위드인마인 × 투아워게스트 제휴', 'https://www.instagram.com/within_mine/reel/DWvfl1SibCi/', '종이 청첩장 주문 시 모바일 청첩장 무료 (2026.4~)', ['둘 다']],
+        ['보자기카드 — Love Bingo', 'https://www.instagram.com/bojagicard/p/DfQ1glQkxHo/', '빙고판에 두 사람 이름. 종이 청첩장이지만 놀이형 컨셉 참고', ['둘 다']],
+      ],
+    },
+    {
+      id: 'insta', cat: 'instagram', title: '인스타그램 국내 감성 청첩장 계정',
+      desc: '제작 업체 공식 계정. 피드로 무드와 레이아웃을 참고. 인스타 앱에서 여는 게 편함',
+      items: [
+        ['보자기카드 @bojagicard', 'https://www.instagram.com/bojagicard/', '청첩장·모바일청첩장·식전영상. 팔로워 약 1.5만', ['둘 다'], true],
+        ['아워포시즌 @our_4.season', 'https://www.instagram.com/our_4.season/', '디자이너 직접 제작 포토·모바일 청첩장', ['봉투'], true],
+        ['오프닝아워 @openingour', 'https://www.instagram.com/openingour/', '종이·모바일 청첩장 웨딩 디자인 스튜디오. 2025.6 종이 주문 중단', ['봉투']],
+        ['로즈레터 @rose__letter', 'https://www.instagram.com/rose__letter/', '로맨틱 무드 커스텀 청첩장', ['봉투']],
+        ['새봄 @saebomm_', 'https://www.instagram.com/saebomm_/', '사진 1장, 또는 사진 없이 만드는 카톡용 모바일 초대장 (2018~19 게시물)', ['둘 다']],
+        ['위드인마인 @within_mine', 'https://www.instagram.com/within_mine/', '종이 청첩장 + 투아워게스트 모바일 청첩장 제휴', ['에디토리얼']],
+        ['티케 레터 @tyche.letter', 'https://www.instagram.com/tyche.letter/', '청첩장·웨딩포스터·모바일청첩장, 하루 5팀 한정', ['봉투']],
+        ['로카이유 @rocaille.official', 'https://www.instagram.com/rocaille.official/', '청첩장·모바일청첩장 웨딩 브랜드', ['봉투']],
+        ['웨딩피치 @wedding_peach_project', 'https://www.instagram.com/wedding_peach_project/', '손글씨 모바일 청첩장·세로형 식전영상·청첩장 액자. 손글씨 계획과 가장 가까움', ['에디토리얼'], true],
+        ['모어빈 @morebinposter', 'https://www.instagram.com/morebinposter/', '커스텀 포스터·포토청첩장·모바일청첩장', ['런칭']],
+        ['셀레브레이션 @c.elebration', 'https://www.instagram.com/c.elebration/', '포토청첩장·모바일청첩장·식전영상', ['둘 다']],
+        ['마이디어 @studiomydear', 'https://www.instagram.com/studiomydear/', '커스텀 웨딩 청첩장 디자인', ['봉투']],
+        ['모노보 @monobo_illust', 'https://www.instagram.com/monobo_illust/', '웨딩·커플 일러스트 청첩장', ['봉투']],
+        ['스튜디오 유안 @studio_uan', 'https://www.instagram.com/studio_uan/', '실링왁스·청첩장 스티커. 봉투 소품 참고', ['봉투']],
+        ['왈츠디자인 @waltzletterpress', 'https://www.instagram.com/waltzletterpress/', '감성 레터프레스 청첩장. 종이 질감 참고', ['봉투']],
+      ],
+    },
+    {
+      id: 'repos', cat: 'code', title: '오픈소스 청첩장 코드',
+      desc: '색인 페이지로만 확인. 라이선스는 저장소에서 직접 확인',
+      items: [
+        ['MiryangJung/wedding-invitation', 'https://awesome.ecosyste.ms/projects/github.com%2Fmiryangjung%2Fwedding-invitation', 'Next.js + TypeScript + Spline 3D 모바일 청첩장', ['런칭'], true],
+        ['windragon0807/wedding-invitation', 'https://awesome.ecosyste.ms/projects/github.com%2Fwindragon0807%2Fwedding-invitation', 'React, 갤러리 캐러셀, 카카오맵, 공유', ['둘 다']],
+        ['uyu423/react-wedding-card', 'https://awesome.ecosyste.ms/projects/github.com%2Fuyu423%2Freact-wedding-card', 'React 청첩장', ['둘 다']],
+        ['myriky/wedinv', 'https://github.com/myriky/wedinv', '청첩장 프로젝트', ['둘 다']],
+        ['changsol/wedding-invitation', 'https://awesome.ecosyste.ms/projects/github.com%2Fchangsol%2Fwedding-invitation', '모바일 청첩장', ['둘 다']],
+      ],
+    },
+    {
+      id: 'text', cat: 'motion', title: '스크롤·글자 연출 데모',
+      desc: '문구와 사진 등장에 바로 쓸 수 있는 데모',
+      items: [
+        ['Blurry Text Reveal on Scroll', 'https://tympanus.net/codrops/?p=76992', '흐릿한 글자가 스크롤에 따라 또렷해짐. 미니멀 톤에 가장 잘 맞음', ['런칭'], true],
+        ['Staggered Text Scroll Reveal', 'https://freefrontend.com/code/staggered-text-scroll-reveal-2026-04-13/', '한 줄씩 시차를 두고 올라옴', ['런칭']],
+        ['Scroll-Driven Sticky Text Reveal', 'https://freefrontend.com/code/scroll-driven-sticky-text-reveal-2026-02-22/', '고정된 문장의 단어가 하나씩 강조됨', ['런칭']],
+        ['On-Scroll Letter Animations', 'https://tympanus.net/codrops/?p=52827', '글자 단위 등장 효과 모음', ['런칭']],
+        ['Dual Wave Text Animation', 'https://tympanus.net/codrops/hub/author/valentindescombes/', '물결처럼 흐르는 글자 (2026.1)', ['런칭']],
+        ['Kinetic Typography on Scroll', 'https://tympanus.net/codrops/?p=125579', '스크롤 타이포 연출 해설', ['런칭']],
+        ['Image Expansion Typography', 'https://www.github.com/codrops/ImageExpansionTypography', '글자 사이로 사진이 펼쳐짐. 히어로 응용', ['런칭']],
+        ['Interactive Particles Slideshow', 'https://tympanus.net/codrops/2013/07/03/interactive-particles-slideshow/', '입자가 모여 글자·모양으로 바뀜', ['FFF']],
+      ],
+    },
+    {
+      id: 'story', cat: 'motion', title: '스크롤 스토리텔링 제작기',
+      desc: '구조와 구현을 설명한 글',
+      items: [
+        ['Trionn 제작기 (Codrops)', 'https://tympanus.net/codrops/2026/07/15/the-architecture-behind-trionn-coordinating-gsap-three-js-lenis-and-web-audio/', 'GSAP·Three.js·Lenis·사운드를 맞춘 구조 (2026.7)', ['런칭']],
+        ['제품 런칭 마이크로사이트 제작기', 'https://www.hontran.dev/blog/product-launch-microsite-developer', '정한 시각에 자동 공개. 예식 당일 사진 공개에 응용', ['런칭']],
+        ['Apple식 스크롤 줌 튜토리얼', 'https://tech-blog-final-rho.vercel.app/articles/apple-scroll-zoom-effects-tutorial', '스크롤 확대 효과 구현', ['런칭']],
+        ['GSAP 시네마틱 스크롤 제작기', 'https://dev.to/jkimdd/how-i-built-a-cinematic-scroll-experience-with-gsap-and-scrolltrigger-11hj', 'ScrollTrigger 활용기', ['런칭']],
+        ['Joffrey Spitzer 포트폴리오', 'https://tympanus.net/codrops/2026/02/18/joffrey-spitzer-portfolio-a-minimalist-astro-gsap-build-with-reveals-flip-transitions-and-subtle-motion/', '미니멀한 등장·전환 모션 해설', ['런칭']],
+        ['Valentin Gassend', 'https://cssnectar.com/css-gallery-inspiration/valentin-gassend-creative-developer-portfolio/', '2026.5 Site of the Day. 키네틱 타이포', ['런칭']],
+      ],
+    },
+    {
+      id: 'fff', cat: 'interaction', title: 'FFF 결 인터랙션',
+      desc: '손가락으로 만지면 반응하는 단순한 형태와 움직임',
+      items: [
+        ['cmiscm (김종민)', 'https://blog.cmiscm.com/?p=1965', 'FFF(Form Follows Function) 원작자의 포트폴리오', ['FFF'], true],
+        ['cmiscm 한글 작업', 'https://blog.cmiscm.com/?cat=7', '한글을 다룬 인터랙티브 실험', ['FFF']],
+        ['Lovelymessages', 'https://experiments.withgoogle.com/lovelymessages', '쓴 메시지가 살아 있는 입자로', ['FFF']],
+        ['Particle Font', 'https://experiments.withgoogle.com/particle-font', '입자 100만 개 글자 (WebGL)', ['FFF']],
+        ['Rainbow Heart', 'https://experiments.withgoogle.com/rainbow-heart', '하트 인터랙션', ['FFF']],
+        ['Multitouch Toy', 'https://experiments.withgoogle.com/multitouch-toy', '여러 손가락 터치에 반응. 모바일에 적합', ['FFF']],
+        ['Text Gravity (Framer)', 'https://framer.com/marketplace/components/text-gravity/', '끌면 스프링처럼 돌아오는 글자. 이름에 적합', ['FFF']],
+        ['BouncyText (Framer)', 'https://www.framer.com/marketplace/components/bounce-text', '중력·충돌이 있는 글자', ['FFF']],
+        ['Falling Text (Framer)', 'https://www.framer.com/marketplace/components/falling-text-gravity/', '단어가 떨어져 쌓임', ['FFF']],
+      ],
+    },
+    {
+      id: 'galleries', cat: 'browse', title: '둘러보기 좋은 큐레이션',
+      desc: '미니멀하고 정교한 사이트 모음',
+      items: [
+        ['Minimal Gallery', 'https://minimal.gallery/', '2013년부터 매일 직접 큐레이션', ['둘 다']],
+        ['Siiimple', 'https://siiimple.com/', '2008년부터, 920여 개 사이트', ['둘 다']],
+        ['웹 영감 사이트 모음 (Craftwork)', 'https://craftwork.design/blog/best-website-inspiration-platforms-for-web-designers', 'Hoverstat.es, Doing Cool Stuff 등 모션 갤러리 소개', ['둘 다']],
+        ['미니멀 웹사이트 사례 모음', 'https://alvarotrigo.com/blog/minimal-website-design/', '미니멀 사이트 예시', ['둘 다']],
+        ['Awwwards "Not a portfolio, a presence"', 'https://www.awwwards.com/not-a-portfolio-a-presence.html', '필요할 때만 움직이는 애니메이션 철학', ['런칭']],
+        ['Webflow 청첩장 8선', 'https://www.plushcap.com/content/webflow/blog/webflow-8-stunning-wedding-website-examples-to-inspire-your-own', '청첩장 사례 모음', ['둘 다']],
+        ['청첩장 디자인 20선 (Hongkiat)', 'https://hongkiat.com/blog/wedding-invitation-designs', '청첩장 사례 모음', ['둘 다']],
+      ],
+    },
+  ];
+
+  const filtersEl = document.getElementById('filters');
+  const listEl = document.getElementById('list');
+
+  const readSaved = () => {
+    try {
+      return localStorage.getItem('ref-filter') || 'all';
+    } catch {
+      return 'all';
+    }
+  };
+
+  const saveFilter = (id) => {
+    try {
+      localStorage.setItem('ref-filter', id);
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  const escapeHtml = (text) => text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const renderList = (filterId) => {
+    const visible = SECTIONS.filter((s) => filterId === 'all' || s.cat === filterId);
+
+    if (visible.length === 0) {
+      listEl.innerHTML = '<p class="empty">해당 분류의 레퍼런스가 없습니다.</p>';
+
+      return;
+    }
+
+    listEl.innerHTML = visible.map((s) => `
+      <section aria-labelledby="h-${s.id}">
+        <h2 id="h-${s.id}">${escapeHtml(s.title)}</h2>
+        <p>${escapeHtml(s.desc)} · ${s.items.length}개</p>
+        <ol class="refs">
+          ${s.items.map(([title, url, note, tags, star]) => `
+            <li class="ref">
+              <a class="title" href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>
+              <p class="note">${escapeHtml(note)}</p>
+              <div class="meta">
+                ${star ? '<span class="tag star">추천</span>' : ''}
+                ${tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+                <span>${escapeHtml(new URL(url).hostname.replace(/^www\./, ''))}</span>
+              </div>
+            </li>`).join('')}
+        </ol>
+      </section>`).join('');
+  };
+
+  const renderFilters = (activeId) => {
+    filtersEl.innerHTML = FILTERS.map((f) =>
+      `<button type="button" class="chip" data-id="${f.id}" aria-pressed="${f.id === activeId}">${f.label}</button>`
+    ).join('');
+  };
+
+  const handleFilterClick = (event) => {
+    const button = event.target.closest('.chip');
+
+    if (!button) {
+      return;
+    }
+
+    const id = button.dataset.id;
+
+    saveFilter(id);
+    renderFilters(id);
+    renderList(id);
+  };
+
+  const initialFilter = FILTERS.some((f) => f.id === readSaved()) ? readSaved() : 'all';
+
+  filtersEl.addEventListener('click', handleFilterClick);
+  renderFilters(initialFilter);
+  renderList(initialFilter);
+</script>
