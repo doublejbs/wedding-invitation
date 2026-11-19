@@ -16,7 +16,7 @@ pstyle=part(photos,'style')
 pcss="\n  /* Photos: Cover Flow strip. */\n  .photos {"+pstyle.split("  .photos {",1)[1]
 pmain=re.search(r'<section class="photos".*?</section>',photos,re.S).group(0)
 pscript=re.search(r'<script>.*?</script>',photos,re.S).group(0)
-gcss="\n  /* Greeting: one photo in a white instant-photo frame, then the greeting in the cover's sans. */\n  :root {\n    --frame: #ffffff;\n  }\n\n  .greeting {"+gstyle.split("  .greeting {",1)[1]
+gcss="\n  /* Greeting: one photo in a white instant-photo frame, then the greeting in the cover's sans. */\n  :root {\n    --frame: #ffffff;\n    --pencil: #3a3a37;\n  }\n\n  .greeting {"+gstyle.split("  .greeting {",1)[1]
 head='''<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>진용·하림 청첩장</title>
