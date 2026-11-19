@@ -23,3 +23,7 @@ dist-share
 *.njsproj
 *.sln
 *.sw?
+
+# Deploy output (python3 scripts/BuildSite.py)
+site
+.vercel
