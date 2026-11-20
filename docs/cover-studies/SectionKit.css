@@ -26,7 +26,9 @@
 }
 
 body {
-  background: var(--paper);
+  /* Paper grain taken from the stamp paper (textures/paper.png: a seamless 400px tile shown at 200px,
+     so it stays fine on high-density screens). The flat colour shows until it loads. */
+  background: var(--paper) url("textures/paper.png") 0 0 / 200px 200px repeat;
   color: var(--ink);
   font-family: var(--korean);
 }
