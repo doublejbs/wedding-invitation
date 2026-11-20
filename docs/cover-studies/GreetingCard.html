@@ -5,129 +5,107 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Layout: in the cover's tone. A "word – crayon object – word" title on the center axis, one photo
-     inside a hand-drawn crayon border (flat, no shadow), then the greeting in the cover's sans.
-     Single look on purpose (a printed card), so no dark theme. */
-  :root {
-    color-scheme: light;
-    --paper: #fbfbf8;
-    --ink: #1f1f1d;
-    --pencil: #3a3a37;
-    --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
-    --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
-  }
+  /* Greeting: the one section on black (the user's request), no title. One postage stamp, the stamp paper
+     the user supplied with two colour photos set in it one above the other (the same two photos and framing as
+     the printed invitation cover: photo-12 on top, photo-04 below), then the greeting in paper-coloured type.
+     Every rule sits under .greeting so the black and the light type stay in this section of the merged page. */
 
-  body {
-    background: var(--paper);
-    color: var(--ink);
-  }
-
+  /* Full width black: the column stays 440px like every section (the padding grows on wide screens), but the
+     black runs edge to edge, so on a desktop it reads as a band across the paper page, not a black card.
+     Its top and bottom edges are plain straight cuts against the paper sections above and below. */
   .greeting {
-    box-sizing: border-box;
-    max-width: 440px;
-    margin: 0 auto;
-    padding-left: max(24px, env(safe-area-inset-left, 0px));
-    padding-right: max(24px, env(safe-area-inset-right, 0px));
-    padding-block: 48px 56px;
+    max-width: none;
+    padding-left: max(24px, env(safe-area-inset-left, 0px), calc(50% - 196px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px), calc(50% - 196px));
+    padding-block: 72px 80px;
+    background: #000;
+    color: var(--paper);
   }
 
-  /* Section title, built like the cover title: words hug a centered crayon object. */
-  .section-title {
-    margin: 0 0 28px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: 0.45em;
-    font-family: var(--latin), var(--korean);
-    font-weight: 500;
-    font-size: clamp(19px, 5.4vw, 23px);
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-
-  .section-title__left {
-    justify-self: end;
-  }
-
-  .section-title__right {
-    justify-self: start;
-  }
-
-  .section-title__glyph {
-    display: block;
-    width: 1.7em;
-    height: 1.3em;
-  }
-
-  /* The photo sits flat on the paper inside a wobbly crayon border. */
-  .print {
+  /* The stamp: about two fifths of the screen (160px at 390px). Sized by its aspect ratio before the images arrive.
+     textures/stamp-frame.png is 595 x 860, cropped to the paper (teeth included), transparent outside the cut. */
+  .greeting__stamp {
     position: relative;
-    margin: 0;
-    padding: 9px;
+    width: clamp(132px, 41vw, 180px);
+    aspect-ratio: 595 / 860;
+    margin: 0 auto;
   }
 
-  .print img {
+  .greeting__frame {
     display: block;
     width: 100%;
-    max-width: 100%;
-    aspect-ratio: 4 / 5;
+    height: 100%;
+  }
+
+  /* The photo window: 62px in from every edge of the 595 x 860 paper (the teeth reach 18-19px in, so about
+     43px of white paper, 7% of the width, shows past the deepest hole), split into two equal cells stacked one
+     above the other, as on the printed invitation cover: 471 x 361 each, with a 14px strip of paper (2.4% of the
+     width, much narrower than the outer margin) between them. Paper px: top cell y 62-423, bottom cell y 437-798.
+     All in %, so it holds at every size: top/height are % of the stamp's height, left/width % of its width. */
+  .greeting__cell {
+    position: absolute;
+    left: 10.420%;
+    display: block;
+    width: 79.160%;
+    height: 41.977%;
+    overflow: hidden;
+  }
+
+  .greeting__cell--top {
+    top: 7.209%;
+  }
+
+  .greeting__cell--bottom {
+    top: 50.814%;
+  }
+
+  /* Each photo (1600 x 1066) is cropped to the cover's framing: scaled by its width (% of the cell, so % of the
+     paper width) and shifted by left/top (% of the cell's width/height). Height follows the photo's own ratio.
+     The crop is 1.305:1, the cell's ratio, so the photo always fills the cell exactly. */
+  .greeting__photo {
+    position: absolute;
+    display: block;
+    max-width: none;
+    height: auto;
     object-fit: cover;
   }
 
-  .print__border {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    pointer-events: none;
+  /* photo-12, source x 520-1060, y 294-708: the groom's cheek against the laughing bride's, heads to collars,
+     a little backlit sky above. */
+  .greeting__cell--top .greeting__photo {
+    top: -71.033%;
+    left: -96.296%;
+    width: 296.296%;
   }
 
-  .print__border path {
-    fill: none;
-    stroke: var(--pencil);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
+  /* photo-04, source x 510-1090, y 430-874: side by side under the blue sky, heads to the bouquet, the bride
+     looking up at the groom. */
+  .greeting__cell--bottom .greeting__photo {
+    top: -96.729%;
+    left: -87.931%;
+    width: 275.862%;
   }
 
-  .note {
-    margin: 32px 0 0;
-    text-align: center;
-    font-family: var(--korean);
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 1.95;
-    letter-spacing: -0.01em;
-    word-break: keep-all;
+  .greeting__note {
+    margin-top: 52px;
+    color: var(--paper);
   }
 </style>
 
-<main class="greeting" aria-label="인사말">
-  <h2 class="section-title" aria-label="Greeting, 인사말">
-    <span class="section-title__left" aria-hidden="true">GREETING</span>
-    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
-      <!-- A crayon sprig: one stem, three leaves with pale midribs. -->
-      <path d="M8 31 C 16 26, 24 21, 40 6" fill="none" stroke="#5d7d4f" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M17 25 C 10 24, 5 19, 4 13 C 11 13, 16 18, 17 25 Z" fill="#2f7d4a"/>
-      <path d="M25 19 C 27 12, 33 8, 40 9 C 38 15, 32 19, 25 19 Z" fill="#7fb069"/>
-      <path d="M31 13 C 27 8, 27 3, 30 0.5 C 34 4, 34 9, 31 13 Z" fill="#4f9a3e"/>
-      <path d="M16 24 C 12 22, 8 18, 6 14 M26 18 C 30 15, 34 12, 38 10 M31 12 C 30 9, 30 5, 30 2" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.7"/>
-    </svg>
-    <span class="section-title__right" aria-hidden="true">인사말</span>
-  </h2>
+<section class="section greeting" data-tone="dark" aria-label="인사말">
+  <div class="greeting__stamp" data-stamp>
+    <img class="greeting__frame" src="textures/stamp-frame.png" width="595" height="860" loading="lazy" decoding="async" alt="">
+    <span class="greeting__cell greeting__cell--top">
+      <img class="greeting__photo" src="photos/photo-12.jpg" width="1600" height="1066" loading="lazy" decoding="async" alt="웃는 신부의 볼에 얼굴을 댄 신랑">
+    </span>
+    <span class="greeting__cell greeting__cell--bottom">
+      <img class="greeting__photo" src="photos/photo-04.jpg" width="1600" height="1066" loading="lazy" decoding="async" alt="나란히 서서 신랑을 올려다보는 신부">
+    </span>
+  </div>
 
-  <figure class="print">
-    <img src="photos/photo-06.jpg" alt="서로에게 기대어 웃는 진용과 하림">
-    <svg class="print__border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <!-- Two loose passes of a crayon line, slightly off each other, like a hand-drawn frame. -->
-      <path stroke-width="1.6" d="M0.6 0.9 L24 0.5 L51 0.8 L77 0.4 L99.4 0.7 L99.6 26 L99.3 52 L99.7 77 L99.4 99.3 L74 99.6 L48 99.2 L23 99.7 L0.5 99.4 L0.8 73 L0.4 48 L0.9 22 Z"/>
-      <path stroke-width="0.9" opacity="0.55" d="M1.2 0.3 L30 1 L58 0.5 L99 1.1 L100 34 L99.1 66 L99.9 98.8 L64 100 L33 99.1 L0.2 99.9 L1 65 L0.3 31 Z"/>
-    </svg>
-  </figure>
-
-  <p class="note">
+  <p class="prose greeting__note">
     겨울 끝자락에 만난 두 사람이<br>
     봄을 몇 번이나 함께 맞았습니다.<br>
     이제 서로의 계절이 되어<br>
@@ -135,4 +113,4 @@
     햇살 가득한 온실에서 내딛는<br>
     저희의 첫걸음을 지켜봐 주세요.
   </p>
-</main>
+</section>

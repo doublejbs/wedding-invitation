@@ -1,0 +1,292 @@
+/* SectionKit */
+/* Shared kit for every section after the cover (see docs/SectionsSpec.md, chapter 1).
+   One flat printed look on white stock: no shadows, no borders, no filled blocks.
+   Tappable words carry a crayon underline; a chosen word gets a crayon circle.
+   Single look on purpose (a printed card), so no dark theme. */
+:root {
+  color-scheme: light;
+  --paper: #fbfbf8;
+  --ink: #161616;
+  --soft: #4d4d4a;
+  --pencil: #3a3a37;
+  /* Read from the cover's crayon drawing: first green leaf, first red bloom, ring gold. */
+  --leaf: #2f7d4a;
+  --bloom: #d8433b;
+  --gold: #c9a24d;
+  --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+
+  /* Crayon marks as SVG backgrounds. Colors are literal (url() cannot read custom properties):
+     pencil #3a3a37, bloom #d8433b, ink #161616. Two loose passes, stretched to the box. */
+  --crayon-underline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%233a3a37' stroke-width='1.7' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%233a3a37' stroke-width='1' stroke-linecap='round' opacity='.55' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --crayon-underline-bloom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%23d8433b' stroke-width='2.2' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%23d8433b' stroke-width='1.2' stroke-linecap='round' opacity='.6' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --crayon-underline-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%23161616' stroke-width='2.3' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%23161616' stroke-width='1.2' stroke-linecap='round' opacity='.6' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  /* A loop that does not quite close: it overshoots into the top, like a circle drawn in one go. */
+  --crayon-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50' preserveAspectRatio='none'%3E%3Cpath d='M22 9C48 1 98 2 113 15C123 25 110 43 72 46C38 49 6 42 5 27C4 14 22 7 46 6.5C60 6 72 7 82 9.5' fill='none' stroke='%23d8433b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M30 6C70 2 112 8 115 24C117 38 88 47 58 46.5C26 46 8 37 9 24C10 13 30 6 54 5' fill='none' stroke='%23d8433b' stroke-width='1' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--korean);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Off screen but still read by screen readers (legends, labels, the copy announcement). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Section container: the cover's column, separated from its neighbours by space only. */
+.section {
+  box-sizing: border-box;
+  max-width: 440px;
+  margin: 0 auto;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  padding-block: 48px 56px;
+}
+
+/* Section title, built like the cover title: words hug a centered crayon object. */
+.section-title {
+  margin: 0 0 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.45em;
+  font-family: var(--latin), var(--korean);
+  font-weight: 500;
+  font-size: clamp(19px, 5.4vw, 23px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.section-title__left {
+  justify-self: end;
+}
+
+.section-title__right {
+  justify-self: start;
+}
+
+.section-title__glyph {
+  display: block;
+  width: 1.7em;
+  height: 1.3em;
+}
+
+/* A pair facing each other across the center axis, like the cover's date and place row. */
+.pair {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-between;
+  align-items: end;
+  column-gap: 16px;
+  word-break: keep-all;
+}
+
+.pair > :first-child {
+  justify-self: start;
+  text-align: left;
+}
+
+.pair > :last-child {
+  justify-self: end;
+  text-align: right;
+}
+
+/* Two type sizes only: the lead (the cover's date) and one step below it (the cover's time and place). */
+.lead {
+  margin: 0;
+  font-family: var(--latin), var(--korean);
+  font-weight: 500;
+  font-size: clamp(22px, 6.4vw, 26px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sub {
+  margin: 0;
+  font-family: var(--latin), var(--korean);
+  font-weight: 500;
+  font-size: clamp(18px, 5.2vw, 21px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+/* Body sentences, centered like the greeting. */
+.prose {
+  margin: 0;
+  text-align: center;
+  font-family: var(--korean);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.95;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--soft);
+}
+
+/* Tappable words (<a> or <button>): plain text with a crayon underline right under the letters.
+   The vertical padding makes a 44px target; the underline is positioned against the content box
+   so it hugs the text, not the bottom of the target. */
+.crayon-link,
+.crayon-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: 0;
+  padding: 11px 1px;
+  padding-block: max(8px, calc((44px - 1lh) / 2));
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background-color: transparent;
+  background-image: var(--crayon-underline);
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  background-clip: border-box;
+  background-size: 100% 7px;
+  background-position: left 0 bottom -6px;
+}
+
+.crayon-link:focus-visible,
+.crayon-toggle:focus-visible {
+  background-image: var(--crayon-underline-bloom);
+}
+
+/* A toggle word: underlined while folded, circled while open (same mark as a chosen .choice). */
+.crayon-toggle {
+  padding-inline: 14px;
+}
+
+.crayon-toggle[aria-expanded='true'] {
+  background-image: var(--crayon-circle);
+  background-origin: border-box;
+  background-size: 100% 100%;
+  background-position: center;
+}
+
+.crayon-toggle[aria-expanded='true']:focus-visible {
+  background-image: var(--crayon-circle), var(--crayon-underline-bloom);
+  background-origin: border-box, content-box;
+  background-size: 100% 100%, 100% 7px;
+  background-position: center, left 0 bottom -6px;
+}
+
+/* One option: <label class="choice"><input type="radio"><span class="choice__text">word</span></label>.
+   The radio stays in the accessibility tree and keyboard order, only visually hidden. */
+.choice {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* Unchosen words carry the pencil underline like a folded .crayon-toggle, so they read as tappable;
+   the chosen word trades it for the circle. Keyboard focus turns the underline red. */
+.choice__text {
+  display: inline-block;
+  padding: 7px 14px;
+  line-height: 1.5;
+  background-image: var(--crayon-underline);
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  background-size: 100% 7px;
+  background-position: left 0 bottom -5px;
+}
+
+.choice input:focus-visible + .choice__text {
+  background-image: var(--crayon-underline-bloom);
+}
+
+.choice input:checked + .choice__text {
+  background-image: var(--crayon-circle);
+  background-origin: padding-box;
+  background-size: 100% 100%;
+  background-position: center;
+}
+
+.choice input:checked:focus-visible + .choice__text {
+  background-image: var(--crayon-circle), var(--crayon-underline-bloom);
+  background-origin: padding-box, content-box;
+  background-size: 100% 100%, 100% 7px;
+  background-position: center, left 0 bottom -5px;
+}
+
+/* One-line input: no box, only a crayon line to write on. 16px or more keeps iOS from zooming. */
+.field {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 2px 12px;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: max(16px, 1em);
+  letter-spacing: inherit;
+  background-color: transparent;
+  background-image: var(--crayon-underline);
+  background-repeat: no-repeat;
+  background-size: 100% 7px;
+  background-position: left 0 bottom 3px;
+}
+
+.field::placeholder {
+  color: var(--soft);
+  opacity: 0.7;
+}
+
+.field:focus-visible {
+  background-image: var(--crayon-underline-ink);
+}
+
+.field[aria-invalid='true'] {
+  background-image: var(--crayon-underline-bloom);
+}

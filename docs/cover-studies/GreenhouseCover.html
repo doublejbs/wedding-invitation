@@ -8,13 +8,91 @@
 <style>
   /* Layout: one white sheet; a left-aligned sentence headline, a crayon greenhouse that fills with plants, big date numerals.
      Single look on purpose (a printed card on white stock), so no dark theme. */
+  /* Stand-ins while the web fonts load: system faces scaled to the widths and line metrics of Archivo 500 and
+     Noto Sans KR, so the cover's lines keep their length and place when the real fonts swap in. Each one only
+     applies where its system font exists (Helvetica Neue on iPhone and Mac, Roboto on Android, Apple SD Gothic Neo
+     on iPhone and Mac); browsers without size-adjust or the overrides simply get the plain system font as before. */
+  @font-face {
+    font-family: 'Archivo Fallback Helvetica';
+    src: local('Helvetica Neue Medium'), local('HelveticaNeue-Medium');
+    font-weight: 500;
+    size-adjust: 101.9%;
+    ascent-override: 86.4%;
+    descent-override: 20.6%;
+    line-gap-override: 0%;
+  }
+
+  /* The word space is much wider in the system faces than in Archivo, so it gets its own scale (a later face wins
+     for the characters in its unicode-range). */
+  @font-face {
+    font-family: 'Archivo Fallback Helvetica';
+    src: local('Helvetica Neue Medium'), local('HelveticaNeue-Medium');
+    font-weight: 500;
+    unicode-range: U+20;
+    size-adjust: 63.5%;
+    ascent-override: 138.6%;
+    descent-override: 33.1%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Archivo Fallback Roboto';
+    src: local('Roboto Medium'), local('Roboto-Medium');
+    font-weight: 500;
+    size-adjust: 104.3%;
+    ascent-override: 84.4%;
+    descent-override: 20.1%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Archivo Fallback Roboto';
+    src: local('Roboto Medium'), local('Roboto-Medium');
+    font-weight: 500;
+    unicode-range: U+20;
+    size-adjust: 70%;
+    ascent-override: 125.7%;
+    descent-override: 30%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Noto Sans KR Fallback';
+    src: local('Apple SD Gothic Neo Regular'), local('AppleSDGothicNeo-Regular');
+    font-weight: 400;
+    size-adjust: 106.4%;
+    ascent-override: 109%;
+    descent-override: 27.3%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Noto Sans KR Fallback';
+    src: local('Apple SD Gothic Neo Medium'), local('AppleSDGothicNeo-Medium');
+    font-weight: 500;
+    size-adjust: 106.4%;
+    ascent-override: 109%;
+    descent-override: 27.3%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Noto Sans KR Fallback';
+    src: local('Apple SD Gothic Neo Bold'), local('AppleSDGothicNeo-Bold');
+    font-weight: 700;
+    size-adjust: 106.4%;
+    ascent-override: 109%;
+    descent-override: 27.3%;
+    line-gap-override: 0%;
+  }
+
   :root {
     color-scheme: light;
     --paper: #fbfbf8;
     --ink: #161616;
     --soft: #4d4d4a;
-    --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
-    --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+    --latin: 'Archivo', 'Archivo Fallback Helvetica', 'Archivo Fallback Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --korean: 'Noto Sans KR', 'Noto Sans KR Fallback', 'Apple SD Gothic Neo', sans-serif;
   }
 
   html,
@@ -49,6 +127,19 @@
     height: 100%;
     pointer-events: none;
     z-index: 2;
+    /* Hidden until the greenhouse intro starts, then a soft fade in (data-weather="on", set by the weather script). */
+    opacity: 0;
+    transition: opacity 600ms ease-out;
+  }
+
+  .weather[data-weather="on"] {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .weather {
+      transition: none;
+    }
   }
 
   .card > .house {
@@ -625,12 +716,46 @@
     CONTEXT.restore();
   };
 
+  // Longest wait for the page's load event, counted from this script: a slow photo or font never holds the intro back for good.
+  const INTRO_LOAD_WAIT_MS = 3000;
+  // Longest wait for web fonts after the load event (they are nearly always in by then), still within the limit above.
+  const INTRO_FONT_WAIT_MS = 800;
+  // Fired on the greenhouse canvas the moment the intro leaves waiting, so the weather layer shows with it.
+  const INTRO_START_EVENT = 'introstart';
+  const introDeadline = performance.now() + INTRO_LOAD_WAIT_MS;
+  // Elapsed time far past the end of the intro: renders the finished picture in one frame.
+  const INTRO_FINISHED_MS = 1e6;
+
   let house = null;
   let plants = [];
   let startTime = 0;
+  // Elapsed time the next frame should show; the clock is anchored to that frame's timestamp.
+  let pendingElapsed = null;
   let frameId = 0;
+  let introState = '';
+
+  // The intro state is exposed on the canvas as data-intro: waiting -> playing -> done.
+  const setIntroState = (state) => {
+    if (introState === state) {
+      return;
+    }
+
+    const wasWaiting = introState === 'waiting';
+
+    introState = state;
+    CANVAS.dataset.intro = state;
+
+    if (wasWaiting) {
+      CANVAS.dispatchEvent(new CustomEvent(INTRO_START_EVENT));
+    }
+  };
 
   const render = (now) => {
+    if (pendingElapsed !== null) {
+      startTime = now - pendingElapsed;
+      pendingElapsed = null;
+    }
+
     const elapsed = now - startTime;
     const frameProgress = Math.min(elapsed / FRAME_MS, 1);
     let isDone = frameProgress >= 1;
@@ -657,6 +782,7 @@
     // The frame goes on top, so the plants read as seen through the glass.
     drawFrame(house, frameProgress);
 
+    setIntroState(isDone ? 'done' : 'playing');
     frameId = isDone ? 0 : requestAnimationFrame(render);
   };
 
@@ -674,11 +800,24 @@
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const play = (shouldAnimate) => {
+  // Draws from the given elapsed time on; the clock starts at the first frame actually painted, not at this call.
+  const playFrom = (elapsed) => {
     cancelAnimationFrame(frameId);
-    setUp();
-    startTime = performance.now() - (shouldAnimate && !prefersReducedMotion ? 0 : 1e6);
+
+    if (elapsed >= INTRO_FINISHED_MS || prefersReducedMotion) {
+      pendingElapsed = INTRO_FINISHED_MS;
+      render(performance.now());
+
+      return;
+    }
+
+    pendingElapsed = elapsed;
     frameId = requestAnimationFrame(render);
+  };
+
+  const play = (shouldAnimate) => {
+    setUp();
+    playFrom(shouldAnimate ? 0 : INTRO_FINISHED_MS);
   };
 
   let resizeTimer = 0;
@@ -862,11 +1001,39 @@
     CONTEXT = MAIN_CONTEXT;
   };
 
+  // Re-lays the greenhouse for a new canvas size without losing the intro's place.
+  const resizeIntro = () => {
+    if (introState === 'waiting') {
+      setUp();
+
+      return;
+    }
+
+    if (introState === 'playing') {
+      const elapsed = pendingElapsed !== null ? pendingElapsed : performance.now() - startTime;
+
+      setUp();
+      playFrom(elapsed);
+
+      return;
+    }
+
+    play(false);
+  };
+
   const handleResize = () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       drawGlyphs();
-      play(false);
+
+      // Mobile address bars fire resize without changing the canvas; only a real size change re-lays the picture.
+      const isSameSize = house && CANVAS.clientWidth === house.width && CANVAS.clientHeight === house.height;
+
+      if (isSameSize) {
+        return;
+      }
+
+      resizeIntro();
     }, 150);
   };
 
@@ -874,10 +1041,140 @@
     play(true);
   };
 
+  // Each wait below ends on its own: an event that always fires, a time limit, or an immediate fallback.
+  const waitForVisiblePage = (callback) => {
+    if (document.visibilityState !== 'hidden') {
+      callback();
+
+      return;
+    }
+
+    const handleIntroVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        return;
+      }
+
+      document.removeEventListener('visibilitychange', handleIntroVisibility);
+      callback();
+    };
+
+    document.addEventListener('visibilitychange', handleIntroVisibility);
+  };
+
+  const getIntroTimeLeft = () => {
+    return Math.max(0, introDeadline - performance.now());
+  };
+
+  // Photos, fonts and scripts are all in once the window has loaded; the deadline caps the wait.
+  const waitForLoadedPage = (callback) => {
+    let isFinished = false;
+
+    const finish = () => {
+      if (isFinished) {
+        return;
+      }
+
+      isFinished = true;
+      clearTimeout(loadTimer);
+      window.removeEventListener('load', finish);
+      callback();
+    };
+    const loadTimer = setTimeout(finish, getIntroTimeLeft());
+
+    if (document.readyState === 'complete') {
+      finish();
+
+      return;
+    }
+
+    window.addEventListener('load', finish);
+  };
+
+  const waitForFonts = (callback) => {
+    let isFinished = false;
+
+    const finish = () => {
+      if (isFinished) {
+        return;
+      }
+
+      isFinished = true;
+      clearTimeout(fontTimer);
+      callback();
+    };
+    const fontTimer = setTimeout(finish, Math.min(INTRO_FONT_WAIT_MS, getIntroTimeLeft()));
+
+    if (!document.fonts || !document.fonts.ready) {
+      finish();
+
+      return;
+    }
+
+    document.fonts.ready.then(finish, finish);
+  };
+
+  // Starts only while the cover is on screen, e.g. not when a reload restored a scrolled-down position.
+  const waitForCoverOnScreen = (callback) => {
+    if (!('IntersectionObserver' in window)) {
+      callback();
+
+      return;
+    }
+
+    try {
+      new IntersectionObserver((entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return;
+        }
+
+        observer.disconnect();
+        callback();
+      }).observe(CANVAS);
+    } catch {
+      callback();
+    }
+  };
+
+  const startIntro = () => {
+    // A replay tap may have started it already.
+    if (introState !== 'waiting') {
+      return;
+    }
+
+    try {
+      play(true);
+    } catch (error) {
+      setIntroState('done');
+      console.error(error);
+    }
+  };
+
   drawGlyphs();
-  play(true);
+  setUp();
+  setIntroState('waiting');
   window.addEventListener('resize', handleResize);
   CANVAS.addEventListener('click', handleReplay);
+
+  // Reduced motion: the finished picture, as soon as the page has loaded.
+  const showFinishedPicture = () => {
+    if (introState !== 'waiting') {
+      return;
+    }
+
+    play(false);
+  };
+
+  if (prefersReducedMotion) {
+    waitForLoadedPage(showFinishedPicture);
+  } else {
+    waitForVisiblePage(() => {
+      waitForLoadedPage(() => {
+        waitForFonts(() => {
+          waitForCoverOnScreen(startIntro);
+        });
+      });
+    });
+  }
 </script>
 
 <script>
@@ -889,9 +1186,16 @@
   const WEATHER_KINDS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'storm', 'night'];
   const WEATHER_REFRESH_MS = 30 * 60 * 1000;
 
+  // Nothing is drawn until the greenhouse intro starts (data-weather: waiting -> on); after this long it turns on by itself,
+  // so the weather still shows when the intro script is missing or failed.
+  const WEATHER_START_WAIT_MS = 3000;
+  const WEATHER_INTRO_EVENT = 'introstart';
+
   const weatherCanvas = document.getElementById('weather');
   const weatherContext = weatherCanvas.getContext('2d');
   const weatherReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let weatherState = '';
+  let weatherStartTimer = 0;
   let weatherKind = 'clear';
   let weatherParticles = [];
   let weatherFrame = 0;
@@ -899,6 +1203,38 @@
   let weatherFlash = 0;
   let weatherWidth = 0;
   let weatherHeight = 0;
+  let weatherLastTime = null;
+  let weatherMeteor = null;
+  let weatherMeteorWait = 0;
+
+  // All motion is in pixels (or radians) per second, scaled by the time since the last frame.
+  // A long gap (tab in the background, cover off screen) counts as one short step, so nothing jumps.
+  const WEATHER_MAX_STEP_S = 0.05;
+  const WEATHER_RAIN_SPEED = [330, 480];
+  const WEATHER_RAIN_DRIFT = -72;
+  const WEATHER_RAIN_SLANT = -2.6;
+  const WEATHER_SNOW_SPEED = [24, 54];
+  const WEATHER_SNOW_SWAY_RATE = 1.2;
+  const WEATHER_SNOW_SWAY_PX = 6;
+  const WEATHER_CLOUD_SPEED = [18, 30];
+  const WEATHER_CLOUD_BOB_RATE = 0.9;
+  const WEATHER_CLOUD_BOB_PX = 3;
+  const WEATHER_FOG_SPEED = [14, 24];
+  const WEATHER_FOG_BREATH_RATE = 0.8;
+  const WEATHER_FOG_DENSITY = [0.5, 0.85];
+  const WEATHER_MOTE_SPEED = [20, 36];
+  const WEATHER_MOTE_SWAY_RATE = 1.3;
+  const WEATHER_MOTE_SWAY_PX = 9;
+  const WEATHER_MOTE_TWINKLE_RATE = 1.6;
+  const WEATHER_STAR_SPEED = [6, 10];
+  const WEATHER_STAR_TWINKLE_RATE = [1.1, 1.9];
+  const WEATHER_METEOR_GAP_S = [4, 8];
+  const WEATHER_METEOR_LIFE_S = 0.7;
+  const WEATHER_METEOR_SPEED = 380;
+  const WEATHER_METEOR_TAIL_PX = 34;
+  // Storm: about one flash every four seconds on average, each fading out in under a third of a second.
+  const WEATHER_FLASH_RATE = 0.24;
+  const WEATHER_FLASH_FADE = 3.6;
 
   // WMO weather codes to the scenes the cover can draw.
   const kindFromCode = (code, isDay) => {
@@ -939,11 +1275,11 @@
     const y = isFresh ? random(-weatherHeight * 0.1, 0) : random(0, weatherHeight);
 
     if (kind === 'rain' || kind === 'storm') {
-      return { x: random(-20, weatherWidth + 20), y, length: random(10, 18), speed: random(5.5, 8), drift: -1.2 };
+      return { x: random(-20, weatherWidth + 20), y, length: random(10, 18), speed: random(...WEATHER_RAIN_SPEED) };
     }
 
     if (kind === 'snow') {
-      return { x: random(0, weatherWidth), y, radius: random(1.6, 3.6), speed: random(0.4, 0.9), sway: random(0, Math.PI * 2) };
+      return { x: random(0, weatherWidth), y, radius: random(1.6, 3.6), speed: random(...WEATHER_SNOW_SPEED), sway: random(0, Math.PI * 2) };
     }
 
     if (kind === 'cloudy' || kind === 'fog') {
@@ -953,22 +1289,99 @@
         x: random(-weatherWidth * 0.4, weatherWidth),
         y: band ? random(weatherHeight * 0.35, weatherHeight * 0.85) : random(weatherHeight * 0.3, weatherHeight * 0.5),
         size: band ? random(90, 150) : random(34, 56),
-        speed: random(0.12, 0.28),
+        speed: band ? random(...WEATHER_FOG_SPEED) : random(...WEATHER_CLOUD_SPEED),
+        phase: random(0, Math.PI * 2),
       };
     }
 
     if (kind === 'night') {
-      return { x: random(0, weatherWidth), y: random(weatherHeight * 0.26, weatherHeight * 0.5), radius: random(0.8, 1.8), phase: random(0, Math.PI * 2) };
+      // Smaller stars drift a little slower, so the sky reads as having some depth.
+      const radius = random(0.8, 1.9);
+      const depth = (radius - 0.8) / 1.1;
+
+      return {
+        x: random(0, weatherWidth),
+        y: random(weatherHeight * 0.26, weatherHeight * 0.5),
+        radius,
+        speed: WEATHER_STAR_SPEED[0] + depth * (WEATHER_STAR_SPEED[1] - WEATHER_STAR_SPEED[0]),
+        twinkle: random(...WEATHER_STAR_TWINKLE_RATE),
+        phase: random(0, Math.PI * 2),
+      };
     }
 
     // Clear day: warm light motes drifting up through the glass.
-    return { x: random(0, weatherWidth), y: isFresh ? weatherHeight * 0.9 : random(weatherHeight * 0.3, weatherHeight * 0.9), radius: random(1.2, 2.6), speed: random(0.15, 0.35), phase: random(0, Math.PI * 2) };
+    return {
+      x: random(0, weatherWidth),
+      y: isFresh ? weatherHeight * 0.9 : random(weatherHeight * 0.3, weatherHeight * 0.9),
+      radius: random(1.2, 2.6),
+      speed: random(...WEATHER_MOTE_SPEED),
+      sway: random(0, Math.PI * 2),
+      phase: random(0, Math.PI * 2),
+    };
+  };
+
+  // Night: a thin, short shooting star now and then, sliding down and to the left across the upper sky.
+  const makeWeatherMeteor = () => {
+    const angle = random(Math.PI * 0.8, Math.PI * 0.87);
+
+    return {
+      x: random(weatherWidth * 0.45, weatherWidth * 0.95),
+      y: random(weatherHeight * 0.25, weatherHeight * 0.34),
+      dx: Math.cos(angle),
+      dy: Math.sin(angle),
+      age: 0,
+    };
+  };
+
+  const drawWeatherMeteor = (meteor) => {
+    const fade = Math.sin(Math.PI * Math.min(meteor.age / WEATHER_METEOR_LIFE_S, 1));
+    const tailX = meteor.x - meteor.dx * WEATHER_METEOR_TAIL_PX;
+    const tailY = meteor.y - meteor.dy * WEATHER_METEOR_TAIL_PX;
+    const gradient = weatherContext.createLinearGradient(tailX, tailY, meteor.x, meteor.y);
+
+    gradient.addColorStop(0, 'rgba(214, 178, 90, 0)');
+    gradient.addColorStop(1, `rgba(214, 178, 90, ${0.9 * fade})`);
+    weatherContext.strokeStyle = gradient;
+    weatherContext.lineWidth = 1.2;
+    weatherContext.lineCap = 'round';
+    weatherContext.beginPath();
+    weatherContext.moveTo(tailX, tailY);
+    weatherContext.lineTo(meteor.x, meteor.y);
+    weatherContext.stroke();
+  };
+
+  const stepWeatherMeteor = (dt) => {
+    if (!weatherMeteor) {
+      weatherMeteorWait -= dt;
+
+      if (weatherMeteorWait <= 0 && dt > 0) {
+        weatherMeteor = makeWeatherMeteor();
+      }
+
+      return;
+    }
+
+    weatherMeteor.age += dt;
+    weatherMeteor.x += weatherMeteor.dx * WEATHER_METEOR_SPEED * dt;
+    weatherMeteor.y += weatherMeteor.dy * WEATHER_METEOR_SPEED * dt;
+
+    if (weatherMeteor.age >= WEATHER_METEOR_LIFE_S) {
+      weatherMeteor = null;
+      weatherMeteorWait = random(...WEATHER_METEOR_GAP_S);
+
+      return;
+    }
+
+    drawWeatherMeteor(weatherMeteor);
   };
 
   const PARTICLE_COUNTS = { clear: 26, cloudy: 4, rain: 70, storm: 90, snow: 55, fog: 5, night: 30 };
 
   const resetParticles = () => {
     weatherParticles = Array.from({ length: PARTICLE_COUNTS[weatherKind] }, () => makeParticle(weatherKind, false));
+    weatherMeteor = null;
+    weatherMeteorWait = random(WEATHER_METEOR_GAP_S[0] * 0.5, WEATHER_METEOR_GAP_S[1] * 0.5);
+    weatherFlash = 0;
   };
 
   const drawCloud = (x, y, size, alpha) => {
@@ -987,24 +1400,25 @@
     weatherContext.restore();
   };
 
-  const stepWeather = (time) => {
+  // Draws one frame, moving everything by dt seconds (0 draws the scene where it stands).
+  const stepWeather = (dt) => {
     weatherContext.clearRect(0, 0, weatherWidth, weatherHeight);
 
     weatherParticles.forEach((particle, index) => {
       if (weatherKind === 'rain' || weatherKind === 'storm') {
-        particle.y += particle.speed;
-        particle.x += particle.drift;
+        particle.y += particle.speed * dt;
+        particle.x += WEATHER_RAIN_DRIFT * dt;
         weatherContext.strokeStyle = 'rgba(96, 128, 150, 0.55)';
         weatherContext.lineWidth = 1.3;
         weatherContext.lineCap = 'round';
         weatherContext.beginPath();
         weatherContext.moveTo(particle.x, particle.y);
-        weatherContext.lineTo(particle.x + particle.drift * 2.2, particle.y + particle.length);
+        weatherContext.lineTo(particle.x + WEATHER_RAIN_SLANT, particle.y + particle.length);
         weatherContext.stroke();
       } else if (weatherKind === 'snow') {
-        particle.y += particle.speed;
-        particle.sway += 0.02;
-        const x = particle.x + Math.sin(particle.sway) * 6;
+        particle.y += particle.speed * dt;
+        particle.sway += WEATHER_SNOW_SWAY_RATE * dt;
+        const x = particle.x + Math.sin(particle.sway) * WEATHER_SNOW_SWAY_PX;
         weatherContext.fillStyle = '#ffffff';
         weatherContext.strokeStyle = 'rgba(150, 160, 165, 0.7)';
         weatherContext.lineWidth = 0.8;
@@ -1013,67 +1427,99 @@
         weatherContext.fill();
         weatherContext.stroke();
       } else if (weatherKind === 'cloudy') {
-        particle.x += particle.speed;
-        drawCloud(particle.x, particle.y, particle.size, 0.85);
+        particle.x += particle.speed * dt;
+        particle.phase += WEATHER_CLOUD_BOB_RATE * dt;
+        drawCloud(particle.x, particle.y + Math.sin(particle.phase) * WEATHER_CLOUD_BOB_PX, particle.size, 0.85);
       } else if (weatherKind === 'fog') {
-        particle.x += particle.speed;
+        particle.x += particle.speed * dt;
+        particle.phase += WEATHER_FOG_BREATH_RATE * dt;
+        // Each band thickens and thins slowly, out of step with the others.
+        const density = WEATHER_FOG_DENSITY[0] + (WEATHER_FOG_DENSITY[1] - WEATHER_FOG_DENSITY[0]) * (0.5 + 0.5 * Math.sin(particle.phase));
         const gradient = weatherContext.createLinearGradient(particle.x, 0, particle.x + particle.size * 2.4, 0);
         gradient.addColorStop(0, 'rgba(236, 238, 238, 0)');
-        gradient.addColorStop(0.5, 'rgba(236, 238, 238, 0.75)');
+        gradient.addColorStop(0.5, `rgba(236, 238, 238, ${density})`);
         gradient.addColorStop(1, 'rgba(236, 238, 238, 0)');
         weatherContext.fillStyle = gradient;
         weatherContext.fillRect(particle.x, particle.y, particle.size * 2.4, particle.size * 0.32);
       } else if (weatherKind === 'night') {
-        const glow = 0.45 + 0.55 * Math.abs(Math.sin(time / 900 + particle.phase));
-        weatherContext.fillStyle = `rgba(214, 178, 90, ${glow})`;
+        particle.x += particle.speed * dt;
+        particle.phase += particle.twinkle * dt;
+
+        // Stars that slide off the right edge come back in on the left.
+        if (particle.x > weatherWidth + 4) {
+          particle.x -= weatherWidth + 8;
+        }
+
+        const shine = 0.5 + 0.5 * Math.sin(particle.phase);
+        weatherContext.fillStyle = `rgba(214, 178, 90, ${0.25 + 0.75 * shine})`;
         weatherContext.beginPath();
-        weatherContext.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        weatherContext.arc(particle.x, particle.y, particle.radius * (0.65 + 0.6 * shine), 0, Math.PI * 2);
         weatherContext.fill();
       } else {
-        particle.y -= particle.speed;
-        particle.x += Math.sin(time / 1400 + particle.phase) * 0.15;
-        const glow = 0.35 + 0.4 * Math.abs(Math.sin(time / 1100 + particle.phase));
-        weatherContext.fillStyle = `rgba(232, 190, 80, ${glow})`;
+        particle.y -= particle.speed * dt;
+        particle.sway += WEATHER_MOTE_SWAY_RATE * dt;
+        particle.phase += WEATHER_MOTE_TWINKLE_RATE * dt;
+        const shine = Math.abs(Math.sin(particle.phase));
+        weatherContext.fillStyle = `rgba(232, 190, 80, ${0.3 + 0.5 * shine})`;
         weatherContext.beginPath();
-        weatherContext.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        weatherContext.arc(particle.x + Math.sin(particle.sway) * WEATHER_MOTE_SWAY_PX, particle.y, particle.radius * (0.8 + 0.35 * shine), 0, Math.PI * 2);
         weatherContext.fill();
       }
 
-      // Recycle particles that left the scene.
-      const isGone = particle.y > weatherHeight + 20 || particle.x > weatherWidth + 220 || (weatherKind === 'clear' && particle.y < weatherHeight * 0.25);
+      // Recycle particles that left the scene; clouds and fog bands come back as soon as they clear the right edge.
+      const isDrifting = weatherKind === 'cloudy' || weatherKind === 'fog';
+      const isGone = particle.y > weatherHeight + 20 || (isDrifting && particle.x - particle.size * 0.5 > weatherWidth) || (weatherKind === 'clear' && particle.y < weatherHeight * 0.25);
 
       if (isGone) {
         weatherParticles[index] = makeParticle(weatherKind, true);
 
-        if (weatherKind === 'cloudy' || weatherKind === 'fog') {
+        if (isDrifting) {
           weatherParticles[index].x = -weatherParticles[index].size * 2.4;
         }
       }
     });
 
+    if (weatherKind === 'night') {
+      stepWeatherMeteor(dt);
+    }
+
     // Storm: a soft, rare flash of light.
     if (weatherKind === 'storm') {
-      if (weatherFlash <= 0 && Math.random() < 0.004) {
+      if (weatherFlash <= 0 && Math.random() < 1 - Math.exp(-WEATHER_FLASH_RATE * dt)) {
         weatherFlash = 1;
       }
 
       if (weatherFlash > 0) {
         weatherContext.fillStyle = `rgba(255, 255, 245, ${weatherFlash * 0.45})`;
         weatherContext.fillRect(0, 0, weatherWidth, weatherHeight);
-        weatherFlash -= 0.06;
+        weatherFlash -= WEATHER_FLASH_FADE * dt;
       }
     }
   };
 
   const loopWeather = (time) => {
-    stepWeather(time);
+    const dt = weatherLastTime === null ? 0 : Math.min(Math.max(time - weatherLastTime, 0) / 1000, WEATHER_MAX_STEP_S);
+
+    weatherLastTime = time;
+    stepWeather(dt);
     weatherFrame = weatherVisible && !weatherReducedMotion ? requestAnimationFrame(loopWeather) : 0;
+
+    if (!weatherFrame) {
+      weatherLastTime = null;
+    }
   };
 
   const startWeather = (kind) => {
     weatherKind = kind;
     cancelAnimationFrame(weatherFrame);
+    weatherFrame = 0;
+    weatherLastTime = null;
     resetParticles();
+
+    // While waiting, only the scene is chosen; it is drawn once the weather turns on.
+    if (weatherState !== 'on') {
+      return;
+    }
 
     if (weatherReducedMotion) {
       stepWeather(0);
@@ -1131,13 +1577,83 @@
     refreshWeather();
   };
 
+  // The mobile address bar folding away changes only the height: keep the scene going and
+  // move every particle in proportion to the new size instead of scattering a fresh set.
   const handleWeatherResize = () => {
+    const width = weatherCanvas.clientWidth;
+    const height = weatherCanvas.clientHeight;
+
+    if (width === weatherWidth && height === weatherHeight) {
+      return;
+    }
+
+    const scaleX = weatherWidth > 0 ? width / weatherWidth : 1;
+    const scaleY = weatherHeight > 0 ? height / weatherHeight : 1;
+    const wasEmpty = weatherWidth === 0 || weatherHeight === 0;
+
     sizeWeather();
-    resetParticles();
+
+    if (wasEmpty) {
+      resetParticles();
+    } else {
+      weatherParticles.forEach((particle) => {
+        particle.x *= scaleX;
+        particle.y *= scaleY;
+      });
+
+      if (weatherMeteor) {
+        weatherMeteor.x *= scaleX;
+        weatherMeteor.y *= scaleY;
+      }
+    }
+
+    // Resizing clears the canvas; the still picture has no next frame to repaint it.
+    if (weatherState === 'on' && !weatherFrame) {
+      stepWeather(0);
+    }
   };
 
+  const setWeatherState = (state) => {
+    weatherState = state;
+    weatherCanvas.dataset.weather = state;
+  };
+
+  // The canvas fades in through CSS (opacity on data-weather="on") while the scene starts moving.
+  const showWeather = () => {
+    if (weatherState === 'on') {
+      return;
+    }
+
+    clearTimeout(weatherStartTimer);
+    setWeatherState('on');
+    startWeather(weatherKind);
+  };
+
+  const handleWeatherIntroStart = () => {
+    showWeather();
+  };
+
+  const waitForGreenhouseIntro = () => {
+    const greenhouse = document.getElementById('greenhouse');
+    const greenhouseState = greenhouse ? greenhouse.dataset.intro : '';
+
+    if (greenhouseState === 'playing' || greenhouseState === 'done') {
+      showWeather();
+
+      return;
+    }
+
+    weatherStartTimer = setTimeout(showWeather, WEATHER_START_WAIT_MS);
+
+    if (greenhouse) {
+      greenhouse.addEventListener(WEATHER_INTRO_EVENT, handleWeatherIntroStart, { once: true });
+    }
+  };
+
+  setWeatherState('waiting');
   sizeWeather();
   startWeather(kindFromHash() ?? 'clear');
+  waitForGreenhouseIntro();
   refreshWeather();
   setInterval(refreshWeather, WEATHER_REFRESH_MS);
   window.addEventListener('hashchange', handleWeatherHash);
@@ -1148,7 +1664,7 @@
     new IntersectionObserver(([entry]) => {
       weatherVisible = entry.isIntersecting;
 
-      if (weatherVisible && !weatherFrame && !weatherReducedMotion) {
+      if (weatherState === 'on' && weatherVisible && !weatherFrame && !weatherReducedMotion) {
         weatherFrame = requestAnimationFrame(loopWeather);
       }
     }).observe(weatherCanvas);

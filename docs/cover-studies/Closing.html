@@ -1,0 +1,199 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>진용·하림 마무리</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="SectionKit.css">
+<style>
+  /* Closing: the last sheet. THANK 💍 YOU answers the rings in the cover's name row (Seo Jinyong 💍 Jang Harim),
+     then one short sentence and a pair of share words. Nothing after that but paper. */
+
+  /* The last page ends on generous empty paper, clear of the home indicator. */
+  .closing {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* The title sits between the cover title and the other section titles in size,
+     so the first and last pages read as a pair. */
+  .closing .section-title {
+    margin-bottom: 32px;
+    font-size: clamp(20px, 6.2vw, 27px);
+  }
+
+  /* The rings wrap: an SVG redraw of the cover's canvas rings, plus the cover's two glints. */
+  .closing__ring {
+    position: relative;
+    display: block;
+    width: 1.7em;
+    height: 1.3em;
+  }
+
+  .closing__ring .section-title__glyph {
+    width: 100%;
+    height: 100%;
+  }
+
+  .closing__spark {
+    position: absolute;
+    left: 30%;
+    top: 4%;
+    width: 0.57em;
+    height: 0.57em;
+    /* Same gold glint as the cover's, with a bright core so it shows on the white paper. */
+    background: radial-gradient(circle, #fffbe6 0 14%, #f3cf62 30%, #d4a23a 52%, rgba(212, 162, 58, 0) 74%);
+    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .closing__spark--small {
+    left: 74%;
+    top: 34%;
+    width: 0.39em;
+    height: 0.39em;
+    opacity: 0.75;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .closing__spark {
+      animation: closing-twinkle 2.6s ease-in-out infinite;
+    }
+
+    /* A negative delay starts it mid-cycle, so it never sits visible before its first twinkle. */
+    .closing__spark--small {
+      animation-delay: -1.3s;
+    }
+  }
+
+  @keyframes closing-twinkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0.3) rotate(0deg);
+    }
+
+    45% {
+      opacity: 1;
+      transform: scale(1) rotate(25deg);
+    }
+
+    70% {
+      opacity: 0;
+      transform: scale(0.5) rotate(45deg);
+    }
+  }
+
+  /* Share words face each other, pulled in from the edges like the greeting's signature row.
+     The inset shrinks on narrow screens and the words never wrap, so 청첩장 보내기 stays on one line at 320px. */
+  .closing__share {
+    margin-top: 40px;
+    padding-inline: clamp(0px, 12%, 80px);
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+
+  .closing__share > .crayon-link {
+    white-space: nowrap;
+  }
+
+  /* Without the system share sheet only the copy word is left; it moves to the center axis. */
+  .closing__share--solo {
+    justify-content: center;
+  }
+
+  .closing__share--solo > :last-child {
+    justify-self: center;
+  }
+</style>
+
+<section class="section closing" aria-label="마무리">
+  <h2 class="section-title" aria-label="Thank you">
+    <span class="section-title__left" aria-hidden="true">THANK</span>
+    <span class="closing__ring" aria-hidden="true">
+      <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+        <!-- The cover's rings (drawRings at 48x36): two gold rings, the right one drawn over the left,
+             each a slightly uneven loop with a pale crayon pass; a pale blue stone on top of the left ring. -->
+        <path d="M27.9 21.4 C 27.8 26.6, 23.4 30.6, 18.3 30.5 C 13.1 30.4, 8.6 26.3, 8.5 21.5 C 8.6 16.3, 13.2 12.6, 18.2 12.7 C 23.3 12.8, 28 16.4, 27.9 21.4 Z" fill="none" stroke="#c9a24d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M39.5 21.7 C 39.4 26.7, 35 30.7, 29.8 30.6 C 24.7 30.5, 20 26.5, 20 21.6 C 20.1 16.5, 24.6 12.7, 29.7 12.8 C 34.9 12.9, 39.6 16.6, 39.5 21.7 Z" fill="none" stroke="#c9a24d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 17.4 C 12.6 15, 15.3 13.8, 18 13.9 M37.8 19 C 36.9 16.2, 34 14.2, 30.6 14 M10.2 24.6 C 11.6 27.4, 14.6 29.2, 17.6 29.3" fill="none" stroke="#e8c65a" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+        <path d="M18.2 5.6 L 21.5 9.8 L 18.3 12.7 L 14.9 9.7 Z" fill="#cfe3ee" stroke="#8fb2c4" stroke-width="0.8" stroke-linejoin="round"/>
+        <path d="M17 8.6 L 18.4 7.2 M18.9 10.6 L 19.9 9.6" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="0.7" stroke-linecap="round"/>
+      </svg>
+      <span class="closing__spark"></span>
+      <span class="closing__spark closing__spark--small"></span>
+    </span>
+    <span class="section-title__right" aria-hidden="true">YOU</span>
+  </h2>
+
+  <!-- Draft wording: the closing sentence is not confirmed yet. -->
+  <p class="prose">
+    귀한 걸음으로 함께해 주시는<br>
+    모든 분께 고맙습니다.<br>
+    오래도록 다정하게 살겠습니다.
+  </p>
+
+  <div class="pair closing__share">
+    <button class="crayon-link" type="button" data-share>청첩장 보내기</button>
+    <button class="crayon-link" type="button" data-copy-url>주소 복사</button>
+  </div>
+</section>
+
+<script src="SectionKit.js"></script>
+<script>
+  // Share: opens the system share sheet with the invitation's title, date and address.
+  // Copying the address is handled by SectionKit.js (data-copy-url).
+  (() => {
+    const SHARE_TITLE = '서진용 · 장하림 결혼합니다';
+    const SHARE_TEXT = '2027년 3월 6일 토요일 오후 5시, 식물관PH';
+    const shareButton = document.querySelector('.closing button[data-share]');
+    const shareRow = document.querySelector('.closing .closing__share');
+
+    if (!shareButton) {
+      return;
+    }
+
+    // No share sheet (most desktop browsers): keep the button in the DOM but hidden, copy word centered.
+    if (typeof navigator.share !== 'function') {
+      shareButton.hidden = true;
+
+      if (shareRow) {
+        shareRow.classList.add('closing__share--solo');
+      }
+
+      return;
+    }
+
+    // Closing the sheet rejects with AbortError, and a second tap while it is open with InvalidStateError;
+    // neither is a failure worth showing.
+    const QUIET_ERRORS = ['AbortError', 'InvalidStateError'];
+    let isSharing = false;
+
+    const handleShareClick = async () => {
+      if (isSharing) {
+        return;
+      }
+
+      isSharing = true;
+
+      try {
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: window.location.href });
+      } catch (error) {
+        if (error && QUIET_ERRORS.includes(error.name)) {
+          return;
+        }
+
+        // Any other refusal: fall back to copying the address, which shows its own feedback.
+        const copyButton = document.querySelector('.closing button[data-copy-url]');
+
+        if (copyButton) {
+          copyButton.click();
+        }
+      } finally {
+        isSharing = false;
+      }
+    };
+
+    shareButton.addEventListener('click', handleShareClick);
+  })();
+</script>

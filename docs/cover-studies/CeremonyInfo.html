@@ -1,0 +1,187 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>진용·하림 예식 안내</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="SectionKit.css">
+<style>
+  /* Ceremony: in the cover's tone (tokens, container, title, pair and type sizes come from SectionKit.css).
+     Three blocks with the cover's breathing room between them: the families facing each other like the
+     cover's name row, the day facing its countdown like the cover's date row, then two or three sentences. */
+
+  /* Families: pulled in from the edges by the same amount on both sides, like the cover's names
+     hugging the rings. Bottom-aligned so the two names sit on one line. */
+  .ceremony__families {
+    padding-inline: clamp(0px, 5%, 20px);
+  }
+
+  .ceremony__family {
+    display: grid;
+    row-gap: 6px;
+  }
+
+  /* Parents' names are the quiet line; the couple's names are what the eye should land on.
+     Every part of the line keeps the same weight (500): only size and the soft color set them apart. */
+  .ceremony__parents {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--soft);
+    letter-spacing: 0;
+  }
+
+  .ceremony__relation {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--soft);
+    letter-spacing: -0.01em;
+  }
+
+  .ceremony__name {
+    margin-left: 0.3em;
+    font-size: clamp(18px, 5.2vw, 21px);
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  /* Date row: the countdown leads on the left like the cover's 2027 / 03.06, the day reads on the right.
+     The day keeps its right column even before the script runs, so the row never jumps sideways. */
+  .ceremony__date {
+    margin-top: 52px;
+  }
+
+  .ceremony__date > .sub {
+    grid-column: 2;
+  }
+
+  .ceremony__date .sub span {
+    display: block;
+  }
+
+  /* With no countdown (no script, or the day has passed) the day stands alone, so it moves to the center
+     instead of leaving an empty left half. */
+  .ceremony__date:has(> [data-dday-row][hidden]) {
+    grid-template-columns: auto;
+    justify-content: center;
+  }
+
+  .ceremony__date:has(> [data-dday-row][hidden]) > .sub {
+    grid-column: 1;
+    justify-self: center;
+    text-align: center;
+  }
+
+  .ceremony .prose {
+    margin-top: 48px;
+  }
+</style>
+
+<section class="section ceremony" aria-label="예식 안내">
+  <h2 class="section-title" aria-label="Ceremony, 예식 안내">
+    <span class="section-title__left" aria-hidden="true">CEREMONY</span>
+    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+      <!-- One red bloom from the cover's aisle: a short stem with one leaf, deep petals behind,
+           poppy-red petals in front with pale streaks, and a gold heart like the cover's drawBloom. -->
+      <path d="M24.5 19 C 23.6 24, 24.8 29, 23.4 35" fill="none" stroke="#4f9a3e" stroke-width="1.9" stroke-linecap="round"/>
+      <path d="M24.1 29 C 28 25.6, 33.5 25, 37 27.4 C 33.6 31.2, 28 31.6, 24.1 29 Z" fill="#2f7d4a"/>
+      <path d="M25.5 29 C 29 27.8, 32.5 27.6, 35.5 27.7" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.7"/>
+      <g transform="translate(24 13.2)">
+        <path d="M0 0 C -5 -2, -5.6 -8.6, -0.4 -10.2 C 5 -9.4, 5.4 -2.6, 0 0 Z" fill="#b02a33" transform="rotate(36)"/>
+        <path d="M0 0 C -5.2 -2.4, -5.2 -8.8, 0.3 -10 C 5.2 -8.8, 4.8 -2, 0 0 Z" fill="#b02a33" transform="rotate(110)"/>
+        <path d="M0 0 C -4.8 -2, -5.4 -9, 0 -9.8 C 5.4 -9.2, 5 -2.4, 0 0 Z" fill="#b02a33" transform="rotate(181)"/>
+        <path d="M0 0 C -5 -2.2, -5 -8.4, -0.2 -10.1 C 5 -9, 5.2 -2.2, 0 0 Z" fill="#b02a33" transform="rotate(254)"/>
+        <path d="M0 0 C -5.4 -2, -5.2 -9.2, 0.2 -9.9 C 5 -8.8, 5.2 -2.4, 0 0 Z" fill="#b02a33" transform="rotate(326)"/>
+        <path d="M0 0 C -6 -2.4, -6.4 -10.2, -0.2 -11.4 C 6.2 -10.6, 6 -2.2, 0 0 Z" fill="#d8433b" transform="rotate(-4)"/>
+        <path d="M0 0 C -6.2 -2, -6 -10.6, 0.4 -11 C 6.4 -10, 5.8 -2.6, 0 0 Z" fill="#d8433b" transform="rotate(70)"/>
+        <path d="M0 0 C -5.8 -2.6, -6.4 -10, 0 -11.2 C 6 -10.8, 6.2 -2, 0 0 Z" fill="#e8735f" transform="rotate(143)"/>
+        <path d="M0 0 C -6 -2, -6.2 -10.4, 0.2 -11.2 C 6.2 -10.2, 5.8 -2.4, 0 0 Z" fill="#d8433b" transform="rotate(216)"/>
+        <path d="M0 0 C -6.2 -2.4, -6 -10.2, -0.3 -11.1 C 6 -10.6, 6.2 -2.2, 0 0 Z" fill="#d8433b" transform="rotate(289)"/>
+        <!-- Pale crayon streaks along each front petal. -->
+        <path d="M0 -3 L -0.6 -9.6 M2.4 -3.6 L 3.4 -8.4 M-2.4 -3.4 L -3.4 -8" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(-4)"/>
+        <path d="M0 -3 L 0.4 -9.4 M2.2 -3.8 L 3.6 -8.2" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(70)"/>
+        <path d="M0 -3 L -0.2 -9.6 M-2.4 -3.6 L -3.2 -8.4" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(143)"/>
+        <path d="M0 -3 L 0.2 -9.8 M2.4 -3.4 L 3.2 -8.2" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(216)"/>
+        <path d="M0 -3 L -0.4 -9.4 M-2.2 -3.8 L -3.4 -8" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(289)"/>
+        <path d="M-3.2 0.2 C -3.4 -2.4, -1.2 -3.6, 0.6 -3.3 C 3 -2.8, 3.6 -0.6, 3 1.2 C 2.2 3.2, -0.6 3.6, -2.2 2.4 C -2.9 1.8, -3.2 1.1, -3.2 0.2 Z" fill="#e8c65a"/>
+        <path d="M-1.6 -0.8 C -0.8 -1.8, 0.8 -1.8, 1.6 -0.8" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="0.6" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <span class="section-title__right" aria-hidden="true">예식 안내</span>
+  </h2>
+
+  <!-- TODO: fill in both families' parents' names (groom's father · mother, bride's father · mother). -->
+  <div class="pair ceremony__families">
+    <p class="ceremony__family">
+      <span class="ceremony__parents">서○○ · ○○○</span>
+      <span><span class="ceremony__relation">의 아들</span><span class="ceremony__name">진용</span></span>
+    </p>
+    <p class="ceremony__family">
+      <span class="ceremony__parents">장○○ · ○○○</span>
+      <span><span class="ceremony__relation">의 딸</span><span class="ceremony__name">하림</span></span>
+    </p>
+  </div>
+
+  <div class="pair ceremony__date">
+    <!-- Hidden until the script counts the days, so a failed script shows the date alone.
+         Screen readers skip an aria-label on a <p>, so the short mark on screen (D-107) is hidden from
+         them and a spoken sentence sits next to it. -->
+    <p class="lead" data-dday-row hidden><span data-dday aria-hidden="true" hidden></span><span class="visually-hidden" data-dday-spoken></span></p>
+    <p class="sub"><span>2027년 3월 6일 토요일</span><span>오후 5시</span></p>
+  </div>
+
+  <!-- TODO: confirm how dinner is served (seated course or buffet) and adjust the second line. -->
+  <p class="prose">
+    예식은 식물관PH 온실에서 열립니다.<br>
+    예식 후 저녁 식사를 준비했습니다.<br>
+    조금 일찍 오셔서 온실을 둘러보세요.
+  </p>
+</section>
+
+<script src="SectionKit.js"></script>
+<script>
+  // Countdown: calendar days left until the wedding, counted on Korean calendar dates (KST, UTC+9),
+  // so a guest abroad sees the same number as a guest in Seoul.
+  // The row stays hidden unless this script fills it, and once the day has passed it is hidden again.
+  (() => {
+    const WEDDING_YEAR = 2027;
+    const WEDDING_MONTH_INDEX = 2;
+    const WEDDING_DAY = 6;
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+    const TODAY_LABEL = 'TODAY';
+    const TODAY_SPOKEN = '오늘이 결혼식입니다';
+    const row = document.querySelector('.ceremony [data-dday-row]');
+    const dday = row ? row.querySelector('[data-dday]') : null;
+    const spoken = row ? row.querySelector('[data-dday-spoken]') : null;
+
+    if (!row || !dday || !spoken) {
+      return;
+    }
+
+    // Shifting by nine hours and reading the UTC fields gives today's date in Korea, whatever the device's zone.
+    const koreaNow = new Date(Date.now() + KST_OFFSET_MS);
+    const today = Date.UTC(koreaNow.getUTCFullYear(), koreaNow.getUTCMonth(), koreaNow.getUTCDate());
+    const wedding = Date.UTC(WEDDING_YEAR, WEDDING_MONTH_INDEX, WEDDING_DAY);
+    const daysLeft = Math.round((wedding - today) / DAY_MS);
+
+    if (daysLeft < 0) {
+      row.hidden = true;
+      dday.hidden = true;
+
+      return;
+    }
+
+    if (daysLeft === 0) {
+      dday.textContent = TODAY_LABEL;
+      spoken.textContent = TODAY_SPOKEN;
+    } else {
+      dday.textContent = `D-${daysLeft}`;
+      spoken.textContent = `결혼식까지 ${daysLeft}일`;
+    }
+
+    dday.hidden = false;
+    row.hidden = false;
+  })();
+</script>

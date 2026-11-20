@@ -6,15 +6,386 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* Layout: one white sheet; a left-aligned sentence headline, a crayon greenhouse that fills with plants, big date numerals.
-     Single look on purpose (a printed card on white stock), so no dark theme. */
+  /* SectionKit */
+  /* Shared kit for every section after the cover (see docs/SectionsSpec.md, chapter 1).
+     One flat printed look on white stock: no shadows, no borders, no filled blocks.
+     Tappable words carry a crayon underline; a chosen word gets a crayon circle.
+     Single look on purpose (a printed card), so no dark theme. */
   :root {
     color-scheme: light;
     --paper: #fbfbf8;
     --ink: #161616;
     --soft: #4d4d4a;
+    --pencil: #3a3a37;
+    /* Read from the cover's crayon drawing: first green leaf, first red bloom, ring gold. */
+    --leaf: #2f7d4a;
+    --bloom: #d8433b;
+    --gold: #c9a24d;
     --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
     --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+
+    /* Crayon marks as SVG backgrounds. Colors are literal (url() cannot read custom properties):
+       pencil #3a3a37, bloom #d8433b, ink #161616. Two loose passes, stretched to the box. */
+    --crayon-underline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%233a3a37' stroke-width='1.7' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%233a3a37' stroke-width='1' stroke-linecap='round' opacity='.55' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    --crayon-underline-bloom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%23d8433b' stroke-width='2.2' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%23d8433b' stroke-width='1.2' stroke-linecap='round' opacity='.6' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    --crayon-underline-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%23161616' stroke-width='2.3' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%23161616' stroke-width='1.2' stroke-linecap='round' opacity='.6' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    /* A loop that does not quite close: it overshoots into the top, like a circle drawn in one go. */
+    --crayon-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50' preserveAspectRatio='none'%3E%3Cpath d='M22 9C48 1 98 2 113 15C123 25 110 43 72 46C38 49 6 42 5 27C4 14 22 7 46 6.5C60 6 72 7 82 9.5' fill='none' stroke='%23d8433b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M30 6C70 2 112 8 115 24C117 38 88 47 58 46.5C26 46 8 37 9 24C10 13 30 6 54 5' fill='none' stroke='%23d8433b' stroke-width='1' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--korean);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  /* Off screen but still read by screen readers (legends, labels, the copy announcement). */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Section container: the cover's column, separated from its neighbours by space only. */
+  .section {
+    box-sizing: border-box;
+    max-width: 440px;
+    margin: 0 auto;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    padding-block: 48px 56px;
+  }
+
+  /* Section title, built like the cover title: words hug a centered crayon object. */
+  .section-title {
+    margin: 0 0 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.45em;
+    font-family: var(--latin), var(--korean);
+    font-weight: 500;
+    font-size: clamp(19px, 5.4vw, 23px);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .section-title__left {
+    justify-self: end;
+  }
+
+  .section-title__right {
+    justify-self: start;
+  }
+
+  .section-title__glyph {
+    display: block;
+    width: 1.7em;
+    height: 1.3em;
+  }
+
+  /* A pair facing each other across the center axis, like the cover's date and place row. */
+  .pair {
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    align-items: end;
+    column-gap: 16px;
+    word-break: keep-all;
+  }
+
+  .pair > :first-child {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .pair > :last-child {
+    justify-self: end;
+    text-align: right;
+  }
+
+  /* Two type sizes only: the lead (the cover's date) and one step below it (the cover's time and place). */
+  .lead {
+    margin: 0;
+    font-family: var(--latin), var(--korean);
+    font-weight: 500;
+    font-size: clamp(22px, 6.4vw, 26px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sub {
+    margin: 0;
+    font-family: var(--latin), var(--korean);
+    font-weight: 500;
+    font-size: clamp(18px, 5.2vw, 21px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  /* Body sentences, centered like the greeting. */
+  .prose {
+    margin: 0;
+    text-align: center;
+    font-family: var(--korean);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.95;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
+  }
+
+  .label {
+    font-size: 13px;
+    color: var(--soft);
+  }
+
+  /* Tappable words (<a> or <button>): plain text with a crayon underline right under the letters.
+     The vertical padding makes a 44px target; the underline is positioned against the content box
+     so it hugs the text, not the bottom of the target. */
+  .crayon-link,
+  .crayon-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    box-sizing: border-box;
+    min-height: 44px;
+    margin: 0;
+    padding: 11px 1px;
+    padding-block: max(8px, calc((44px - 1lh) / 2));
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    background-color: transparent;
+    background-image: var(--crayon-underline);
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    background-clip: border-box;
+    background-size: 100% 7px;
+    background-position: left 0 bottom -6px;
+  }
+
+  .crayon-link:focus-visible,
+  .crayon-toggle:focus-visible {
+    background-image: var(--crayon-underline-bloom);
+  }
+
+  /* A toggle word: underlined while folded, circled while open (same mark as a chosen .choice). */
+  .crayon-toggle {
+    padding-inline: 14px;
+  }
+
+  .crayon-toggle[aria-expanded='true'] {
+    background-image: var(--crayon-circle);
+    background-origin: border-box;
+    background-size: 100% 100%;
+    background-position: center;
+  }
+
+  .crayon-toggle[aria-expanded='true']:focus-visible {
+    background-image: var(--crayon-circle), var(--crayon-underline-bloom);
+    background-origin: border-box, content-box;
+    background-size: 100% 100%, 100% 7px;
+    background-position: center, left 0 bottom -6px;
+  }
+
+  /* One option: <label class="choice"><input type="radio"><span class="choice__text">word</span></label>.
+     The radio stays in the accessibility tree and keyboard order, only visually hidden. */
+  .choice {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .choice input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  /* Unchosen words carry the pencil underline like a folded .crayon-toggle, so they read as tappable;
+     the chosen word trades it for the circle. Keyboard focus turns the underline red. */
+  .choice__text {
+    display: inline-block;
+    padding: 7px 14px;
+    line-height: 1.5;
+    background-image: var(--crayon-underline);
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    background-size: 100% 7px;
+    background-position: left 0 bottom -5px;
+  }
+
+  .choice input:focus-visible + .choice__text {
+    background-image: var(--crayon-underline-bloom);
+  }
+
+  .choice input:checked + .choice__text {
+    background-image: var(--crayon-circle);
+    background-origin: padding-box;
+    background-size: 100% 100%;
+    background-position: center;
+  }
+
+  .choice input:checked:focus-visible + .choice__text {
+    background-image: var(--crayon-circle), var(--crayon-underline-bloom);
+    background-origin: padding-box, content-box;
+    background-size: 100% 100%, 100% 7px;
+    background-position: center, left 0 bottom -5px;
+  }
+
+  /* One-line input: no box, only a crayon line to write on. 16px or more keeps iOS from zooming. */
+  .field {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 10px 2px 12px;
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: max(16px, 1em);
+    letter-spacing: inherit;
+    background-color: transparent;
+    background-image: var(--crayon-underline);
+    background-repeat: no-repeat;
+    background-size: 100% 7px;
+    background-position: left 0 bottom 3px;
+  }
+
+  .field::placeholder {
+    color: var(--soft);
+    opacity: 0.7;
+  }
+
+  .field:focus-visible {
+    background-image: var(--crayon-underline-ink);
+  }
+
+  .field[aria-invalid='true'] {
+    background-image: var(--crayon-underline-bloom);
+  }
+
+  /* Layout: one white sheet; a left-aligned sentence headline, a crayon greenhouse that fills with plants, big date numerals.
+     Single look on purpose (a printed card on white stock), so no dark theme. */
+  /* Stand-ins while the web fonts load: system faces scaled to the widths and line metrics of Archivo 500 and
+     Noto Sans KR, so the cover's lines keep their length and place when the real fonts swap in. Each one only
+     applies where its system font exists (Helvetica Neue on iPhone and Mac, Roboto on Android, Apple SD Gothic Neo
+     on iPhone and Mac); browsers without size-adjust or the overrides simply get the plain system font as before. */
+  @font-face {
+    font-family: 'Archivo Fallback Helvetica';
+    src: local('Helvetica Neue Medium'), local('HelveticaNeue-Medium');
+    font-weight: 500;
+    size-adjust: 101.9%;
+    ascent-override: 86.4%;
+    descent-override: 20.6%;
+    line-gap-override: 0%;
+  }
+
+  /* The word space is much wider in the system faces than in Archivo, so it gets its own scale (a later face wins
+     for the characters in its unicode-range). */
+  @font-face {
+    font-family: 'Archivo Fallback Helvetica';
+    src: local('Helvetica Neue Medium'), local('HelveticaNeue-Medium');
+    font-weight: 500;
+    unicode-range: U+20;
+    size-adjust: 63.5%;
+    ascent-override: 138.6%;
+    descent-override: 33.1%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Archivo Fallback Roboto';
+    src: local('Roboto Medium'), local('Roboto-Medium');
+    font-weight: 500;
+    size-adjust: 104.3%;
+    ascent-override: 84.4%;
+    descent-override: 20.1%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Archivo Fallback Roboto';
+    src: local('Roboto Medium'), local('Roboto-Medium');
+    font-weight: 500;
+    unicode-range: U+20;
+    size-adjust: 70%;
+    ascent-override: 125.7%;
+    descent-override: 30%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Noto Sans KR Fallback';
+    src: local('Apple SD Gothic Neo Regular'), local('AppleSDGothicNeo-Regular');
+    font-weight: 400;
+    size-adjust: 106.4%;
+    ascent-override: 109%;
+    descent-override: 27.3%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Noto Sans KR Fallback';
+    src: local('Apple SD Gothic Neo Medium'), local('AppleSDGothicNeo-Medium');
+    font-weight: 500;
+    size-adjust: 106.4%;
+    ascent-override: 109%;
+    descent-override: 27.3%;
+    line-gap-override: 0%;
+  }
+
+  @font-face {
+    font-family: 'Noto Sans KR Fallback';
+    src: local('Apple SD Gothic Neo Bold'), local('AppleSDGothicNeo-Bold');
+    font-weight: 700;
+    size-adjust: 106.4%;
+    ascent-override: 109%;
+    descent-override: 27.3%;
+    line-gap-override: 0%;
+  }
+
+  :root {
+    color-scheme: light;
+    --paper: #fbfbf8;
+    --ink: #161616;
+    --soft: #4d4d4a;
+    --latin: 'Archivo', 'Archivo Fallback Helvetica', 'Archivo Fallback Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --korean: 'Noto Sans KR', 'Noto Sans KR Fallback', 'Apple SD Gothic Neo', sans-serif;
   }
 
   body {
@@ -24,6 +395,7 @@
   }
 
   .card {
+    min-height: 100vh;
     min-height: 100svh;
     box-sizing: border-box;
     max-width: 440px;
@@ -44,6 +416,19 @@
     height: 100%;
     pointer-events: none;
     z-index: 2;
+    /* Hidden until the greenhouse intro starts, then a soft fade in (data-weather="on", set by the weather script). */
+    opacity: 0;
+    transition: opacity 600ms ease-out;
+  }
+
+  .weather[data-weather="on"] {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .weather {
+      transition: none;
+    }
   }
 
   .card > .house {
@@ -264,164 +649,709 @@
     display: block;
   }
 
-  /* Greeting: one photo in a white instant-photo frame, then the greeting in the cover's sans. */
-  :root {
-    --frame: #ffffff;
-    --pencil: #3a3a37;
-  }
+  /* Greeting: the one section on black (the user's request), no title. One postage stamp, the stamp paper
+     the user supplied with two colour photos set in it one above the other (the same two photos and framing as
+     the printed invitation cover: photo-12 on top, photo-04 below), then the greeting in paper-coloured type.
+     Every rule sits under .greeting so the black and the light type stay in this section of the merged page. */
 
+  /* Full width black: the column stays 440px like every section (the padding grows on wide screens), but the
+     black runs edge to edge, so on a desktop it reads as a band across the paper page, not a black card.
+     Its top and bottom edges are plain straight cuts against the paper sections above and below. */
   .greeting {
-    box-sizing: border-box;
-    max-width: 440px;
-    margin: 0 auto;
-    padding-left: max(24px, env(safe-area-inset-left, 0px));
-    padding-right: max(24px, env(safe-area-inset-right, 0px));
-    padding-block: 48px 56px;
+    max-width: none;
+    padding-left: max(24px, env(safe-area-inset-left, 0px), calc(50% - 196px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px), calc(50% - 196px));
+    padding-block: 72px 80px;
+    background: #000;
+    color: var(--paper);
   }
 
-  /* Section title, built like the cover title: words hug a centered crayon object. */
-  .section-title {
-    margin: 0 0 28px;
+  /* The stamp: about two fifths of the screen (160px at 390px). Sized by its aspect ratio before the images arrive.
+     textures/stamp-frame.png is 595 x 860, cropped to the paper (teeth included), transparent outside the cut. */
+  .greeting__stamp {
+    position: relative;
+    width: clamp(132px, 41vw, 180px);
+    aspect-ratio: 595 / 860;
+    margin: 0 auto;
+  }
+
+  .greeting__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* The photo window: 62px in from every edge of the 595 x 860 paper (the teeth reach 18-19px in, so about
+     43px of white paper, 7% of the width, shows past the deepest hole), split into two equal cells stacked one
+     above the other, as on the printed invitation cover: 471 x 361 each, with a 14px strip of paper (2.4% of the
+     width, much narrower than the outer margin) between them. Paper px: top cell y 62-423, bottom cell y 437-798.
+     All in %, so it holds at every size: top/height are % of the stamp's height, left/width % of its width. */
+  .greeting__cell {
+    position: absolute;
+    left: 10.420%;
+    display: block;
+    width: 79.160%;
+    height: 41.977%;
+    overflow: hidden;
+  }
+
+  .greeting__cell--top {
+    top: 7.209%;
+  }
+
+  .greeting__cell--bottom {
+    top: 50.814%;
+  }
+
+  /* Each photo (1600 x 1066) is cropped to the cover's framing: scaled by its width (% of the cell, so % of the
+     paper width) and shifted by left/top (% of the cell's width/height). Height follows the photo's own ratio.
+     The crop is 1.305:1, the cell's ratio, so the photo always fills the cell exactly. */
+  .greeting__photo {
+    position: absolute;
+    display: block;
+    max-width: none;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* photo-12, source x 520-1060, y 294-708: the groom's cheek against the laughing bride's, heads to collars,
+     a little backlit sky above. */
+  .greeting__cell--top .greeting__photo {
+    top: -71.033%;
+    left: -96.296%;
+    width: 296.296%;
+  }
+
+  /* photo-04, source x 510-1090, y 430-874: side by side under the blue sky, heads to the bouquet, the bride
+     looking up at the groom. */
+  .greeting__cell--bottom .greeting__photo {
+    top: -96.729%;
+    left: -87.931%;
+    width: 275.862%;
+  }
+
+  .greeting__note {
+    margin-top: 52px;
+    color: var(--paper);
+  }
+
+  /* Photos: in the cover's tone (tokens come from the section kit). Fourteen flat photos scattered over the paper
+     like a magazine spread (the user's reference image): very different sizes, no shared edges, wide empty paper,
+     a few running off the left or right edge of the screen. Photos only: no words at all (the user's request), no
+     border, no shadow, no tilt, no overlap. Tap a photo to see it whole on the paper.
+
+     Every place is in --photos-unit: 1% of the stage width (the screen, at most 440px), so the same arrangement
+     holds from 320px to 440px. Each photo keeps its box through aspect-ratio before its image arrives.
+     The positions live in the markup (--x, --y, --w, --r), so the layout needs no script. The top photo sits at
+     --y: 0 and the stage ends at the bottom photo, so the padding alone sets the space to the greeting above and
+     the ceremony below, in px like the other sections. */
+  .photos {
+    --photos-unit: min(1vw, 4.4px);
+    position: relative;
+    overflow: hidden;
+    padding-block: 48px 56px;
+    background: var(--paper);
+  }
+
+  /* The 440px column. The section itself spans the screen and clips, so a photo that runs past the column is cut by
+     the screen edge on a phone and shown whole on a wide screen. */
+  .photos__stage {
+    position: relative;
+    max-width: 440px;
+    height: calc(var(--photos-unit) * 527.4);
+    margin: 0 auto;
+  }
+
+  .photos__item {
+    appearance: none;
+    -webkit-appearance: none;
+    position: absolute;
+    left: calc(var(--photos-unit) * var(--x));
+    top: calc(var(--photos-unit) * var(--y));
+    width: calc(var(--photos-unit) * var(--w));
+    aspect-ratio: var(--r);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    /* A shade of the paper holds the place until the photo arrives. */
+    background: #efeee9;
+    cursor: zoom-in;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .photos__item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--pos, 50% 50%);
+  }
+
+  /* Keyboard focus: a plain pencil line around the photo (no shadow). */
+  .photos__item:focus {
+    outline: none;
+  }
+
+  .photos__item:focus-visible {
+    outline: 2px solid var(--pencil);
+    outline-offset: 3px;
+  }
+
+  /* Full view: the same paper covers the screen and the one photo sits on it whole. No dark backdrop.
+     Tap anywhere, press Esc or go back to put it away. */
+  /* --viewer-h is the screen height: 100vh where svh is unknown, the small viewport height where it is
+     (a custom property holding 100svh is never invalid at parse time, so it needs @supports, not a fallback line). */
+  .photos__viewer {
+    --viewer-h: 100vh;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: 0.45em;
+    place-items: center;
+    overscroll-behavior: contain;
+    background: var(--paper);
+  }
+
+  @supports (height: 100svh) {
+    .photos__viewer {
+      --viewer-h: 100svh;
+    }
+  }
+
+  /* The small copy shows through as the background until the original has loaded over it. */
+  .photos__viewer-image {
+    display: block;
+    width: min(
+      calc(100vw - 2 * max(24px, env(safe-area-inset-left, 0px))),
+      calc((var(--viewer-h) - 2 * max(40px, env(safe-area-inset-top, 0px))) * var(--viewer-ratio, 1)),
+      760px
+    );
+    height: auto;
+    aspect-ratio: var(--viewer-ratio, 1);
+    background-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  .photos__viewer-close {
+    appearance: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-out;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .photos__viewer:not([hidden]) {
+      animation: photos-viewer-in 180ms ease-out;
+    }
+
+    @keyframes photos-viewer-in {
+      from {
+        opacity: 0;
+      }
+    }
+  }
+
+  /* Ceremony: in the cover's tone (tokens, container, title, pair and type sizes come from the section kit).
+     Three blocks with the cover's breathing room between them: the families facing each other like the
+     cover's name row, the day facing its countdown like the cover's date row, then two or three sentences. */
+
+  /* Families: pulled in from the edges by the same amount on both sides, like the cover's names
+     hugging the rings. Bottom-aligned so the two names sit on one line. */
+  .ceremony__families {
+    padding-inline: clamp(0px, 5%, 20px);
+  }
+
+  .ceremony__family {
+    display: grid;
+    row-gap: 6px;
+  }
+
+  /* Parents' names are the quiet line; the couple's names are what the eye should land on.
+     Every part of the line keeps the same weight (500): only size and the soft color set them apart. */
+  .ceremony__parents {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--soft);
+    letter-spacing: 0;
+  }
+
+  .ceremony__relation {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--soft);
+    letter-spacing: -0.01em;
+  }
+
+  .ceremony__name {
+    margin-left: 0.3em;
+    font-size: clamp(18px, 5.2vw, 21px);
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  /* Date row: the countdown leads on the left like the cover's 2027 / 03.06, the day reads on the right.
+     The day keeps its right column even before the script runs, so the row never jumps sideways. */
+  .ceremony__date {
+    margin-top: 52px;
+  }
+
+  .ceremony__date > .sub {
+    grid-column: 2;
+  }
+
+  .ceremony__date .sub span {
+    display: block;
+  }
+
+  /* With no countdown (no script, or the day has passed) the day stands alone, so it moves to the center
+     instead of leaving an empty left half. */
+  .ceremony__date:has(> [data-dday-row][hidden]) {
+    grid-template-columns: auto;
+    justify-content: center;
+  }
+
+  .ceremony__date:has(> [data-dday-row][hidden]) > .sub {
+    grid-column: 1;
+    justify-self: center;
+    text-align: center;
+  }
+
+  .ceremony .prose {
+    margin-top: 48px;
+  }
+
+  /* Directions: in the cover's tone (tokens, container, title, pair and crayon link come from the section kit).
+     The place faces its address like the cover's date faces the time and place, then three map apps
+     as plain underlined words, then the transit notes as text only. No map image: the tiles clash with the paper. */
+
+  /* The lead sits on the address's last line, not on the bottom of the 44px tap target under it. */
+  .directions__place {
+    margin-bottom: max(8px, calc((44px - 1lh) / 2));
+  }
+
+  /* The kit's link inherits its font (it overrides .sub), so the cover's time-and-place type is set here
+     again, at the same weight as 식물관PH on the left. The button keeps its two-line height while it reads
+     복사했어요, and that word sits on the second line's place, so nothing below jumps.
+     A two-line address in one button: each line carries its own crayon underline, so the button's own
+     underline is turned off (also on focus) and the mark hugs the letters instead of the whole block. */
+  .directions__address,
+  .directions__address:focus-visible {
+    background-image: none;
+  }
+
+  .directions__address {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    min-height: calc(2lh + 10px + 2 * max(8px, (44px - 1lh) / 2));
     font-family: var(--latin), var(--korean);
     font-weight: 500;
-    font-size: clamp(19px, 5.4vw, 23px);
+    font-size: clamp(18px, 5.2vw, 21px);
+    line-height: 1.25;
     letter-spacing: -0.02em;
-    line-height: 1;
   }
 
-  .section-title__left {
-    justify-self: end;
+  .directions__line {
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    padding-bottom: 3px;
+    background-image: var(--crayon-underline);
+    background-repeat: no-repeat;
+    background-size: 100% 7px;
+    background-position: left 0 bottom -3px;
   }
 
-  .section-title__right {
+  .directions__line + .directions__line {
+    margin-top: 4px;
+  }
+
+  .directions__address:focus-visible .directions__line {
+    background-image: var(--crayon-underline-bloom);
+  }
+
+  /* Three map apps on one row, built like the title: the middle word on the center axis,
+     the outer two flush with the place and the address above. */
+  .directions__maps {
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    column-gap: 12px;
+    font-size: 15px;
+    word-break: keep-all;
+  }
+
+  .directions__maps li:first-child {
     justify-self: start;
   }
 
-  .section-title__glyph {
+  .directions__maps li:nth-child(2) {
+    justify-self: center;
+  }
+
+  .directions__maps li:last-child {
+    justify-self: end;
+  }
+
+  /* On a computer the TMAP app link is hidden (see the script), so the two words left face each other
+     on the column edges, like the place and the address above them. */
+  .directions__maps--two {
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+  }
+
+  .directions__maps--two li:nth-child(2) {
+    justify-self: end;
+  }
+
+  /* Transit notes: a small soft name, its sentence right under it, space between items and nothing else. */
+  .directions__transit {
+    margin: 44px 0 0;
+    display: grid;
+    row-gap: 24px;
+  }
+
+  .directions__item {
+    margin: 0;
+  }
+
+  .directions__item .label {
+    display: block;
+    margin-bottom: 2px;
+    line-height: 1.6;
+  }
+
+  .directions__item .prose {
+    display: block;
+    text-align: left;
+    line-height: 1.75;
+  }
+
+  /* Gift: in the cover's tone (tokens, container, title, toggles and copy words come from the section kit).
+     One sentence, then 신랑측 and 신부측 facing each other; each opens its own accounts right below it. */
+
+  /* The Korean title word is the longest of all sections; keep it on one line so the
+     envelope stays on the center axis instead of the word wrapping under itself. */
+  .gift .section-title__right {
+    white-space: nowrap;
+  }
+
+  .gift__toggles {
+    margin-top: 28px;
+    align-items: center;
+  }
+
+  /* Pull each toggle's crayon mark back to the column edge, so the word lines up with the accounts below it. */
+  .gift__toggles > :first-child {
+    margin-left: -14px;
+  }
+
+  .gift__toggles > :last-child {
+    margin-right: -14px;
+  }
+
+  /* An open side unfolds under its own word: the groom's to the left, the bride's to the right. */
+  .gift__panel {
+    margin-top: 14px;
+  }
+
+  .gift__panel--bride {
+    text-align: right;
+  }
+
+  .gift__accounts {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gift__account {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gift__account + .gift__account {
+    margin-top: 10px;
+  }
+
+  .gift__panel--bride .gift__account {
+    align-items: flex-end;
+  }
+
+  .gift__account .label {
+    line-height: 1.5;
+  }
+
+  /* The number line is one tap target; it never wraps, so a number is always read in one piece. */
+  .gift__number {
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Without the script both sides stay open (the markup ships unfolded so the accounts are never lost).
+     The words do nothing then, so they read as plain headings: no circle, no underline. */
+  .gift:not([data-gift-ready]) .crayon-toggle {
+    background-image: none;
+    cursor: default;
+  }
+
+  /* Opening is shown by the crayon circle; the accounts only fade in a little, and only for those who allow motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .gift__panel:not([hidden]) {
+      animation: gift-unfold 320ms ease-out;
+    }
+  }
+
+  @keyframes gift-unfold {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* RSVP: in the cover's tone (tokens, container, title, choices and the field come from the section kit).
+     One question per line, each answered by two facing words, so the form reads like the cover's
+     lower pairs rather than a form: no boxes, no numbers, no visible question labels. */
+
+  .rsvp__form {
+    margin: 0;
+  }
+
+  /* A fieldset only groups the two words for assistive tech; it draws nothing on the paper. */
+  .rsvp__row {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* Rows breathe like the cover's bottom pairs, not like a dense form. */
+  .rsvp__row + .rsvp__row,
+  .rsvp__name,
+  .rsvp__attending {
+    margin-top: 22px;
+  }
+
+  .rsvp__attending .rsvp__row:first-child {
+    margin-top: 0;
+  }
+
+  .rsvp__attending .rsvp__row + .rsvp__row {
+    margin-top: 22px;
+  }
+
+  /* The words sit on the column edges; pull out by the circle's padding so the letters line up
+     with the name line and the title, and the circle spills into the gutter instead. */
+  .rsvp .pair > .choice:first-child {
+    margin-left: -14px;
+  }
+
+  .rsvp .pair > .choice:last-child {
+    margin-right: -14px;
+  }
+
+  /* An unanswered question: the pencil underline both words already carry turns red,
+     instead of an error sentence. */
+  .rsvp__row[data-missing] .choice__text {
+    background-image: var(--crayon-underline-bloom);
+  }
+
+  .rsvp__name .field {
+    font-family: var(--latin), var(--korean);
+    font-size: clamp(18px, 5.2vw, 21px);
+    letter-spacing: -0.02em;
+  }
+
+  /* Head count: the label faces a small stepper, the number at lead size between two bare signs. */
+  .rsvp__guests {
+    align-items: center;
+  }
+
+  .rsvp__stepper {
+    display: inline-flex;
+    align-items: center;
+    margin-right: -10px;
+  }
+
+  .rsvp__step {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    color: var(--ink);
+    background: transparent;
+    font-family: var(--latin), var(--korean);
+    font-size: clamp(22px, 6.4vw, 26px);
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rsvp__step:focus-visible {
+    color: var(--bloom);
+  }
+
+  .rsvp__step:disabled {
+    color: var(--soft);
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .rsvp__count {
+    min-width: 1.4em;
+    text-align: center;
+  }
+
+  /* The send word sits alone on the center axis, below a wider gap than the rows. */
+  .rsvp__send {
+    margin: 40px 0 0;
+    text-align: center;
+  }
+
+  .rsvp__send .crayon-link:disabled {
+    color: var(--soft);
+    cursor: default;
+  }
+
+  .rsvp__error {
+    margin-top: 8px;
+    color: var(--bloom);
+  }
+
+  .rsvp__noscript {
+    margin-top: 16px;
+  }
+
+  /* The sentence takes focus only so it is read out; it draws no focus box on the paper. */
+  .rsvp__result {
+    margin-top: 8px;
+    outline: none;
+  }
+
+  /* Closing: the last sheet. THANK 💍 YOU answers the rings in the cover's name row (Seo Jinyong 💍 Jang Harim),
+     then one short sentence and a pair of share words. Nothing after that but paper. */
+
+  /* The last page ends on generous empty paper, clear of the home indicator. */
+  .closing {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* The title sits between the cover title and the other section titles in size,
+     so the first and last pages read as a pair. */
+  .closing .section-title {
+    margin-bottom: 32px;
+    font-size: clamp(20px, 6.2vw, 27px);
+  }
+
+  /* The rings wrap: an SVG redraw of the cover's canvas rings, plus the cover's two glints. */
+  .closing__ring {
+    position: relative;
     display: block;
     width: 1.7em;
     height: 1.3em;
   }
 
-  /* The photo sits flat on the paper inside a wobbly crayon border. */
-  .print {
-    position: relative;
-    margin: 0;
-    padding: 9px;
-  }
-
-  .print img {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-  }
-
-  .print__border {
-    position: absolute;
-    inset: 0;
+  .closing__ring .section-title__glyph {
     width: 100%;
     height: 100%;
-    overflow: visible;
+  }
+
+  .closing__spark {
+    position: absolute;
+    left: 30%;
+    top: 4%;
+    width: 0.57em;
+    height: 0.57em;
+    /* Same gold glint as the cover's, with a bright core so it shows on the white paper. */
+    background: radial-gradient(circle, #fffbe6 0 14%, #f3cf62 30%, #d4a23a 52%, rgba(212, 162, 58, 0) 74%);
+    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+    opacity: 0.85;
     pointer-events: none;
   }
 
-  .print__border path {
-    fill: none;
-    stroke: var(--pencil);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
+  .closing__spark--small {
+    left: 74%;
+    top: 34%;
+    width: 0.39em;
+    height: 0.39em;
+    opacity: 0.75;
   }
 
-  .note {
-    margin: 32px 0 0;
-    text-align: center;
-    font-family: var(--korean);
+  @media (prefers-reduced-motion: no-preference) {
+    .closing__spark {
+      animation: closing-twinkle 2.6s ease-in-out infinite;
+    }
+
+    /* A negative delay starts it mid-cycle, so it never sits visible before its first twinkle. */
+    .closing__spark--small {
+      animation-delay: -1.3s;
+    }
+  }
+
+  @keyframes closing-twinkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0.3) rotate(0deg);
+    }
+
+    45% {
+      opacity: 1;
+      transform: scale(1) rotate(25deg);
+    }
+
+    70% {
+      opacity: 0;
+      transform: scale(0.5) rotate(45deg);
+    }
+  }
+
+  /* Share words face each other, pulled in from the edges like the greeting's signature row.
+     The inset shrinks on narrow screens and the words never wrap, so 청첩장 보내기 stays on one line at 320px. */
+  .closing__share {
+    margin-top: 40px;
+    padding-inline: clamp(0px, 12%, 80px);
     font-size: 15px;
-    font-weight: 400;
-    line-height: 1.95;
     letter-spacing: -0.01em;
-    word-break: keep-all;
   }
 
-  /* Photos: Cover Flow strip. */
-  .photos {
-    box-sizing: border-box;
-    max-width: 440px;
-    margin: 0 auto;
-    padding-block: 48px 56px;
-    overflow: hidden;
+  .closing__share > .crayon-link {
+    white-space: nowrap;
   }
 
-  .flow {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    height: var(--flow-height, 300px);
-    perspective: 380px;
-    perspective-origin: 50% 45%;
-    touch-action: pan-y;
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    outline: none;
+  /* Without the system share sheet only the copy word is left; it moves to the center axis. */
+  .closing__share--solo {
+    justify-content: center;
   }
 
-  .flow:focus-visible {
-    box-shadow: 0 0 0 2px var(--ink);
-  }
-
-  .flow.is-dragging {
-    cursor: grabbing;
-  }
-
-  .flow__item {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: var(--flow-size, 220px);
-    height: var(--flow-size, 220px);
-    margin: calc(var(--flow-size, 220px) / -2) 0 0 calc(var(--flow-size, 220px) / -2);
-    backface-visibility: hidden;
-    will-change: transform;
-  }
-
-  /* Flat photo on the paper with a small margin, framed by a crayon line drawn per photo. */
-  .flow__item {
-    background: var(--paper);
-    padding: 6px;
-    box-sizing: border-box;
-  }
-
-  .flow__item img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-  }
-
-  .flow__border {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    pointer-events: none;
-  }
-
-  .flow__border path {
-    fill: none;
-    stroke: var(--pencil);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
+  .closing__share--solo > :last-child {
+    justify-self: center;
   }
 </style>
 
@@ -455,30 +1385,18 @@
   </div>
 </section>
 
-<section class="greeting" aria-label="인사말">
-  <h2 class="section-title" aria-label="Greeting, 인사말">
-    <span class="section-title__left" aria-hidden="true">GREETING</span>
-    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
-      <!-- A crayon sprig: one stem, three leaves with pale midribs. -->
-      <path d="M8 31 C 16 26, 24 21, 40 6" fill="none" stroke="#5d7d4f" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M17 25 C 10 24, 5 19, 4 13 C 11 13, 16 18, 17 25 Z" fill="#2f7d4a"/>
-      <path d="M25 19 C 27 12, 33 8, 40 9 C 38 15, 32 19, 25 19 Z" fill="#7fb069"/>
-      <path d="M31 13 C 27 8, 27 3, 30 0.5 C 34 4, 34 9, 31 13 Z" fill="#4f9a3e"/>
-      <path d="M16 24 C 12 22, 8 18, 6 14 M26 18 C 30 15, 34 12, 38 10 M31 12 C 30 9, 30 5, 30 2" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.7"/>
-    </svg>
-    <span class="section-title__right" aria-hidden="true">인사말</span>
-  </h2>
+<section class="section greeting" data-tone="dark" aria-label="인사말">
+  <div class="greeting__stamp" data-stamp>
+    <img class="greeting__frame" src="textures/stamp-frame.png" width="595" height="860" loading="lazy" decoding="async" alt="">
+    <span class="greeting__cell greeting__cell--top">
+      <img class="greeting__photo" src="photos/photo-12.jpg" width="1600" height="1066" loading="lazy" decoding="async" alt="웃는 신부의 볼에 얼굴을 댄 신랑">
+    </span>
+    <span class="greeting__cell greeting__cell--bottom">
+      <img class="greeting__photo" src="photos/photo-04.jpg" width="1600" height="1066" loading="lazy" decoding="async" alt="나란히 서서 신랑을 올려다보는 신부">
+    </span>
+  </div>
 
-  <figure class="print">
-    <img src="photos/photo-06.jpg" alt="서로에게 기대어 웃는 진용과 하림">
-    <svg class="print__border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <!-- Two loose passes of a crayon line, slightly off each other, like a hand-drawn frame. -->
-      <path stroke-width="1.6" d="M0.6 0.9 L24 0.5 L51 0.8 L77 0.4 L99.4 0.7 L99.6 26 L99.3 52 L99.7 77 L99.4 99.3 L74 99.6 L48 99.2 L23 99.7 L0.5 99.4 L0.8 73 L0.4 48 L0.9 22 Z"/>
-      <path stroke-width="0.9" opacity="0.55" d="M1.2 0.3 L30 1 L58 0.5 L99 1.1 L100 34 L99.1 66 L99.9 98.8 L64 100 L33 99.1 L0.2 99.9 L1 65 L0.3 31 Z"/>
-    </svg>
-  </figure>
-
-  <p class="note">
+  <p class="prose greeting__note">
     겨울 끝자락에 만난 두 사람이<br>
     봄을 몇 번이나 함께 맞았습니다.<br>
     이제 서로의 계절이 되어<br>
@@ -489,9 +1407,465 @@
 </section>
 
 <section class="photos" aria-label="사진">
-  <div class="flow" id="flow" tabindex="0" role="region" aria-roledescription="회전 사진첩" aria-label="사진 14장, 좌우로 넘겨 보세요"></div>
+  <div class="photos__stage">
+    <button type="button" data-photo class="photos__item" style="--x: 30; --y: 0; --w: 62; --r: 800 / 534"><img src="photos/photo-01-sm.jpg" alt="넓은 제주 들판 한가운데 선 두 사람의 원경" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 14; --y: 56; --w: 22; --r: 534 / 800"><img src="photos/photo-10-sm.jpg" alt="들판에 홀로 선 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 44; --y: 72; --w: 32; --r: 800 / 534"><img src="photos/photo-04-sm.jpg" alt="하늘을 올려다보며 함께 걷는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 72; --y: 104; --w: 36; --r: 534 / 800"><img src="photos/photo-08-sm.jpg" alt="들판을 바라보는 신부의 뒷모습" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 10; --y: 162; --w: 22; --r: 534 / 800"><img src="photos/photo-09-sm.jpg" alt="들판에 홀로 선 신부" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 42; --y: 172; --w: 54; --r: 534 / 800"><img src="photos/photo-07-sm.jpg" alt="베일 아래에서 입맞추는 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: -8; --y: 238; --w: 44; --r: 800 / 534"><img src="photos/photo-12-sm.jpg" alt="역광 속에서 미소 짓는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 78; --y: 262; --w: 26; --r: 534 / 800"><img src="photos/photo-11-sm.jpg" alt="역광 속에서 입맞추는 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 44; --y: 306; --w: 30; --r: 1; --pos: 52% 50%"><img src="photos/photo-02-sm.jpg" alt="신랑이 신부의 볼에 입맞추는 모습" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 14; --y: 350; --w: 46; --r: 534 / 800"><img src="photos/photo-13-sm.jpg" alt="노을 지는 바닷가에 선 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 68; --y: 362; --w: 22; --r: 534 / 800"><img src="photos/photo-05-sm.jpg" alt="앞에 선 신랑과 그 뒤에 선 신부" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 30; --y: 428; --w: 28; --r: 800 / 534"><img src="photos/photo-03-sm.jpg" alt="서로 마주 보며 웃는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: 72; --y: 436; --w: 26; --r: 534 / 800"><img src="photos/photo-15-sm.jpg" alt="바닷가에서 신부를 뒤에서 안은 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="photos__item" style="--x: -14; --y: 486; --w: 62; --r: 800 / 534"><img src="photos/photo-14-sm.jpg" alt="바닷가에서 마주 보며 걷는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+  </div>
+  <div class="photos__viewer" id="photos-viewer" role="dialog" aria-modal="true" aria-label="사진 크게 보기" aria-describedby="photos-viewer-image" hidden>
+    <img class="photos__viewer-image" id="photos-viewer-image" alt="">
+    <button class="photos__viewer-close" id="photos-viewer-close" type="button" aria-label="닫기"></button>
+  </div>
+</section>
+
+<section class="section ceremony" aria-label="예식 안내">
+  <h2 class="section-title" aria-label="Ceremony, 예식 안내">
+    <span class="section-title__left" aria-hidden="true">CEREMONY</span>
+    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+      <!-- One red bloom from the cover's aisle: a short stem with one leaf, deep petals behind,
+           poppy-red petals in front with pale streaks, and a gold heart like the cover's drawBloom. -->
+      <path d="M24.5 19 C 23.6 24, 24.8 29, 23.4 35" fill="none" stroke="#4f9a3e" stroke-width="1.9" stroke-linecap="round"/>
+      <path d="M24.1 29 C 28 25.6, 33.5 25, 37 27.4 C 33.6 31.2, 28 31.6, 24.1 29 Z" fill="#2f7d4a"/>
+      <path d="M25.5 29 C 29 27.8, 32.5 27.6, 35.5 27.7" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.7"/>
+      <g transform="translate(24 13.2)">
+        <path d="M0 0 C -5 -2, -5.6 -8.6, -0.4 -10.2 C 5 -9.4, 5.4 -2.6, 0 0 Z" fill="#b02a33" transform="rotate(36)"/>
+        <path d="M0 0 C -5.2 -2.4, -5.2 -8.8, 0.3 -10 C 5.2 -8.8, 4.8 -2, 0 0 Z" fill="#b02a33" transform="rotate(110)"/>
+        <path d="M0 0 C -4.8 -2, -5.4 -9, 0 -9.8 C 5.4 -9.2, 5 -2.4, 0 0 Z" fill="#b02a33" transform="rotate(181)"/>
+        <path d="M0 0 C -5 -2.2, -5 -8.4, -0.2 -10.1 C 5 -9, 5.2 -2.2, 0 0 Z" fill="#b02a33" transform="rotate(254)"/>
+        <path d="M0 0 C -5.4 -2, -5.2 -9.2, 0.2 -9.9 C 5 -8.8, 5.2 -2.4, 0 0 Z" fill="#b02a33" transform="rotate(326)"/>
+        <path d="M0 0 C -6 -2.4, -6.4 -10.2, -0.2 -11.4 C 6.2 -10.6, 6 -2.2, 0 0 Z" fill="#d8433b" transform="rotate(-4)"/>
+        <path d="M0 0 C -6.2 -2, -6 -10.6, 0.4 -11 C 6.4 -10, 5.8 -2.6, 0 0 Z" fill="#d8433b" transform="rotate(70)"/>
+        <path d="M0 0 C -5.8 -2.6, -6.4 -10, 0 -11.2 C 6 -10.8, 6.2 -2, 0 0 Z" fill="#e8735f" transform="rotate(143)"/>
+        <path d="M0 0 C -6 -2, -6.2 -10.4, 0.2 -11.2 C 6.2 -10.2, 5.8 -2.4, 0 0 Z" fill="#d8433b" transform="rotate(216)"/>
+        <path d="M0 0 C -6.2 -2.4, -6 -10.2, -0.3 -11.1 C 6 -10.6, 6.2 -2.2, 0 0 Z" fill="#d8433b" transform="rotate(289)"/>
+        <!-- Pale crayon streaks along each front petal. -->
+        <path d="M0 -3 L -0.6 -9.6 M2.4 -3.6 L 3.4 -8.4 M-2.4 -3.4 L -3.4 -8" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(-4)"/>
+        <path d="M0 -3 L 0.4 -9.4 M2.2 -3.8 L 3.6 -8.2" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(70)"/>
+        <path d="M0 -3 L -0.2 -9.6 M-2.4 -3.6 L -3.2 -8.4" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(143)"/>
+        <path d="M0 -3 L 0.2 -9.8 M2.4 -3.4 L 3.2 -8.2" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(216)"/>
+        <path d="M0 -3 L -0.4 -9.4 M-2.2 -3.8 L -3.4 -8" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.7" stroke-linecap="round" transform="rotate(289)"/>
+        <path d="M-3.2 0.2 C -3.4 -2.4, -1.2 -3.6, 0.6 -3.3 C 3 -2.8, 3.6 -0.6, 3 1.2 C 2.2 3.2, -0.6 3.6, -2.2 2.4 C -2.9 1.8, -3.2 1.1, -3.2 0.2 Z" fill="#e8c65a"/>
+        <path d="M-1.6 -0.8 C -0.8 -1.8, 0.8 -1.8, 1.6 -0.8" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="0.6" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <span class="section-title__right" aria-hidden="true">예식 안내</span>
+  </h2>
+
+  <!-- TODO: fill in both families' parents' names (groom's father · mother, bride's father · mother). -->
+  <div class="pair ceremony__families">
+    <p class="ceremony__family">
+      <span class="ceremony__parents">서○○ · ○○○</span>
+      <span><span class="ceremony__relation">의 아들</span><span class="ceremony__name">진용</span></span>
+    </p>
+    <p class="ceremony__family">
+      <span class="ceremony__parents">장○○ · ○○○</span>
+      <span><span class="ceremony__relation">의 딸</span><span class="ceremony__name">하림</span></span>
+    </p>
+  </div>
+
+  <div class="pair ceremony__date">
+    <!-- Hidden until the script counts the days, so a failed script shows the date alone.
+         Screen readers skip an aria-label on a <p>, so the short mark on screen (D-107) is hidden from
+         them and a spoken sentence sits next to it. -->
+    <p class="lead" data-dday-row hidden><span data-dday aria-hidden="true" hidden></span><span class="visually-hidden" data-dday-spoken></span></p>
+    <p class="sub"><span>2027년 3월 6일 토요일</span><span>오후 5시</span></p>
+  </div>
+
+  <!-- TODO: confirm how dinner is served (seated course or buffet) and adjust the second line. -->
+  <p class="prose">
+    예식은 식물관PH 온실에서 열립니다.<br>
+    예식 후 저녁 식사를 준비했습니다.<br>
+    조금 일찍 오셔서 온실을 둘러보세요.
+  </p>
+</section>
+
+<section class="section directions" aria-label="오시는 길">
+  <h2 class="section-title" aria-label="Location, 오시는 길">
+    <span class="section-title__left" aria-hidden="true">LOCATION</span>
+    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+      <!-- The cover's crayon greenhouse, shrunk: pale glass, a few leaves inside, the pencil frame on top. -->
+      <path d="M5.2 33.2 L4.9 16.3 L24.1 3.9 L43.1 16.1 L42.8 33.1 Z" fill="#7fb069" opacity="0.1"/>
+      <path d="M8 14 L15 9.5 M33 9 L38 12.4" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.1" stroke-linecap="round"/>
+      <!-- Plants: two low bushes and a palm whose crown reaches toward the roof. -->
+      <path d="M6 33 C 5.5 28, 8.5 24.5, 12 25.5 C 14.5 23.5, 18.5 26, 17.5 29.5 C 19 31, 18.5 33, 17 33 Z" fill="#2f7d4a"/>
+      <path d="M42 33 C 42.5 28.5, 39.5 25, 36 26 C 33.5 24.5, 30 27, 31 30 C 29.5 31.5, 30 33, 31.5 33 Z" fill="#7fb069"/>
+      <path d="M24 33 C 24.6 28, 23.4 24, 24.2 19.5" fill="none" stroke="#4f9a3e" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M24 19.5 C 20 17, 16 18, 13.5 21.5 C 17.5 20.2, 21 20.4, 24 19.5 Z" fill="#4f9a3e"/>
+      <path d="M24 19.5 C 28 17, 32 17.6, 34.5 21 C 30.5 19.8, 27 20.4, 24 19.5 Z" fill="#2f7d4a"/>
+      <path d="M24 19.5 C 21.5 15.5, 18 13.5, 15.5 14.2 C 18.5 15.8, 21.5 17.5, 24 19.5 Z" fill="#7fb069"/>
+      <path d="M24 19.5 C 26 15, 29.5 12.8, 32.5 13.4 C 29.5 15.2, 26.5 17.2, 24 19.5 Z" fill="#4f9a3e"/>
+      <path d="M8.5 29.5 C 10.5 28, 12.5 27.5, 14.5 28 M39.5 30 C 37.5 28.5, 35.5 28.2, 33.5 28.6 M23 19.6 C 20 18.8, 17 19.3, 15 20.8 M25 19.4 C 28 18.6, 31 19, 33 20.4" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-linecap="round"/>
+      <!-- Frame: gable outline and base in two loose pencil passes, then thinner mullions and bars. -->
+      <path d="M5.2 33.2 L4.9 16.3 L24.1 3.9 L43.1 16.1 L42.8 33.1 C 30 33.4, 17 32.8, 5.2 33.2" fill="none" stroke="#3a3a37" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+      <path d="M5.6 32.6 L5.3 16.8 L23.8 4.6 L42.6 16.7 L43.3 32.7" fill="none" stroke="#3a3a37" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+      <path d="M5 16.3 C 17 15.8, 31 16.6, 43.1 16.1 M11.4 33 L11.3 12 M17.7 33 L17.8 8.1 M24 33 L24.1 4 M30.3 33 L30.2 8.2 M36.6 33 L36.7 12.1 M5.1 26.6 C 17 26.2, 31 26.9, 42.9 26.5 M14.6 10.1 C 21 9.8, 27 10.3, 33.6 10" fill="none" stroke="#3a3a37" stroke-width="0.6" stroke-linecap="round" opacity="0.45"/>
+    </svg>
+    <span class="section-title__right" aria-hidden="true">오시는 길</span>
+  </h2>
+
+  <div class="pair">
+    <p class="lead directions__place">식물관PH</p>
+    <!-- TODO: confirm address of 식물관PH (data-copy, aria-label and both lines). -->
+    <button class="crayon-link sub directions__address" type="button" data-copy="서울 강남구 광평로34길 24" aria-label="주소 복사: 서울 강남구 광평로34길 24"><span class="directions__line">서울 강남구</span><span class="directions__line">광평로34길 24</span></button>
+  </div>
+
+  <ul class="directions__maps" aria-label="지도 앱으로 보기">
+    <li><a class="crayon-link" data-map="naver" href="https://map.naver.com/p/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">네이버 지도</a></li>
+    <li><a class="crayon-link" data-map="kakao" href="https://map.kakao.com/link/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">카카오맵</a></li>
+    <li data-map-app-only><a class="crayon-link" data-map="tmap" href="tmap://search?name=%EC%8B%9D%EB%AC%BC%EA%B4%80PH">티맵</a></li>
+  </ul>
+
+  <!-- TODO: fill in the transit details from the venue (station, exit, walk time, bus stop and lines, parking).
+       Add a 셔틀 item in the same form if there is a shuttle bus. -->
+  <div class="directions__transit">
+    <p class="directions__item">
+      <span class="label">지하철</span>
+      <span class="prose">○○선 ○○역 ○번 출구에서 걸어서 ○분입니다.</span>
+    </p>
+    <p class="directions__item">
+      <span class="label">버스</span>
+      <span class="prose">○○○ 정류장에서 내리시면 걸어서 ○분입니다.<br>간선 ○○○, 지선 ○○○○</span>
+    </p>
+    <p class="directions__item">
+      <span class="label">주차</span>
+      <span class="prose">건물 주차장을 이용하실 수 있고, ○시간 무료입니다.</span>
+    </p>
+  </div>
+</section>
+
+<section class="section gift" aria-label="마음 전하실 곳">
+  <h2 class="section-title" aria-label="Gift, 마음 전하실 곳">
+    <span class="section-title__left" aria-hidden="true">GIFT</span>
+    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+      <!-- A crayon envelope: white body in a wobbly pencil outline, the folded flap, one round gold seal.
+           Like the greenhouse frame in LOCATION: a soft first pass, then a paler second pass a little off it. -->
+      <path d="M5.2 8.6 C 16 7.9, 31 8.4, 42.9 7.8 C 43.3 15, 42.8 23, 43.2 29.6 C 31 30.3, 17 29.8, 4.8 30.2 C 5.3 23, 4.7 15, 5.2 8.6 Z" fill="#ffffff" stroke="#3a3a37" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.7"/>
+      <path d="M5.7 8.1 C 17 8.5, 30 7.6, 42.4 8.4 C 42.7 16, 43.6 23, 42.6 30.1 C 30 29.6, 18 30.6, 5.4 29.6 C 4.6 22, 5.5 15, 4.9 9.2" fill="none" stroke="#3a3a37" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+      <path d="M5.6 9.2 C 11 13.5, 17.5 18, 24 20.6 C 30.5 18, 37 13.4, 42.4 8.6" fill="none" stroke="#3a3a37" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+      <path d="M6.2 8.7 C 12 13.2, 18 17.4, 24.3 20 C 30 17.6, 36.4 13.6, 42.8 9.3" fill="none" stroke="#3a3a37" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+      <path d="M5.8 29.4 C 10.5 26.4, 14.5 24, 18.6 22 M42.6 29.2 C 38 26.2, 33.8 23.8, 29.6 21.9" fill="none" stroke="#3a3a37" stroke-width="0.7" stroke-linecap="round" opacity="0.45"/>
+      <path d="M24.4 14.4 C 28.2 14.5, 30.4 17.4, 30.2 20.9 C 30 24.3, 27.3 26.6, 23.8 26.5 C 20.3 26.3, 17.8 23.8, 17.9 20.3 C 18.1 16.9, 20.8 14.3, 24.4 14.4 Z" fill="#c9a24d"/>
+      <path d="M20.6 19.2 C 22 17.2, 24.8 16.5, 27.2 17.9 M20.9 22.9 C 22.8 24.4, 25.8 24.4, 27.7 22.4" fill="none" stroke="#e8c65a" stroke-width="0.9" stroke-linecap="round"/>
+    </svg>
+    <span class="section-title__right" aria-hidden="true">마음 전하실 곳</span>
+  </h2>
+
+  <p class="prose">참석이 어려우신 분들을 위해<br>계좌번호를 적어 둡니다.</p>
+
+  <p class="pair sub gift__toggles">
+    <button class="crayon-toggle" type="button" data-side-toggle="groom" aria-expanded="true" aria-controls="gift-groom-accounts">신랑측</button>
+    <button class="crayon-toggle" type="button" data-side-toggle="bride" aria-expanded="true" aria-controls="gift-bride-accounts">신부측</button>
+  </p>
+
+  <div class="gift__panel gift__panel--groom" id="gift-groom-accounts" data-side-panel="groom" role="region" aria-label="신랑측 계좌">
+    <!-- TODO: fill in the real bank names and account numbers (button text, data-copy and aria-label),
+         and the parents' names. data-copy holds the account number only, without the bank name.
+         KakaoPay / Toss links, once received, go next to each account as a word. -->
+    <ul class="gift__accounts">
+      <li class="gift__account">
+        <span class="label">신랑 서진용</span>
+        <button class="crayon-link gift__number" type="button" data-copy="000-0000-0000-00" aria-label="계좌번호 복사: 신랑 서진용, ○○은행 000-0000-0000-00">○○은행 000-0000-0000-00</button>
+      </li>
+      <li class="gift__account">
+        <span class="label">아버지 서○○</span>
+        <button class="crayon-link gift__number" type="button" data-copy="000-0000-0000-00" aria-label="계좌번호 복사: 아버지 서○○, ○○은행 000-0000-0000-00">○○은행 000-0000-0000-00</button>
+      </li>
+      <li class="gift__account">
+        <span class="label">어머니 ○○○</span>
+        <button class="crayon-link gift__number" type="button" data-copy="000-0000-0000-00" aria-label="계좌번호 복사: 어머니 ○○○, ○○은행 000-0000-0000-00">○○은행 000-0000-0000-00</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="gift__panel gift__panel--bride" id="gift-bride-accounts" data-side-panel="bride" role="region" aria-label="신부측 계좌">
+    <!-- TODO: fill in the real bank names and account numbers (button text, data-copy and aria-label),
+         and the parents' names. data-copy holds the account number only, without the bank name. -->
+    <ul class="gift__accounts">
+      <li class="gift__account">
+        <span class="label">신부 장하림</span>
+        <button class="crayon-link gift__number" type="button" data-copy="000-0000-0000-00" aria-label="계좌번호 복사: 신부 장하림, ○○은행 000-0000-0000-00">○○은행 000-0000-0000-00</button>
+      </li>
+      <li class="gift__account">
+        <span class="label">아버지 장○○</span>
+        <button class="crayon-link gift__number" type="button" data-copy="000-0000-0000-00" aria-label="계좌번호 복사: 아버지 장○○, ○○은행 000-0000-0000-00">○○은행 000-0000-0000-00</button>
+      </li>
+      <li class="gift__account">
+        <span class="label">어머니 ○○○</span>
+        <button class="crayon-link gift__number" type="button" data-copy="000-0000-0000-00" aria-label="계좌번호 복사: 어머니 ○○○, ○○은행 000-0000-0000-00">○○은행 000-0000-0000-00</button>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="section rsvp" aria-label="참석 여부">
+  <h2 class="section-title" aria-label="RSVP, 참석 여부">
+    <span class="section-title__left" aria-hidden="true">RSVP</span>
+    <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+      <!-- A red crayon check pressed hard: a wobbly first pass, a darker second pass a little off it
+           that overshoots, a flick at the end of the long stroke, and broken pale grain like wax skipping. -->
+      <path d="M8.2 18.6 L 10.6 20.1 L 12.9 22.3 L 15.1 24.9 L 17.2 27.6 L 18.6 29.3 L 21.4 24.6 L 24.6 19.9 L 28.3 15.4 L 32.1 11.6 L 36.2 8.4 L 40.1 5.9 L 42.3 5.1 L 44 5.9" fill="none" stroke="#d8433b" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9.8 20.9 L 12.8 23.2 L 15.4 26.2 L 17.6 28.9 M 18.9 27.4 L 22.6 22.1 L 26.8 16.9 L 31.2 12.6 L 35.6 9.4 L 41.6 6.6" fill="none" stroke="#b02a33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+      <path d="M7.8 17.6 L 10.4 19.2 M 38.4 6.2 L 42.6 4.4 L 44.6 5.4" fill="none" stroke="#e8735f" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+      <path d="M9.4 19.2 L 13.2 22.6 L 17.4 27.6 M 20.4 24.4 L 25.6 17.6 L 31.2 12 L 39.2 6" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="0.6" stroke-linecap="round" stroke-dasharray="1.1 0.7 0.4 1.3 1.8 0.9 0.6 1.6"/>
+      <path d="M11.6 21.6 L 16.4 27 M 22.2 23.6 L 28.4 16 L 36.4 9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" stroke-linecap="round" stroke-dasharray="0.6 1.2 1.4 0.8 0.5 1.9"/>
+    </svg>
+    <span class="section-title__right" aria-hidden="true">참석 여부</span>
+  </h2>
+
+  <!-- method and action keep a script-less submit from putting the name in the address bar;
+       the send word also stays disabled until the script is running. -->
+  <form class="rsvp__form" data-rsvp method="post" action="#" novalidate>
+    <fieldset class="rsvp__row" data-rsvp-row="side">
+      <legend class="visually-hidden">어느 쪽 손님이신가요</legend>
+      <div class="pair sub">
+        <label class="choice"><input type="radio" name="side" value="groom"><span class="choice__text">신랑측</span></label>
+        <label class="choice"><input type="radio" name="side" value="bride"><span class="choice__text">신부측</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="rsvp__row" data-rsvp-row="attendance">
+      <legend class="visually-hidden">참석하시나요</legend>
+      <div class="pair sub">
+        <label class="choice"><input type="radio" name="attendance" value="attend"><span class="choice__text">참석해요</span></label>
+        <label class="choice"><input type="radio" name="attendance" value="absent"><span class="choice__text">마음만 보내요</span></label>
+      </div>
+    </fieldset>
+
+    <div class="rsvp__name">
+      <label class="visually-hidden" for="rsvp-name">이름</label>
+      <input class="field" id="rsvp-name" name="name" type="text" placeholder="이름" autocomplete="name" enterkeyhint="done">
+    </div>
+
+    <div class="rsvp__attending" data-when-attending hidden>
+      <fieldset class="rsvp__row">
+        <legend class="visually-hidden">함께 오시는 인원</legend>
+        <div class="pair rsvp__guests">
+          <span class="label" aria-hidden="true">인원</span>
+          <span class="rsvp__stepper">
+            <button class="rsvp__step" type="button" data-guests-minus aria-label="인원 줄이기">−</button>
+            <output class="lead rsvp__count" data-guests-value aria-live="polite">1</output>
+            <button class="rsvp__step" type="button" data-guests-plus aria-label="인원 늘리기">+</button>
+          </span>
+        </div>
+      </fieldset>
+
+      <fieldset class="rsvp__row" data-rsvp-row="meal">
+        <legend class="visually-hidden">식사하시나요</legend>
+        <div class="pair sub">
+          <label class="choice"><input type="radio" name="meal" value="yes"><span class="choice__text">식사해요</span></label>
+          <label class="choice"><input type="radio" name="meal" value="no"><span class="choice__text">식사 안 해요</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <p class="sub rsvp__send">
+      <button class="crayon-link" type="submit" disabled>보내기</button>
+    </p>
+    <p class="prose rsvp__error" data-rsvp-error role="alert" hidden></p>
+    <p class="visually-hidden" data-rsvp-hint aria-live="polite"></p>
+  </form>
+
+  <!-- No live role: the sentence is read out once, when it takes focus. -->
+  <p class="prose rsvp__result" data-rsvp-result tabindex="-1" hidden></p>
+
+  <noscript>
+    <p class="prose rsvp__noscript">참석 여부는 전화나 메시지로 알려 주세요.</p>
+  </noscript>
+</section>
+
+<section class="section closing" aria-label="마무리">
+  <h2 class="section-title" aria-label="Thank you">
+    <span class="section-title__left" aria-hidden="true">THANK</span>
+    <span class="closing__ring" aria-hidden="true">
+      <svg class="section-title__glyph" viewBox="0 0 48 36" aria-hidden="true">
+        <!-- The cover's rings (drawRings at 48x36): two gold rings, the right one drawn over the left,
+             each a slightly uneven loop with a pale crayon pass; a pale blue stone on top of the left ring. -->
+        <path d="M27.9 21.4 C 27.8 26.6, 23.4 30.6, 18.3 30.5 C 13.1 30.4, 8.6 26.3, 8.5 21.5 C 8.6 16.3, 13.2 12.6, 18.2 12.7 C 23.3 12.8, 28 16.4, 27.9 21.4 Z" fill="none" stroke="#c9a24d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M39.5 21.7 C 39.4 26.7, 35 30.7, 29.8 30.6 C 24.7 30.5, 20 26.5, 20 21.6 C 20.1 16.5, 24.6 12.7, 29.7 12.8 C 34.9 12.9, 39.6 16.6, 39.5 21.7 Z" fill="none" stroke="#c9a24d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 17.4 C 12.6 15, 15.3 13.8, 18 13.9 M37.8 19 C 36.9 16.2, 34 14.2, 30.6 14 M10.2 24.6 C 11.6 27.4, 14.6 29.2, 17.6 29.3" fill="none" stroke="#e8c65a" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+        <path d="M18.2 5.6 L 21.5 9.8 L 18.3 12.7 L 14.9 9.7 Z" fill="#cfe3ee" stroke="#8fb2c4" stroke-width="0.8" stroke-linejoin="round"/>
+        <path d="M17 8.6 L 18.4 7.2 M18.9 10.6 L 19.9 9.6" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="0.7" stroke-linecap="round"/>
+      </svg>
+      <span class="closing__spark"></span>
+      <span class="closing__spark closing__spark--small"></span>
+    </span>
+    <span class="section-title__right" aria-hidden="true">YOU</span>
+  </h2>
+
+  <!-- Draft wording: the closing sentence is not confirmed yet. -->
+  <p class="prose">
+    귀한 걸음으로 함께해 주시는<br>
+    모든 분께 고맙습니다.<br>
+    오래도록 다정하게 살겠습니다.
+  </p>
+
+  <div class="pair closing__share">
+    <button class="crayon-link" type="button" data-share>청첩장 보내기</button>
+    <button class="crayon-link" type="button" data-copy-url>주소 복사</button>
+  </div>
 </section>
 </main>
+
+<script>
+  // SectionKit
+  // Shared behaviour for the sections (see docs/SectionsSpec.md): tap-to-copy words.
+  // Runs as a plain <script> or through new Function(code)(); a second run in the same document does nothing.
+  (() => {
+    const KIT_FLAG = 'sectionKit';
+    const COPIED_LABEL = '복사했어요';
+    const COPY_FAILED_LABEL = '복사하지 못했어요';
+    const COPIED_MS = 1600;
+    const root = document.documentElement;
+
+    if (root.dataset[KIT_FLAG] === 'ready') {
+      return;
+    }
+
+    root.dataset[KIT_FLAG] = 'ready';
+
+    // Per button: its original child nodes and the pending restore timer, so a second tap keeps the original.
+    const copyStates = new WeakMap();
+
+    // A button's aria-label hides its changed text from screen readers, so one shared live region
+    // announces the copy. It sits at the end of <body>, outside every section. It is made when the kit
+    // starts (a live region added at the moment of the change often misses that first change),
+    // and made again on the next copy if something removed it.
+    const getAnnouncer = () => {
+      const existing = document.querySelector('[data-kit-announcer]');
+
+      if (existing) {
+        return existing;
+      }
+
+      const announcer = document.createElement('div');
+
+      announcer.className = 'visually-hidden';
+      announcer.setAttribute('aria-live', 'polite');
+      announcer.setAttribute('data-kit-announcer', '');
+      document.body.appendChild(announcer);
+
+      return announcer;
+    };
+
+    // Clear first so repeating the same words is announced again.
+    const announce = (message) => {
+      const announcer = getAnnouncer();
+
+      announcer.textContent = '';
+      setTimeout(() => {
+        announcer.textContent = message;
+      }, 50);
+    };
+
+    // Old browsers and non-secure pages: copy through a temporary, off-screen textarea.
+    // Returns whether the browser says it copied; execCommand may also throw or be missing.
+    const copyWithTextarea = (text) => {
+      const textarea = document.createElement('textarea');
+      const activeElement = document.activeElement;
+
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '-9999px';
+      textarea.style.opacity = '0';
+      // 16px keeps iOS from zooming in when the textarea is selected.
+      textarea.style.fontSize = '16px';
+      document.body.appendChild(textarea);
+
+      try {
+        textarea.select();
+        // iOS selects nothing with select() alone on a readonly field.
+        textarea.setSelectionRange(0, text.length);
+
+        return document.execCommand('copy') === true;
+      } catch {
+        return false;
+      } finally {
+        textarea.remove();
+
+        if (activeElement instanceof HTMLElement) {
+          activeElement.focus();
+        }
+      }
+    };
+
+    // Resolves to whether the text reached the clipboard: the clipboard API first, the textarea if it fails.
+    const writeClipboard = async (text) => {
+      const clipboard = navigator.clipboard;
+
+      if (clipboard && typeof clipboard.writeText === 'function') {
+        try {
+          await clipboard.writeText(text);
+
+          return true;
+        } catch {
+          return copyWithTextarea(text);
+        }
+      }
+
+      return copyWithTextarea(text);
+    };
+
+    // Shows the result in place of the button's words for a moment, then puts the words back.
+    const showFeedback = (button, label) => {
+      const saved = copyStates.get(button);
+      const originalNodes = saved ? saved.nodes : [...button.childNodes];
+
+      if (saved) {
+        clearTimeout(saved.timer);
+      }
+
+      button.textContent = label;
+      announce(label);
+
+      const timer = setTimeout(() => {
+        // Not replaceChildren: iOS 13 does not have it.
+        button.textContent = '';
+        button.append(...originalNodes);
+        copyStates.delete(button);
+      }, COPIED_MS);
+
+      copyStates.set(button, { nodes: originalNodes, timer });
+    };
+
+    const copyFrom = async (button, text) => {
+      const isCopied = await writeClipboard(text);
+
+      showFeedback(button, isCopied ? COPIED_LABEL : COPY_FAILED_LABEL);
+    };
+
+    const handleDocumentClick = (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const copyButton = target ? target.closest('button[data-copy]') : null;
+      const urlButton = target ? target.closest('button[data-copy-url]') : null;
+
+      if (copyButton) {
+        copyFrom(copyButton, copyButton.dataset.copy ?? '');
+
+        return;
+      }
+
+      if (urlButton) {
+        copyFrom(urlButton, window.location.href);
+      }
+    };
+
+    getAnnouncer();
+    document.addEventListener('click', handleDocumentClick);
+  })();
+</script>
 
 <script>
   // Crayon greenhouse. Everything comes from a seeded random generator, so every visit draws the same picture.
@@ -818,12 +2192,46 @@
     CONTEXT.restore();
   };
 
+  // Longest wait for the page's load event, counted from this script: a slow photo or font never holds the intro back for good.
+  const INTRO_LOAD_WAIT_MS = 3000;
+  // Longest wait for web fonts after the load event (they are nearly always in by then), still within the limit above.
+  const INTRO_FONT_WAIT_MS = 800;
+  // Fired on the greenhouse canvas the moment the intro leaves waiting, so the weather layer shows with it.
+  const INTRO_START_EVENT = 'introstart';
+  const introDeadline = performance.now() + INTRO_LOAD_WAIT_MS;
+  // Elapsed time far past the end of the intro: renders the finished picture in one frame.
+  const INTRO_FINISHED_MS = 1e6;
+
   let house = null;
   let plants = [];
   let startTime = 0;
+  // Elapsed time the next frame should show; the clock is anchored to that frame's timestamp.
+  let pendingElapsed = null;
   let frameId = 0;
+  let introState = '';
+
+  // The intro state is exposed on the canvas as data-intro: waiting -> playing -> done.
+  const setIntroState = (state) => {
+    if (introState === state) {
+      return;
+    }
+
+    const wasWaiting = introState === 'waiting';
+
+    introState = state;
+    CANVAS.dataset.intro = state;
+
+    if (wasWaiting) {
+      CANVAS.dispatchEvent(new CustomEvent(INTRO_START_EVENT));
+    }
+  };
 
   const render = (now) => {
+    if (pendingElapsed !== null) {
+      startTime = now - pendingElapsed;
+      pendingElapsed = null;
+    }
+
     const elapsed = now - startTime;
     const frameProgress = Math.min(elapsed / FRAME_MS, 1);
     let isDone = frameProgress >= 1;
@@ -850,6 +2258,7 @@
     // The frame goes on top, so the plants read as seen through the glass.
     drawFrame(house, frameProgress);
 
+    setIntroState(isDone ? 'done' : 'playing');
     frameId = isDone ? 0 : requestAnimationFrame(render);
   };
 
@@ -867,11 +2276,24 @@
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const play = (shouldAnimate) => {
+  // Draws from the given elapsed time on; the clock starts at the first frame actually painted, not at this call.
+  const playFrom = (elapsed) => {
     cancelAnimationFrame(frameId);
-    setUp();
-    startTime = performance.now() - (shouldAnimate && !prefersReducedMotion ? 0 : 1e6);
+
+    if (elapsed >= INTRO_FINISHED_MS || prefersReducedMotion) {
+      pendingElapsed = INTRO_FINISHED_MS;
+      render(performance.now());
+
+      return;
+    }
+
+    pendingElapsed = elapsed;
     frameId = requestAnimationFrame(render);
+  };
+
+  const play = (shouldAnimate) => {
+    setUp();
+    playFrom(shouldAnimate ? 0 : INTRO_FINISHED_MS);
   };
 
   let resizeTimer = 0;
@@ -1055,11 +2477,39 @@
     CONTEXT = MAIN_CONTEXT;
   };
 
+  // Re-lays the greenhouse for a new canvas size without losing the intro's place.
+  const resizeIntro = () => {
+    if (introState === 'waiting') {
+      setUp();
+
+      return;
+    }
+
+    if (introState === 'playing') {
+      const elapsed = pendingElapsed !== null ? pendingElapsed : performance.now() - startTime;
+
+      setUp();
+      playFrom(elapsed);
+
+      return;
+    }
+
+    play(false);
+  };
+
   const handleResize = () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       drawGlyphs();
-      play(false);
+
+      // Mobile address bars fire resize without changing the canvas; only a real size change re-lays the picture.
+      const isSameSize = house && CANVAS.clientWidth === house.width && CANVAS.clientHeight === house.height;
+
+      if (isSameSize) {
+        return;
+      }
+
+      resizeIntro();
     }, 150);
   };
 
@@ -1067,10 +2517,140 @@
     play(true);
   };
 
+  // Each wait below ends on its own: an event that always fires, a time limit, or an immediate fallback.
+  const waitForVisiblePage = (callback) => {
+    if (document.visibilityState !== 'hidden') {
+      callback();
+
+      return;
+    }
+
+    const handleIntroVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        return;
+      }
+
+      document.removeEventListener('visibilitychange', handleIntroVisibility);
+      callback();
+    };
+
+    document.addEventListener('visibilitychange', handleIntroVisibility);
+  };
+
+  const getIntroTimeLeft = () => {
+    return Math.max(0, introDeadline - performance.now());
+  };
+
+  // Photos, fonts and scripts are all in once the window has loaded; the deadline caps the wait.
+  const waitForLoadedPage = (callback) => {
+    let isFinished = false;
+
+    const finish = () => {
+      if (isFinished) {
+        return;
+      }
+
+      isFinished = true;
+      clearTimeout(loadTimer);
+      window.removeEventListener('load', finish);
+      callback();
+    };
+    const loadTimer = setTimeout(finish, getIntroTimeLeft());
+
+    if (document.readyState === 'complete') {
+      finish();
+
+      return;
+    }
+
+    window.addEventListener('load', finish);
+  };
+
+  const waitForFonts = (callback) => {
+    let isFinished = false;
+
+    const finish = () => {
+      if (isFinished) {
+        return;
+      }
+
+      isFinished = true;
+      clearTimeout(fontTimer);
+      callback();
+    };
+    const fontTimer = setTimeout(finish, Math.min(INTRO_FONT_WAIT_MS, getIntroTimeLeft()));
+
+    if (!document.fonts || !document.fonts.ready) {
+      finish();
+
+      return;
+    }
+
+    document.fonts.ready.then(finish, finish);
+  };
+
+  // Starts only while the cover is on screen, e.g. not when a reload restored a scrolled-down position.
+  const waitForCoverOnScreen = (callback) => {
+    if (!('IntersectionObserver' in window)) {
+      callback();
+
+      return;
+    }
+
+    try {
+      new IntersectionObserver((entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return;
+        }
+
+        observer.disconnect();
+        callback();
+      }).observe(CANVAS);
+    } catch {
+      callback();
+    }
+  };
+
+  const startIntro = () => {
+    // A replay tap may have started it already.
+    if (introState !== 'waiting') {
+      return;
+    }
+
+    try {
+      play(true);
+    } catch (error) {
+      setIntroState('done');
+      console.error(error);
+    }
+  };
+
   drawGlyphs();
-  play(true);
+  setUp();
+  setIntroState('waiting');
   window.addEventListener('resize', handleResize);
   CANVAS.addEventListener('click', handleReplay);
+
+  // Reduced motion: the finished picture, as soon as the page has loaded.
+  const showFinishedPicture = () => {
+    if (introState !== 'waiting') {
+      return;
+    }
+
+    play(false);
+  };
+
+  if (prefersReducedMotion) {
+    waitForLoadedPage(showFinishedPicture);
+  } else {
+    waitForVisiblePage(() => {
+      waitForLoadedPage(() => {
+        waitForFonts(() => {
+          waitForCoverOnScreen(startIntro);
+        });
+      });
+    });
+  }
 </script>
 
 <script>
@@ -1082,9 +2662,16 @@
   const WEATHER_KINDS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'storm', 'night'];
   const WEATHER_REFRESH_MS = 30 * 60 * 1000;
 
+  // Nothing is drawn until the greenhouse intro starts (data-weather: waiting -> on); after this long it turns on by itself,
+  // so the weather still shows when the intro script is missing or failed.
+  const WEATHER_START_WAIT_MS = 3000;
+  const WEATHER_INTRO_EVENT = 'introstart';
+
   const weatherCanvas = document.getElementById('weather');
   const weatherContext = weatherCanvas.getContext('2d');
   const weatherReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let weatherState = '';
+  let weatherStartTimer = 0;
   let weatherKind = 'clear';
   let weatherParticles = [];
   let weatherFrame = 0;
@@ -1092,6 +2679,38 @@
   let weatherFlash = 0;
   let weatherWidth = 0;
   let weatherHeight = 0;
+  let weatherLastTime = null;
+  let weatherMeteor = null;
+  let weatherMeteorWait = 0;
+
+  // All motion is in pixels (or radians) per second, scaled by the time since the last frame.
+  // A long gap (tab in the background, cover off screen) counts as one short step, so nothing jumps.
+  const WEATHER_MAX_STEP_S = 0.05;
+  const WEATHER_RAIN_SPEED = [330, 480];
+  const WEATHER_RAIN_DRIFT = -72;
+  const WEATHER_RAIN_SLANT = -2.6;
+  const WEATHER_SNOW_SPEED = [24, 54];
+  const WEATHER_SNOW_SWAY_RATE = 1.2;
+  const WEATHER_SNOW_SWAY_PX = 6;
+  const WEATHER_CLOUD_SPEED = [18, 30];
+  const WEATHER_CLOUD_BOB_RATE = 0.9;
+  const WEATHER_CLOUD_BOB_PX = 3;
+  const WEATHER_FOG_SPEED = [14, 24];
+  const WEATHER_FOG_BREATH_RATE = 0.8;
+  const WEATHER_FOG_DENSITY = [0.5, 0.85];
+  const WEATHER_MOTE_SPEED = [20, 36];
+  const WEATHER_MOTE_SWAY_RATE = 1.3;
+  const WEATHER_MOTE_SWAY_PX = 9;
+  const WEATHER_MOTE_TWINKLE_RATE = 1.6;
+  const WEATHER_STAR_SPEED = [6, 10];
+  const WEATHER_STAR_TWINKLE_RATE = [1.1, 1.9];
+  const WEATHER_METEOR_GAP_S = [4, 8];
+  const WEATHER_METEOR_LIFE_S = 0.7;
+  const WEATHER_METEOR_SPEED = 380;
+  const WEATHER_METEOR_TAIL_PX = 34;
+  // Storm: about one flash every four seconds on average, each fading out in under a third of a second.
+  const WEATHER_FLASH_RATE = 0.24;
+  const WEATHER_FLASH_FADE = 3.6;
 
   // WMO weather codes to the scenes the cover can draw.
   const kindFromCode = (code, isDay) => {
@@ -1132,11 +2751,11 @@
     const y = isFresh ? random(-weatherHeight * 0.1, 0) : random(0, weatherHeight);
 
     if (kind === 'rain' || kind === 'storm') {
-      return { x: random(-20, weatherWidth + 20), y, length: random(10, 18), speed: random(5.5, 8), drift: -1.2 };
+      return { x: random(-20, weatherWidth + 20), y, length: random(10, 18), speed: random(...WEATHER_RAIN_SPEED) };
     }
 
     if (kind === 'snow') {
-      return { x: random(0, weatherWidth), y, radius: random(1.6, 3.6), speed: random(0.4, 0.9), sway: random(0, Math.PI * 2) };
+      return { x: random(0, weatherWidth), y, radius: random(1.6, 3.6), speed: random(...WEATHER_SNOW_SPEED), sway: random(0, Math.PI * 2) };
     }
 
     if (kind === 'cloudy' || kind === 'fog') {
@@ -1146,22 +2765,99 @@
         x: random(-weatherWidth * 0.4, weatherWidth),
         y: band ? random(weatherHeight * 0.35, weatherHeight * 0.85) : random(weatherHeight * 0.3, weatherHeight * 0.5),
         size: band ? random(90, 150) : random(34, 56),
-        speed: random(0.12, 0.28),
+        speed: band ? random(...WEATHER_FOG_SPEED) : random(...WEATHER_CLOUD_SPEED),
+        phase: random(0, Math.PI * 2),
       };
     }
 
     if (kind === 'night') {
-      return { x: random(0, weatherWidth), y: random(weatherHeight * 0.26, weatherHeight * 0.5), radius: random(0.8, 1.8), phase: random(0, Math.PI * 2) };
+      // Smaller stars drift a little slower, so the sky reads as having some depth.
+      const radius = random(0.8, 1.9);
+      const depth = (radius - 0.8) / 1.1;
+
+      return {
+        x: random(0, weatherWidth),
+        y: random(weatherHeight * 0.26, weatherHeight * 0.5),
+        radius,
+        speed: WEATHER_STAR_SPEED[0] + depth * (WEATHER_STAR_SPEED[1] - WEATHER_STAR_SPEED[0]),
+        twinkle: random(...WEATHER_STAR_TWINKLE_RATE),
+        phase: random(0, Math.PI * 2),
+      };
     }
 
     // Clear day: warm light motes drifting up through the glass.
-    return { x: random(0, weatherWidth), y: isFresh ? weatherHeight * 0.9 : random(weatherHeight * 0.3, weatherHeight * 0.9), radius: random(1.2, 2.6), speed: random(0.15, 0.35), phase: random(0, Math.PI * 2) };
+    return {
+      x: random(0, weatherWidth),
+      y: isFresh ? weatherHeight * 0.9 : random(weatherHeight * 0.3, weatherHeight * 0.9),
+      radius: random(1.2, 2.6),
+      speed: random(...WEATHER_MOTE_SPEED),
+      sway: random(0, Math.PI * 2),
+      phase: random(0, Math.PI * 2),
+    };
+  };
+
+  // Night: a thin, short shooting star now and then, sliding down and to the left across the upper sky.
+  const makeWeatherMeteor = () => {
+    const angle = random(Math.PI * 0.8, Math.PI * 0.87);
+
+    return {
+      x: random(weatherWidth * 0.45, weatherWidth * 0.95),
+      y: random(weatherHeight * 0.25, weatherHeight * 0.34),
+      dx: Math.cos(angle),
+      dy: Math.sin(angle),
+      age: 0,
+    };
+  };
+
+  const drawWeatherMeteor = (meteor) => {
+    const fade = Math.sin(Math.PI * Math.min(meteor.age / WEATHER_METEOR_LIFE_S, 1));
+    const tailX = meteor.x - meteor.dx * WEATHER_METEOR_TAIL_PX;
+    const tailY = meteor.y - meteor.dy * WEATHER_METEOR_TAIL_PX;
+    const gradient = weatherContext.createLinearGradient(tailX, tailY, meteor.x, meteor.y);
+
+    gradient.addColorStop(0, 'rgba(214, 178, 90, 0)');
+    gradient.addColorStop(1, `rgba(214, 178, 90, ${0.9 * fade})`);
+    weatherContext.strokeStyle = gradient;
+    weatherContext.lineWidth = 1.2;
+    weatherContext.lineCap = 'round';
+    weatherContext.beginPath();
+    weatherContext.moveTo(tailX, tailY);
+    weatherContext.lineTo(meteor.x, meteor.y);
+    weatherContext.stroke();
+  };
+
+  const stepWeatherMeteor = (dt) => {
+    if (!weatherMeteor) {
+      weatherMeteorWait -= dt;
+
+      if (weatherMeteorWait <= 0 && dt > 0) {
+        weatherMeteor = makeWeatherMeteor();
+      }
+
+      return;
+    }
+
+    weatherMeteor.age += dt;
+    weatherMeteor.x += weatherMeteor.dx * WEATHER_METEOR_SPEED * dt;
+    weatherMeteor.y += weatherMeteor.dy * WEATHER_METEOR_SPEED * dt;
+
+    if (weatherMeteor.age >= WEATHER_METEOR_LIFE_S) {
+      weatherMeteor = null;
+      weatherMeteorWait = random(...WEATHER_METEOR_GAP_S);
+
+      return;
+    }
+
+    drawWeatherMeteor(weatherMeteor);
   };
 
   const PARTICLE_COUNTS = { clear: 26, cloudy: 4, rain: 70, storm: 90, snow: 55, fog: 5, night: 30 };
 
   const resetParticles = () => {
     weatherParticles = Array.from({ length: PARTICLE_COUNTS[weatherKind] }, () => makeParticle(weatherKind, false));
+    weatherMeteor = null;
+    weatherMeteorWait = random(WEATHER_METEOR_GAP_S[0] * 0.5, WEATHER_METEOR_GAP_S[1] * 0.5);
+    weatherFlash = 0;
   };
 
   const drawCloud = (x, y, size, alpha) => {
@@ -1180,24 +2876,25 @@
     weatherContext.restore();
   };
 
-  const stepWeather = (time) => {
+  // Draws one frame, moving everything by dt seconds (0 draws the scene where it stands).
+  const stepWeather = (dt) => {
     weatherContext.clearRect(0, 0, weatherWidth, weatherHeight);
 
     weatherParticles.forEach((particle, index) => {
       if (weatherKind === 'rain' || weatherKind === 'storm') {
-        particle.y += particle.speed;
-        particle.x += particle.drift;
+        particle.y += particle.speed * dt;
+        particle.x += WEATHER_RAIN_DRIFT * dt;
         weatherContext.strokeStyle = 'rgba(96, 128, 150, 0.55)';
         weatherContext.lineWidth = 1.3;
         weatherContext.lineCap = 'round';
         weatherContext.beginPath();
         weatherContext.moveTo(particle.x, particle.y);
-        weatherContext.lineTo(particle.x + particle.drift * 2.2, particle.y + particle.length);
+        weatherContext.lineTo(particle.x + WEATHER_RAIN_SLANT, particle.y + particle.length);
         weatherContext.stroke();
       } else if (weatherKind === 'snow') {
-        particle.y += particle.speed;
-        particle.sway += 0.02;
-        const x = particle.x + Math.sin(particle.sway) * 6;
+        particle.y += particle.speed * dt;
+        particle.sway += WEATHER_SNOW_SWAY_RATE * dt;
+        const x = particle.x + Math.sin(particle.sway) * WEATHER_SNOW_SWAY_PX;
         weatherContext.fillStyle = '#ffffff';
         weatherContext.strokeStyle = 'rgba(150, 160, 165, 0.7)';
         weatherContext.lineWidth = 0.8;
@@ -1206,67 +2903,99 @@
         weatherContext.fill();
         weatherContext.stroke();
       } else if (weatherKind === 'cloudy') {
-        particle.x += particle.speed;
-        drawCloud(particle.x, particle.y, particle.size, 0.85);
+        particle.x += particle.speed * dt;
+        particle.phase += WEATHER_CLOUD_BOB_RATE * dt;
+        drawCloud(particle.x, particle.y + Math.sin(particle.phase) * WEATHER_CLOUD_BOB_PX, particle.size, 0.85);
       } else if (weatherKind === 'fog') {
-        particle.x += particle.speed;
+        particle.x += particle.speed * dt;
+        particle.phase += WEATHER_FOG_BREATH_RATE * dt;
+        // Each band thickens and thins slowly, out of step with the others.
+        const density = WEATHER_FOG_DENSITY[0] + (WEATHER_FOG_DENSITY[1] - WEATHER_FOG_DENSITY[0]) * (0.5 + 0.5 * Math.sin(particle.phase));
         const gradient = weatherContext.createLinearGradient(particle.x, 0, particle.x + particle.size * 2.4, 0);
         gradient.addColorStop(0, 'rgba(236, 238, 238, 0)');
-        gradient.addColorStop(0.5, 'rgba(236, 238, 238, 0.75)');
+        gradient.addColorStop(0.5, `rgba(236, 238, 238, ${density})`);
         gradient.addColorStop(1, 'rgba(236, 238, 238, 0)');
         weatherContext.fillStyle = gradient;
         weatherContext.fillRect(particle.x, particle.y, particle.size * 2.4, particle.size * 0.32);
       } else if (weatherKind === 'night') {
-        const glow = 0.45 + 0.55 * Math.abs(Math.sin(time / 900 + particle.phase));
-        weatherContext.fillStyle = `rgba(214, 178, 90, ${glow})`;
+        particle.x += particle.speed * dt;
+        particle.phase += particle.twinkle * dt;
+
+        // Stars that slide off the right edge come back in on the left.
+        if (particle.x > weatherWidth + 4) {
+          particle.x -= weatherWidth + 8;
+        }
+
+        const shine = 0.5 + 0.5 * Math.sin(particle.phase);
+        weatherContext.fillStyle = `rgba(214, 178, 90, ${0.25 + 0.75 * shine})`;
         weatherContext.beginPath();
-        weatherContext.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        weatherContext.arc(particle.x, particle.y, particle.radius * (0.65 + 0.6 * shine), 0, Math.PI * 2);
         weatherContext.fill();
       } else {
-        particle.y -= particle.speed;
-        particle.x += Math.sin(time / 1400 + particle.phase) * 0.15;
-        const glow = 0.35 + 0.4 * Math.abs(Math.sin(time / 1100 + particle.phase));
-        weatherContext.fillStyle = `rgba(232, 190, 80, ${glow})`;
+        particle.y -= particle.speed * dt;
+        particle.sway += WEATHER_MOTE_SWAY_RATE * dt;
+        particle.phase += WEATHER_MOTE_TWINKLE_RATE * dt;
+        const shine = Math.abs(Math.sin(particle.phase));
+        weatherContext.fillStyle = `rgba(232, 190, 80, ${0.3 + 0.5 * shine})`;
         weatherContext.beginPath();
-        weatherContext.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        weatherContext.arc(particle.x + Math.sin(particle.sway) * WEATHER_MOTE_SWAY_PX, particle.y, particle.radius * (0.8 + 0.35 * shine), 0, Math.PI * 2);
         weatherContext.fill();
       }
 
-      // Recycle particles that left the scene.
-      const isGone = particle.y > weatherHeight + 20 || particle.x > weatherWidth + 220 || (weatherKind === 'clear' && particle.y < weatherHeight * 0.25);
+      // Recycle particles that left the scene; clouds and fog bands come back as soon as they clear the right edge.
+      const isDrifting = weatherKind === 'cloudy' || weatherKind === 'fog';
+      const isGone = particle.y > weatherHeight + 20 || (isDrifting && particle.x - particle.size * 0.5 > weatherWidth) || (weatherKind === 'clear' && particle.y < weatherHeight * 0.25);
 
       if (isGone) {
         weatherParticles[index] = makeParticle(weatherKind, true);
 
-        if (weatherKind === 'cloudy' || weatherKind === 'fog') {
+        if (isDrifting) {
           weatherParticles[index].x = -weatherParticles[index].size * 2.4;
         }
       }
     });
 
+    if (weatherKind === 'night') {
+      stepWeatherMeteor(dt);
+    }
+
     // Storm: a soft, rare flash of light.
     if (weatherKind === 'storm') {
-      if (weatherFlash <= 0 && Math.random() < 0.004) {
+      if (weatherFlash <= 0 && Math.random() < 1 - Math.exp(-WEATHER_FLASH_RATE * dt)) {
         weatherFlash = 1;
       }
 
       if (weatherFlash > 0) {
         weatherContext.fillStyle = `rgba(255, 255, 245, ${weatherFlash * 0.45})`;
         weatherContext.fillRect(0, 0, weatherWidth, weatherHeight);
-        weatherFlash -= 0.06;
+        weatherFlash -= WEATHER_FLASH_FADE * dt;
       }
     }
   };
 
   const loopWeather = (time) => {
-    stepWeather(time);
+    const dt = weatherLastTime === null ? 0 : Math.min(Math.max(time - weatherLastTime, 0) / 1000, WEATHER_MAX_STEP_S);
+
+    weatherLastTime = time;
+    stepWeather(dt);
     weatherFrame = weatherVisible && !weatherReducedMotion ? requestAnimationFrame(loopWeather) : 0;
+
+    if (!weatherFrame) {
+      weatherLastTime = null;
+    }
   };
 
   const startWeather = (kind) => {
     weatherKind = kind;
     cancelAnimationFrame(weatherFrame);
+    weatherFrame = 0;
+    weatherLastTime = null;
     resetParticles();
+
+    // While waiting, only the scene is chosen; it is drawn once the weather turns on.
+    if (weatherState !== 'on') {
+      return;
+    }
 
     if (weatherReducedMotion) {
       stepWeather(0);
@@ -1324,13 +3053,83 @@
     refreshWeather();
   };
 
+  // The mobile address bar folding away changes only the height: keep the scene going and
+  // move every particle in proportion to the new size instead of scattering a fresh set.
   const handleWeatherResize = () => {
+    const width = weatherCanvas.clientWidth;
+    const height = weatherCanvas.clientHeight;
+
+    if (width === weatherWidth && height === weatherHeight) {
+      return;
+    }
+
+    const scaleX = weatherWidth > 0 ? width / weatherWidth : 1;
+    const scaleY = weatherHeight > 0 ? height / weatherHeight : 1;
+    const wasEmpty = weatherWidth === 0 || weatherHeight === 0;
+
     sizeWeather();
-    resetParticles();
+
+    if (wasEmpty) {
+      resetParticles();
+    } else {
+      weatherParticles.forEach((particle) => {
+        particle.x *= scaleX;
+        particle.y *= scaleY;
+      });
+
+      if (weatherMeteor) {
+        weatherMeteor.x *= scaleX;
+        weatherMeteor.y *= scaleY;
+      }
+    }
+
+    // Resizing clears the canvas; the still picture has no next frame to repaint it.
+    if (weatherState === 'on' && !weatherFrame) {
+      stepWeather(0);
+    }
   };
 
+  const setWeatherState = (state) => {
+    weatherState = state;
+    weatherCanvas.dataset.weather = state;
+  };
+
+  // The canvas fades in through CSS (opacity on data-weather="on") while the scene starts moving.
+  const showWeather = () => {
+    if (weatherState === 'on') {
+      return;
+    }
+
+    clearTimeout(weatherStartTimer);
+    setWeatherState('on');
+    startWeather(weatherKind);
+  };
+
+  const handleWeatherIntroStart = () => {
+    showWeather();
+  };
+
+  const waitForGreenhouseIntro = () => {
+    const greenhouse = document.getElementById('greenhouse');
+    const greenhouseState = greenhouse ? greenhouse.dataset.intro : '';
+
+    if (greenhouseState === 'playing' || greenhouseState === 'done') {
+      showWeather();
+
+      return;
+    }
+
+    weatherStartTimer = setTimeout(showWeather, WEATHER_START_WAIT_MS);
+
+    if (greenhouse) {
+      greenhouse.addEventListener(WEATHER_INTRO_EVENT, handleWeatherIntroStart, { once: true });
+    }
+  };
+
+  setWeatherState('waiting');
   sizeWeather();
   startWeather(kindFromHash() ?? 'clear');
+  waitForGreenhouseIntro();
   refreshWeather();
   setInterval(refreshWeather, WEATHER_REFRESH_MS);
   window.addEventListener('hashchange', handleWeatherHash);
@@ -1341,7 +3140,7 @@
     new IntersectionObserver(([entry]) => {
       weatherVisible = entry.isIntersecting;
 
-      if (weatherVisible && !weatherFrame && !weatherReducedMotion) {
+      if (weatherState === 'on' && weatherVisible && !weatherFrame && !weatherReducedMotion) {
         weatherFrame = requestAnimationFrame(loopWeather);
       }
     }).observe(weatherCanvas);
@@ -1349,226 +3148,607 @@
 </script>
 
 <script>
-  // Cover Flow. One float, `position`, says which photo is centered; every frame lays the items out from it.
-  const FLOW_PHOTOS = [
-    ['01', '넓은 제주 들판 한가운데 선 두 사람의 원경'],
-    ['02', '신랑이 신부의 볼에 입맞추는 모습'],
-    ['03', '서로 마주 보며 웃는 두 사람'],
-    ['04', '하늘을 올려다보며 함께 걷는 두 사람'],
-    ['05', '앞에 선 신랑과 그 뒤에 선 신부'],
-    ['07', '베일 아래에서 입맞추는 두 사람'],
-    ['08', '들판을 바라보는 신부의 뒷모습'],
-    ['09', '들판에 홀로 선 신부'],
-    ['10', '들판에 홀로 선 신랑'],
-    ['11', '역광 속에서 입맞추는 두 사람'],
-    ['12', '역광 속에서 미소 짓는 두 사람'],
-    ['13', '노을 지는 바닷가에 선 두 사람'],
-    ['14', '바닷가에서 마주 보며 걷는 두 사람'],
-    ['15', '바닷가에서 신부를 뒤에서 안은 신랑'],
-  ];
-  const FLOW_TILT_DEG = 62;
-  const FLOW_SNAP_MS = 420;
-  const FLOW_VISIBLE = 5;
+  (() => {
+    // Full view of one photo on the paper. The photos and their places are all in the markup; this only opens
+    // and closes the view. Wrapped in its own scope so nothing leaks into the page's globals.
+    const VIEWER_TAP_GUARD_MS = 350;
+    const viewer = document.getElementById('photos-viewer');
+    const viewerImage = document.getElementById('photos-viewer-image');
+    const viewerClose = document.getElementById('photos-viewer-close');
+    const photoButtons = [...document.querySelectorAll('.photos [data-photo]')];
+    let viewerOpenedAt = 0;
+    let viewerReturnFocus = null;
+    // True while the open view has its own history entry, so Android's back button closes it.
+    let viewerInHistory = false;
 
-  const flowStage = document.getElementById('flow');
-  const SVG_NS = 'http://www.w3.org/2000/svg';
+    // photos/photo-07-sm.jpg -> photos/photo-07.jpg (the 1600px original).
+    const getOriginalSource = (smallSource) => {
+      return smallSource.replace(/-sm\.jpg$/, '.jpg');
+    };
 
-  // A wobbly rectangle in a 0-100 box: points every quarter side, each nudged a little.
-  const wobblyRectPath = (jitter) => {
-    const nudge = () => (Math.random() - 0.5) * jitter;
-    const points = [];
+    const handleViewerImageLoad = () => {
+      viewerImage.style.backgroundImage = '';
+    };
 
-    [0, 25, 50, 75].forEach((t) => points.push([t + nudge(), 0.6 + nudge()]));
-    [0, 25, 50, 75].forEach((t) => points.push([99.4 + nudge(), t + nudge()]));
-    [100, 75, 50, 25].forEach((t) => points.push([t + nudge(), 99.4 + nudge()]));
-    [100, 75, 50, 25].forEach((t) => points.push([0.6 + nudge(), t + nudge()]));
+    const openViewer = (button) => {
+      const thumb = button.querySelector('img');
+      const width = Number(thumb.getAttribute('width'));
+      const height = Number(thumb.getAttribute('height'));
 
-    return `M${points.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L')} Z`;
-  };
+      viewerOpenedAt = performance.now();
+      viewerReturnFocus = button;
+      viewerImage.style.setProperty('--viewer-ratio', (width / height).toFixed(4));
+      viewerImage.style.backgroundImage = `url("${thumb.currentSrc || thumb.src}")`;
+      viewerImage.alt = thumb.alt;
+      viewerImage.setAttribute('src', getOriginalSource(thumb.getAttribute('src')));
+      viewer.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      viewerClose.focus({ preventScroll: true });
 
-  // Two loose passes of a crayon line, like the greeting photo's frame.
-  const createCrayonBorder = () => {
-    const svg = document.createElementNS(SVG_NS, 'svg');
-
-    svg.setAttribute('class', 'flow__border');
-    svg.setAttribute('viewBox', '0 0 100 100');
-    svg.setAttribute('preserveAspectRatio', 'none');
-    svg.setAttribute('aria-hidden', 'true');
-    [[1.5, 1, 1.1], [0.9, 0.5, 1.6]].forEach(([width, opacity, jitter]) => {
-      const path = document.createElementNS(SVG_NS, 'path');
-
-      path.setAttribute('d', wobblyRectPath(jitter));
-      path.setAttribute('stroke-width', String(width));
-      path.setAttribute('opacity', String(opacity));
-      svg.appendChild(path);
-    });
-
-    return svg;
-  };
-  const flowItems = FLOW_PHOTOS.map(([number, alt]) => {
-    const item = document.createElement('div');
-    const image = document.createElement('img');
-
-    item.className = 'flow__item';
-    item.appendChild(createCrayonBorder());
-    image.src = `photos/photo-${number}-sm.jpg`;
-    image.alt = alt;
-    image.decoding = 'async';
-    image.draggable = false;
-    item.insertBefore(image, item.firstChild);
-    flowStage.appendChild(item);
-
-    return item;
-  });
-
-  const flowReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let flowPosition = Math.floor(FLOW_PHOTOS.length / 2);
-  let flowSize = 220;
-  let flowFrame = 0;
-
-  const clampPosition = (value) => {
-    return Math.max(0, Math.min(FLOW_PHOTOS.length - 1, value));
-  };
-
-  const layoutFlow = () => {
-    flowItems.forEach((item, index) => {
-      const offset = index - flowPosition;
-      const distance = Math.abs(offset);
-      const side = Math.sign(offset);
-      const turn = Math.min(distance, 1);
-      // The first neighbour slides out to the side; the rest stack closely behind it.
-      const x = side * (turn * flowSize * 0.74 + Math.max(distance - 1, 0) * flowSize * 0.17);
-      const z = -turn * flowSize * 0.55;
-      const rotation = -side * FLOW_TILT_DEG * turn;
-      const isHidden = distance > FLOW_VISIBLE;
-
-      item.style.transform = `translate3d(${x}px, 0, ${z}px) rotateY(${rotation}deg)`;
-      item.style.zIndex = String(1000 - Math.round(distance * 10));
-      item.style.visibility = isHidden ? 'hidden' : 'visible';
-      item.firstChild.setAttribute('aria-hidden', Math.round(flowPosition) === index ? 'false' : 'true');
-    });
-  };
-
-  const resizeFlow = () => {
-    flowSize = Math.round(Math.min(flowStage.clientWidth * 0.52, 230));
-    flowStage.style.setProperty('--flow-size', `${flowSize}px`);
-    flowStage.style.setProperty('--flow-height', `${Math.round(flowSize * 1.22)}px`);
-    layoutFlow();
-  };
-
-  // Ease the strip to a whole index.
-  const animateTo = (target) => {
-    const from = flowPosition;
-    const to = clampPosition(Math.round(target));
-    const start = performance.now();
-
-    cancelAnimationFrame(flowFrame);
-
-    if (flowReducedMotion) {
-      flowPosition = to;
-      layoutFlow();
-
-      return;
-    }
-
-    const step = (now) => {
-      const t = Math.min((now - start) / FLOW_SNAP_MS, 1);
-      const eased = 1 - (1 - t) ** 3;
-
-      flowPosition = from + (to - from) * eased;
-      layoutFlow();
-
-      if (t < 1) {
-        flowFrame = requestAnimationFrame(step);
+      try {
+        window.history.pushState({ photosViewer: true }, '');
+        viewerInHistory = true;
+      } catch {
+        viewerInHistory = false;
       }
     };
 
-    flowFrame = requestAnimationFrame(step);
-  };
+    const closeViewer = () => {
+      if (viewer.hidden) {
+        return;
+      }
 
-  let dragStartX = 0;
-  let dragStartPosition = 0;
-  let dragLastX = 0;
-  let dragLastTime = 0;
-  let dragVelocity = 0;
-  let dragMoved = false;
-  let dragPointer = null;
+      viewer.hidden = true;
+      document.documentElement.style.overflow = '';
 
-  const handleFlowPointerDown = (event) => {
-    if (dragPointer !== null) {
+      if (viewerReturnFocus) {
+        viewerReturnFocus.focus({ preventScroll: true });
+      }
+
+      viewerReturnFocus = null;
+
+      // Closed by tap or Esc: step back over the entry the view pushed. The popstate that follows is ignored.
+      if (viewerInHistory) {
+        viewerInHistory = false;
+        window.history.back();
+      }
+    };
+
+    const handlePhotoClick = (event) => {
+      openViewer(event.currentTarget);
+    };
+
+    // The back button (or gesture) while the view is open closes the view instead of leaving the page.
+    const handleViewerPopState = () => {
+      if (!viewerInHistory) {
+        return;
+      }
+
+      viewerInHistory = false;
+      closeViewer();
+    };
+
+    const handleViewerClick = () => {
+      // A held Enter repeats on the close button straight after opening; that must not close the view.
+      if (performance.now() - viewerOpenedAt < VIEWER_TAP_GUARD_MS) {
+        return;
+      }
+
+      closeViewer();
+    };
+
+    const handleDocumentKeyDown = (event) => {
+      if (viewer.hidden) {
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeViewer();
+      }
+
+      // The close button is the only stop inside the dialog, so Tab stays on it.
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        viewerClose.focus({ preventScroll: true });
+      }
+    };
+
+    photoButtons.forEach((button) => {
+      button.addEventListener('click', handlePhotoClick);
+    });
+    viewer.addEventListener('click', handleViewerClick);
+    viewerImage.addEventListener('load', handleViewerImageLoad);
+    document.addEventListener('keydown', handleDocumentKeyDown);
+    window.addEventListener('popstate', handleViewerPopState);
+  })();
+</script>
+
+<script>
+  // Countdown: calendar days left until the wedding, counted on Korean calendar dates (KST, UTC+9),
+  // so a guest abroad sees the same number as a guest in Seoul.
+  // The row stays hidden unless this script fills it, and once the day has passed it is hidden again.
+  (() => {
+    const WEDDING_YEAR = 2027;
+    const WEDDING_MONTH_INDEX = 2;
+    const WEDDING_DAY = 6;
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+    const TODAY_LABEL = 'TODAY';
+    const TODAY_SPOKEN = '오늘이 결혼식입니다';
+    const row = document.querySelector('.ceremony [data-dday-row]');
+    const dday = row ? row.querySelector('[data-dday]') : null;
+    const spoken = row ? row.querySelector('[data-dday-spoken]') : null;
+
+    if (!row || !dday || !spoken) {
       return;
     }
 
-    cancelAnimationFrame(flowFrame);
-    dragPointer = event.pointerId;
-    dragStartX = event.clientX;
-    dragLastX = event.clientX;
-    dragLastTime = performance.now();
-    dragStartPosition = flowPosition;
-    dragVelocity = 0;
-    dragMoved = false;
-    flowStage.setPointerCapture(event.pointerId);
-    flowStage.classList.add('is-dragging');
-  };
+    // Shifting by nine hours and reading the UTC fields gives today's date in Korea, whatever the device's zone.
+    const koreaNow = new Date(Date.now() + KST_OFFSET_MS);
+    const today = Date.UTC(koreaNow.getUTCFullYear(), koreaNow.getUTCMonth(), koreaNow.getUTCDate());
+    const wedding = Date.UTC(WEDDING_YEAR, WEDDING_MONTH_INDEX, WEDDING_DAY);
+    const daysLeft = Math.round((wedding - today) / DAY_MS);
 
-  const handleFlowPointerMove = (event) => {
-    if (event.pointerId !== dragPointer) {
-      return;
-    }
-
-    const now = performance.now();
-    const deltaX = event.clientX - dragStartX;
-
-    if (Math.abs(deltaX) > 4) {
-      dragMoved = true;
-    }
-
-    dragVelocity = (event.clientX - dragLastX) / Math.max(now - dragLastTime, 1);
-    dragLastX = event.clientX;
-    dragLastTime = now;
-    flowPosition = clampPosition(dragStartPosition - deltaX / (flowSize * 0.38));
-    layoutFlow();
-  };
-
-  const handleFlowPointerUp = (event) => {
-    if (event.pointerId !== dragPointer) {
-      return;
-    }
-
-    dragPointer = null;
-    flowStage.classList.remove('is-dragging');
-
-    if (!dragMoved) {
-      // A tap on a side photo brings it to the center.
-      const hit = document.elementFromPoint(event.clientX, event.clientY)?.closest('.flow__item');
-      const index = flowItems.indexOf(hit);
-
-      animateTo(index >= 0 ? index : flowPosition);
+    if (daysLeft < 0) {
+      row.hidden = true;
+      dday.hidden = true;
 
       return;
     }
 
-    // A quick flick carries on a little further.
-    animateTo(flowPosition - dragVelocity * 2.2);
-  };
+    if (daysLeft === 0) {
+      dday.textContent = TODAY_LABEL;
+      spoken.textContent = TODAY_SPOKEN;
+    } else {
+      dday.textContent = `D-${daysLeft}`;
+      spoken.textContent = `결혼식까지 ${daysLeft}일`;
+    }
 
-  const handleFlowKeyDown = (event) => {
-    if (event.key === 'ArrowLeft') {
+    dday.hidden = false;
+    row.hidden = false;
+  })();
+</script>
+
+<script>
+  // TMAP opens only through its app link (tmap://), which errors on a computer. With a mouse-like pointer
+  // the word is hidden but kept in the DOM; without matchMedia nothing changes.
+  (() => {
+    const DESKTOP_QUERY = '(hover: hover) and (pointer: fine)';
+    const maps = document.querySelector('.directions .directions__maps');
+    const appOnlyItem = maps ? maps.querySelector('[data-map-app-only]') : null;
+
+    if (!appOnlyItem || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    if (!window.matchMedia(DESKTOP_QUERY).matches) {
+      return;
+    }
+
+    appOnlyItem.hidden = true;
+    maps.classList.add('directions__maps--two');
+  })();
+</script>
+
+<script>
+  // Side toggles: one side's accounts open at a time; tapping the open side folds it again.
+  // The markup ships with both sides open so the accounts show without script; this folds them first.
+  // Copying an account number is handled by the section kit (button[data-copy]).
+  (() => {
+    const section = document.querySelector('.gift');
+
+    if (!section) {
+      return;
+    }
+
+    const toggles = [...section.querySelectorAll('button[data-side-toggle]')];
+
+    const setOpen = (toggle, isOpen) => {
+      const panel = section.querySelector(`[data-side-panel="${toggle.dataset.sideToggle}"]`);
+
+      toggle.setAttribute('aria-expanded', String(isOpen));
+
+      if (panel) {
+        panel.hidden = !isOpen;
+      }
+    };
+
+    const handleToggleClick = (event) => {
+      const clicked = event.currentTarget;
+      const willOpen = clicked.getAttribute('aria-expanded') !== 'true';
+
+      toggles.forEach((toggle) => {
+        setOpen(toggle, toggle === clicked && willOpen);
+      });
+    };
+
+    toggles.forEach((toggle) => {
+      setOpen(toggle, false);
+      toggle.addEventListener('click', handleToggleClick);
+    });
+    section.setAttribute('data-gift-ready', '');
+  })();
+</script>
+
+<script>
+  // RSVP: shows head count and meal only to guests who attend, checks the answers,
+  // then saves one row to a Google Sheet through an Apps Script web app (scripts/RsvpSheet.gs).
+  (() => {
+    // Paste the Apps Script web app URL here once it is deployed; empty means preview (no request).
+    const RSVP_ENDPOINT = '';
+    const DEVICE_ID_KEY = 'rsvpDeviceId';
+    // Same limits as MIN_GUESTS / MAX_GUESTS in scripts/RsvpSheet.gs.
+    const MIN_GUESTS = 1;
+    const MAX_GUESTS = 9;
+    const SEND_TIMEOUT_MS = 15000;
+    const ANNOUNCE_DELAY_MS = 50;
+    const SENT_TEXT = '전해졌어요. 고맙습니다.';
+    const PREVIEW_TEXT = '시안이라 아직 저장되지는 않아요.';
+    const ERROR_TEXT = '보내지 못했어요. 잠시 뒤 다시 눌러 주세요.';
+    const HINT_TEXTS = {
+      side: '신랑측인지 신부측인지 골라 주세요.',
+      attendance: '참석하시는지 골라 주세요.',
+      name: '이름을 적어 주세요.',
+      meal: '식사하시는지 골라 주세요.',
+    };
+    const form = document.querySelector('form[data-rsvp]');
+
+    if (!form) {
+      return;
+    }
+
+    const section = form.closest('.rsvp') ?? document;
+    const attendingGroup = form.querySelector('[data-when-attending]');
+    const guestsValue = form.querySelector('[data-guests-value]');
+    const minusButton = form.querySelector('[data-guests-minus]');
+    const plusButton = form.querySelector('[data-guests-plus]');
+    const nameInput = form.querySelector('input[name="name"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const errorLine = form.querySelector('[data-rsvp-error]');
+    const hintLine = form.querySelector('[data-rsvp-hint]');
+    const result = section.querySelector('[data-rsvp-result]');
+    let guests = MIN_GUESTS;
+    let deviceId = '';
+    let isSending = false;
+
+    const getChoice = (name) => {
+      const checked = form.querySelector(`input[name="${name}"]:checked`);
+
+      return checked ? checked.value : '';
+    };
+
+    const createId = () => {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    };
+
+    // Same device and same name: the sheet overwrites that earlier row (see scripts/RsvpSheet.gs).
+    // Storage may be blocked; the id is then kept for this page, so a resend still matches its row.
+    const getDeviceId = () => {
+      if (deviceId) {
+        return deviceId;
+      }
+
+      try {
+        const saved = window.localStorage.getItem(DEVICE_ID_KEY);
+
+        if (saved) {
+          deviceId = saved;
+
+          return deviceId;
+        }
+
+        deviceId = createId();
+        window.localStorage.setItem(DEVICE_ID_KEY, deviceId);
+      } catch {
+        deviceId = deviceId || createId();
+      }
+
+      return deviceId;
+    };
+
+    // Trimmed, inner runs of spaces folded to one: the name the sheet stores and matches on.
+    const getName = () => {
+      return nameInput ? nameInput.value.trim().replace(/\s+/g, ' ') : '';
+    };
+
+    const renderGuests = () => {
+      if (guestsValue) {
+        guestsValue.textContent = String(guests);
+      }
+
+      if (minusButton) {
+        minusButton.disabled = guests <= MIN_GUESTS;
+      }
+
+      if (plusButton) {
+        plusButton.disabled = guests >= MAX_GUESTS;
+      }
+    };
+
+    const syncAttending = () => {
+      if (attendingGroup) {
+        attendingGroup.hidden = getChoice('attendance') !== 'attend';
+      }
+    };
+
+    const setMissing = (name, isMissing) => {
+      const row = form.querySelector(`[data-rsvp-row="${name}"]`);
+
+      if (!row) {
+        return;
+      }
+
+      row.toggleAttribute('data-missing', isMissing);
+    };
+
+    const handleChange = (event) => {
+      const target = event.target;
+
+      if (!(target instanceof HTMLInputElement) || target.type !== 'radio') {
+        return;
+      }
+
+      setMissing(target.name, false);
+
+      if (target.name === 'attendance') {
+        syncAttending();
+      }
+    };
+
+    const handleNameInput = () => {
+      if (nameInput && nameInput.value.trim() !== '') {
+        nameInput.removeAttribute('aria-invalid');
+      }
+    };
+
+    const handleMinusClick = () => {
+      guests = Math.max(MIN_GUESTS, guests - 1);
+      renderGuests();
+    };
+
+    const handlePlusClick = () => {
+      guests = Math.min(MAX_GUESTS, guests + 1);
+      renderGuests();
+    };
+
+    // Marks every unanswered question at once and returns the first element to focus, or null.
+    const findProblem = () => {
+      const missingSide = getChoice('side') === '';
+      const missingAttendance = getChoice('attendance') === '';
+      const missingName = getName() === '';
+      const missingMeal = getChoice('attendance') === 'attend' && getChoice('meal') === '';
+      const problems = [];
+
+      setMissing('side', missingSide);
+      setMissing('attendance', missingAttendance);
+      setMissing('meal', missingMeal);
+
+      if (nameInput && missingName) {
+        nameInput.setAttribute('aria-invalid', 'true');
+      }
+
+      if (missingSide) {
+        problems.push({ key: 'side', element: form.querySelector('input[name="side"]') });
+      }
+
+      if (missingAttendance) {
+        problems.push({ key: 'attendance', element: form.querySelector('input[name="attendance"]') });
+      }
+
+      if (missingName) {
+        problems.push({ key: 'name', element: nameInput });
+      }
+
+      if (missingMeal) {
+        problems.push({ key: 'meal', element: form.querySelector('input[name="meal"]') });
+      }
+
+      if (hintLine) {
+        hintLine.textContent = problems.map((problem) => HINT_TEXTS[problem.key]).join(' ');
+      }
+
+      return problems.length ? problems[0].element : null;
+    };
+
+    const buildPayload = () => {
+      const isAttending = getChoice('attendance') === 'attend';
+
+      return {
+        deviceId: getDeviceId(),
+        side: getChoice('side'),
+        attendance: getChoice('attendance'),
+        name: getName(),
+        guests: isAttending ? guests : 0,
+        meal: isAttending ? getChoice('meal') : '',
+        sentAt: new Date().toISOString(),
+      };
+    };
+
+    const showResult = (text) => {
+      form.hidden = true;
+
+      if (!result) {
+        return;
+      }
+
+      result.textContent = text;
+      result.hidden = false;
+      result.focus({ preventScroll: true });
+    };
+
+    // Cleared first so the same sentence is read out again on a second failure.
+    const showError = () => {
+      if (!errorLine) {
+        return;
+      }
+
+      errorLine.textContent = '';
+      errorLine.hidden = false;
+      setTimeout(() => {
+        errorLine.textContent = ERROR_TEXT;
+      }, ANNOUNCE_DELAY_MS);
+    };
+
+    // Apps Script cannot answer a CORS preflight, so the JSON goes as text/plain (a simple request).
+    // A stalled connection is cut after SEND_TIMEOUT_MS so the guest can try again.
+    const send = async (payload) => {
+      const controller = typeof AbortController === 'function' ? new AbortController() : null;
+      const timer = controller ? setTimeout(() => controller.abort(), SEND_TIMEOUT_MS) : 0;
+
+      try {
+        const response = await fetch(RSVP_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          signal: controller ? controller.signal : undefined,
+        });
+
+        if (!response.ok) {
+          throw new Error(`RSVP request failed: ${response.status}`);
+        }
+
+        // Apps Script answers 200 even when it could not write, so the body says whether it did.
+        const body = await response.json();
+
+        if (!body || body.ok !== true) {
+          throw new Error('RSVP was not saved');
+        }
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
+    const handleSubmit = async (event) => {
       event.preventDefault();
-      animateTo(Math.round(flowPosition) - 1);
+
+      if (isSending) {
+        return;
+      }
+
+      const problem = findProblem();
+
+      if (problem) {
+        problem.focus();
+
+        return;
+      }
+
+      const payload = buildPayload();
+
+      if (!RSVP_ENDPOINT) {
+        showResult(PREVIEW_TEXT);
+
+        return;
+      }
+
+      if (errorLine) {
+        errorLine.hidden = true;
+      }
+
+      isSending = true;
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        await send(payload);
+        showResult(SENT_TEXT);
+      } catch {
+        showError();
+      } finally {
+        isSending = false;
+
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    };
+
+    form.addEventListener('change', handleChange);
+    form.addEventListener('submit', handleSubmit);
+
+    if (nameInput) {
+      nameInput.addEventListener('input', handleNameInput);
     }
 
-    if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      animateTo(Math.round(flowPosition) + 1);
+    if (minusButton) {
+      minusButton.addEventListener('click', handleMinusClick);
     }
-  };
 
-  flowStage.addEventListener('pointerdown', handleFlowPointerDown);
-  flowStage.addEventListener('pointermove', handleFlowPointerMove);
-  flowStage.addEventListener('pointerup', handleFlowPointerUp);
-  flowStage.addEventListener('pointercancel', handleFlowPointerUp);
-  flowStage.addEventListener('keydown', handleFlowKeyDown);
-  window.addEventListener('resize', resizeFlow);
-  resizeFlow();
+    if (plusButton) {
+      plusButton.addEventListener('click', handlePlusClick);
+    }
+
+    renderGuests();
+    syncAttending();
+
+    // The send word ships disabled so a page without script cannot submit the form.
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
+  })();
+</script>
+
+<script>
+  // Share: opens the system share sheet with the invitation's title, date and address.
+  // Copying the address is handled by the section kit (data-copy-url).
+  (() => {
+    const SHARE_TITLE = '서진용 · 장하림 결혼합니다';
+    const SHARE_TEXT = '2027년 3월 6일 토요일 오후 5시, 식물관PH';
+    const shareButton = document.querySelector('.closing button[data-share]');
+    const shareRow = document.querySelector('.closing .closing__share');
+
+    if (!shareButton) {
+      return;
+    }
+
+    // No share sheet (most desktop browsers): keep the button in the DOM but hidden, copy word centered.
+    if (typeof navigator.share !== 'function') {
+      shareButton.hidden = true;
+
+      if (shareRow) {
+        shareRow.classList.add('closing__share--solo');
+      }
+
+      return;
+    }
+
+    // Closing the sheet rejects with AbortError, and a second tap while it is open with InvalidStateError;
+    // neither is a failure worth showing.
+    const QUIET_ERRORS = ['AbortError', 'InvalidStateError'];
+    let isSharing = false;
+
+    const handleShareClick = async () => {
+      if (isSharing) {
+        return;
+      }
+
+      isSharing = true;
+
+      try {
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: window.location.href });
+      } catch (error) {
+        if (error && QUIET_ERRORS.includes(error.name)) {
+          return;
+        }
+
+        // Any other refusal: fall back to copying the address, which shows its own feedback.
+        const copyButton = document.querySelector('.closing button[data-copy-url]');
+
+        if (copyButton) {
+          copyButton.click();
+        }
+      } finally {
+        isSharing = false;
+      }
+    };
+
+    shareButton.addEventListener('click', handleShareClick);
+  })();
 </script>
