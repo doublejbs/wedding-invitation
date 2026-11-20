@@ -82,7 +82,7 @@ class Section:
 SECTIONS = [
     Section('GreenhouseCover.html', '커버', root_tag='main', adapt=adapt_cover),
     Section('GreetingCard.html', '인사말'),
-    Section('PhotosMosaic.html', '사진'),
+    Section('PhotosFilm.html', '사진'),
     Section('CeremonyInfo.html', '예식 안내'),
     Section('Directions.html', '오시는 길'),
     Section('GiftAccounts.html', '마음 전하실 곳'),

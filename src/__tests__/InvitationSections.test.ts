@@ -159,10 +159,10 @@ describe('Invitation.html (built)', () => {
     });
   });
 
-  it('lays the photos out as one packed cluster', () => {
+  it('lays the photos out on film strips', () => {
     const photosSection = builtDocument.querySelector('section[aria-label="사진"]');
 
-    expect(photosSection?.querySelector('[data-mosaic]')).not.toBeNull();
+    expect(photosSection?.querySelector('[data-film]')).not.toBeNull();
     expect(photosSection?.querySelectorAll('button[data-photo]')).toHaveLength(14);
   });
 
@@ -244,8 +244,8 @@ describe('site/ (deploy build)', () => {
     });
   });
 
-  it('shows the packed photo layout on the main page and ships no second page', () => {
-    expect(siteDocument.querySelector('[data-mosaic]')).not.toBeNull();
+  it('shows the film strips on the main page and ships no second page', () => {
+    expect(siteDocument.querySelector('[data-film]')).not.toBeNull();
     expect(siteDocument.querySelectorAll('button[data-photo]')).toHaveLength(14);
     expect(readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8')).not.toContain('box-shadow');
     expect(existsSync(resolve(SITE_DIR, 'mosaic.html'))).toBe(false);
@@ -545,12 +545,12 @@ describe('GreetingCard.html', () => {
   });
 });
 
-describe('PhotosMosaic.html', () => {
+describe('PhotosFilm.html', () => {
   const PHOTO_COUNT = 14;
 
-  it('packs every photo into one cluster, each one a button with a description', () => {
-    const section = mountSection('PhotosMosaic.html');
-    const cluster = query('[data-mosaic]');
+  it('puts every photo on the film, each one a button with a description', () => {
+    const section = mountSection('PhotosFilm.html');
+    const cluster = query('[data-film]');
     const photos = [...cluster.querySelectorAll<HTMLButtonElement>('button[data-photo]')];
     const sources = photos.map((photo) => photo.querySelector('img')?.getAttribute('src') ?? '');
 
@@ -569,52 +569,36 @@ describe('PhotosMosaic.html', () => {
     });
   });
 
-  it('packs the photos into a heart without any two of them overlapping', () => {
-    mountSection('PhotosMosaic.html');
+  it('hangs the photos on three film strips of different lengths, landscape photos cropped to the frame', () => {
+    mountSection('PhotosFilm.html');
 
-    const GRID_COLUMNS = 48;
-    const AREA_PATTERN = /grid-area:\s*(\d+)\s*\/\s*(\d+)\s*\/\s*span\s*(\d+)\s*\/\s*span\s*(\d+)/;
-    const areas = [...document.querySelectorAll<HTMLButtonElement>('[data-mosaic] button[data-photo]')].map((photo) => {
-      const match = AREA_PATTERN.exec(photo.getAttribute('style') ?? '');
+    const strips = [...document.querySelectorAll<HTMLElement>('[data-film] .film__strip')];
+    const counts = strips.map((strip) => strip.querySelectorAll('button[data-photo]').length);
 
-      expect(match).not.toBeNull();
+    expect(strips).toHaveLength(3);
+    expect(counts.reduce((sum, count) => sum + count, 0)).toBe(PHOTO_COUNT);
+    expect(new Set(counts).size).toBe(3);
 
-      const [row, column, rowSpan, columnSpan] = (match ?? []).slice(1).map(Number);
+    document.querySelectorAll<HTMLButtonElement>('[data-film] button[data-photo]').forEach((frame) => {
+      const image = frame.querySelector('img');
+      const isLandscape = Number(image?.getAttribute('width')) > Number(image?.getAttribute('height'));
 
-      return { row, column, rowSpan, columnSpan };
-    });
-    const taken = new Set<string>();
+      expect(frame.classList.contains('film__frame')).toBe(true);
 
-    areas.forEach(({ row, column, rowSpan, columnSpan }) => {
-      expect(column + columnSpan - 1).toBeLessThanOrEqual(GRID_COLUMNS);
-
-      for (let y = row; y < row + rowSpan; y += 1) {
-        for (let x = column; x < column + columnSpan; x += 1) {
-          expect(taken.has(`${y}:${x}`)).toBe(false);
-          taken.add(`${y}:${x}`);
-        }
+      if (isLandscape) {
+        expect(frame.style.getPropertyValue('--pos')).toMatch(/^\d+% \d+%$/);
       }
     });
-
-    const rowWidth = (row: number) => [...taken].filter((cell) => cell.startsWith(`${row}:`)).length;
-    const lastRow = Math.max(...areas.map(({ row, rowSpan }) => row + rowSpan - 1));
-    const middleRow = Math.round(lastRow / 3);
-
-    // Two lobes with a dip between them on top, widest around a third of the way down, one photo at the point.
-    expect(taken.has(`1:${GRID_COLUMNS / 2}`)).toBe(false);
-    expect(rowWidth(middleRow)).toBe(GRID_COLUMNS);
-    expect(rowWidth(lastRow)).toBeLessThan(GRID_COLUMNS / 4);
-    expect(areas.filter(({ row, rowSpan }) => row + rowSpan - 1 === lastRow)).toHaveLength(1);
   });
 
-  it('shows photos only: no words above or below the cluster', () => {
-    expectNoTextOutsideViewer(mountSection('PhotosMosaic.html'));
+  it('shows photos only: no words above or below the film', () => {
+    expectNoTextOutsideViewer(mountSection('PhotosFilm.html'));
     expect(document.querySelector('[data-word]')).toBeNull();
     expect(document.querySelector('.photos .section-title')).toBeNull();
   });
 
   it('opens a photo large on the paper and closes it again with Escape', () => {
-    mountSection('PhotosMosaic.html');
+    mountSection('PhotosFilm.html');
 
     const photo = query<HTMLButtonElement>('button[data-photo]');
     const viewer = query('[role="dialog"]');
