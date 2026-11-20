@@ -1,4 +1,4 @@
-"""Combine the section files under docs/cover-studies into Invitation.html (and InvitationMosaic.html).
+"""Combine the section files under docs/cover-studies into Invitation.html.
 
 Usage: cd docs/cover-studies && python3 ../../scripts/BuildInvitation.py
 (input and output paths come from this script's location, so any working directory works).
@@ -6,10 +6,6 @@ Usage: cd docs/cover-studies && python3 ../../scripts/BuildInvitation.py
 Each section file is a standalone page: a <style>, one root element and its scripts.
 The shared kit (SectionKit.css / SectionKit.js) is inlined once, before every section's own code.
 To add a section, add one line to SECTIONS.
-
-While the two photo layouts are being compared, the same sections are also built with the packed photo layout
-(PhotosMosaic.html) in place of the scattered one, into InvitationMosaic.html. Once one is chosen, drop
-MOSAIC_SECTIONS, MOSAIC_OUTPUT_FILE and the second build_invitation() call.
 """
 import pathlib
 import re
@@ -19,7 +15,6 @@ from typing import Callable, Optional
 
 STUDIES_DIR = pathlib.Path(__file__).resolve().parent.parent / 'docs' / 'cover-studies'
 OUTPUT_FILE = STUDIES_DIR / 'Invitation.html'
-MOSAIC_OUTPUT_FILE = STUDIES_DIR / 'InvitationMosaic.html'
 KIT_CSS_FILE = 'SectionKit.css'
 KIT_JS_FILE = 'SectionKit.js'
 KIT_CSS_MARKER = '/* SectionKit */'
@@ -84,26 +79,16 @@ class Section:
     adapt: Optional[Callable[[SectionPart, str], SectionPart]] = None
 
 
-PHOTOS_FILE = 'PhotosScatter.html'
-MOSAIC_PHOTOS_FILE = 'PhotosMosaic.html'
-
 SECTIONS = [
     Section('GreenhouseCover.html', '커버', root_tag='main', adapt=adapt_cover),
     Section('GreetingCard.html', '인사말'),
-    Section(PHOTOS_FILE, '사진'),
+    Section('PhotosMosaic.html', '사진'),
     Section('CeremonyInfo.html', '예식 안내'),
     Section('Directions.html', '오시는 길'),
     Section('GiftAccounts.html', '마음 전하실 곳'),
     Section('Rsvp.html', '참석 여부'),
     Section('Closing.html', '마무리'),
 ]
-
-# The same invitation with only the photos section swapped, to compare the two layouts.
-MOSAIC_SECTIONS = [
-    Section(MOSAIC_PHOTOS_FILE, section.label) if section.file_name == PHOTOS_FILE else section
-    for section in SECTIONS
-]
-
 
 def read_study(file_name: str) -> str:
     path = STUDIES_DIR / file_name
@@ -300,7 +285,6 @@ def build_invitation(sections: list, output_file: pathlib.Path) -> None:
 
 def build() -> None:
     build_invitation(SECTIONS, OUTPUT_FILE)
-    build_invitation(MOSAIC_SECTIONS, MOSAIC_OUTPUT_FILE)
 
 
 if __name__ == '__main__':

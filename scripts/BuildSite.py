@@ -6,10 +6,6 @@ deployed, then writes site/index.html (a full HTML document around it) and copie
 (only the files the page names, e.g. textures/stamp-frame.png; the kept stamp-frame-source.png is not shipped), plus the
 favicons and the share card from docs/cover-studies/share/ (made by scripts/BuildShareImages.mjs; only copied here).
 site-url, if given, makes the share-preview addresses absolute, which KakaoTalk and other link previews need.
-
-While the two photo layouts are being compared, site/mosaic.html is the same invitation with the packed photo layout
-(docs/cover-studies/InvitationMosaic.html), kept out of search results and link previews with noindex. Once one is
-chosen, drop the PAGES entry for it.
 """
 import pathlib
 import re
@@ -52,7 +48,6 @@ except BuildInvitation.BuildError as error:
 # (built page in docs/cover-studies, file in site/, path in its address, kept out of search and previews)
 PAGES = [
     ('Invitation.html', 'index.html', '', False),
-    ('InvitationMosaic.html', 'mosaic.html', 'mosaic.html', True),
 ]
 image_url = f'{SITE_URL}/{SHARE_IMAGE}' if SITE_URL else SHARE_IMAGE
 

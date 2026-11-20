@@ -7,10 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Photos, packed: the layout to compare against PhotosScatter.html (the user's second reference image).
-     Only one of the two ends up in the invitation: once the user picks, the other file, its build branch
-     (scripts/BuildInvitation.py) and site/mosaic.html are deleted. Until then the full view below is the same code
-     as in PhotosScatter.html, duplicated on purpose.
+  /* Photos: the invitation's photo section, laid out after the user's second reference image.
 
      Fourteen flat photos fitted into one cluster with a narrow, even gap: one large photo in the middle, a few
      medium ones and small ones around it, the outline left uneven (photos rising above or sticking out to the side,
@@ -167,7 +164,7 @@
 <script src="SectionKit.js"></script>
 <script>
   (() => {
-    // Full view of one photo on the paper; the same code as in PhotosScatter.html (one of the two will be deleted).
+    // Full view of one photo on the paper.
     // The photos and their places are all in the markup; this only opens and closes the view.
     // Wrapped in its own scope so nothing leaks into the page's globals.
     const VIEWER_TAP_GUARD_MS = 350;

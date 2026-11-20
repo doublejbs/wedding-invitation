@@ -159,6 +159,13 @@ describe('Invitation.html (built)', () => {
     });
   });
 
+  it('lays the photos out as one packed cluster', () => {
+    const photosSection = builtDocument.querySelector('section[aria-label="사진"]');
+
+    expect(photosSection?.querySelector('[data-mosaic]')).not.toBeNull();
+    expect(photosSection?.querySelectorAll('button[data-photo]')).toHaveLength(14);
+  });
+
   it('leaves the greeting and photos sections without a title', () => {
     expect(builtDocument.querySelector('section[aria-label="인사말"] .section-title')).toBeNull();
     expect(builtDocument.querySelector('section[aria-label="사진"] .section-title')).toBeNull();
@@ -237,17 +244,11 @@ describe('site/ (deploy build)', () => {
     });
   });
 
-  it('ships a second page with the mosaic photo layout, so the two can be compared', () => {
-    const mainPage = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
-    const mosaicPage = readFileSync(resolve(SITE_DIR, 'mosaic.html'), 'utf-8');
-    const mosaicDocument = new DOMParser().parseFromString(mosaicPage, 'text/html');
-    const labels = [...mosaicDocument.querySelectorAll('main > section')].map((section) => section.getAttribute('aria-label'));
-
-    expect(labels).toEqual(SECTION_ORDER);
-    expect(mosaicDocument.querySelector('[data-mosaic]')).not.toBeNull();
-    expect(mosaicDocument.querySelectorAll('button[data-photo]')).toHaveLength(14);
-    expect(mainPage).not.toContain('data-mosaic');
-    expect(mosaicPage).not.toContain('box-shadow');
+  it('shows the packed photo layout on the main page and ships no second page', () => {
+    expect(siteDocument.querySelector('[data-mosaic]')).not.toBeNull();
+    expect(siteDocument.querySelectorAll('button[data-photo]')).toHaveLength(14);
+    expect(readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8')).not.toContain('box-shadow');
+    expect(existsSync(resolve(SITE_DIR, 'mosaic.html'))).toBe(false);
   });
 
   it('ships the stamp paper the greeting photo sits in', () => {
@@ -544,59 +545,7 @@ describe('GreetingCard.html', () => {
   });
 });
 
-describe('PhotosScatter.html', () => {
-  const PHOTO_COUNT = 14;
-
-  it('lays every photo out in the markup itself, each one a button with a description', () => {
-    mountSection('PhotosScatter.html');
-
-    const photos = [...document.querySelectorAll<HTMLButtonElement>('button[data-photo]')];
-    const sources = photos.map((photo) => photo.querySelector('img')?.getAttribute('src') ?? '');
-
-    expect(photos).toHaveLength(PHOTO_COUNT);
-    expect(new Set(sources).size).toBe(PHOTO_COUNT);
-
-    photos.forEach((photo) => {
-      const image = photo.querySelector('img');
-
-      expect(image?.getAttribute('src')).toMatch(/^photos\/photo-\d{2}-sm\.jpg$/);
-      expect(image?.getAttribute('alt')?.trim()).toBeTruthy();
-      expect(image?.getAttribute('width')).toBeTruthy();
-      expect(image?.getAttribute('height')).toBeTruthy();
-    });
-
-    expect(sources).not.toContain('photos/photo-06-sm.jpg');
-  });
-
-  it('shows photos only: no words between or around them', () => {
-    const section = mountSection('PhotosScatter.html');
-
-    expectNoTextOutsideViewer(section);
-    expect(document.querySelector('[data-word]')).toBeNull();
-    expect(document.querySelector('.photos .section-title')).toBeNull();
-  });
-
-  it('opens a photo large on the paper and closes it again with Escape', () => {
-    mountSection('PhotosScatter.html');
-
-    const photo = query<HTMLButtonElement>('button[data-photo]');
-    const viewer = query('[role="dialog"]');
-    const smallSource = photo.querySelector('img')?.getAttribute('src') ?? '';
-
-    expect(viewer.hidden).toBe(true);
-
-    photo.click();
-
-    expect(viewer.hidden).toBe(false);
-    expect(viewer.querySelector('img')?.getAttribute('src')).toBe(smallSource.replace('-sm.jpg', '.jpg'));
-
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-
-    expect(viewer.hidden).toBe(true);
-  });
-});
-
-describe('PhotosMosaic.html (layout to compare against the scatter)', () => {
+describe('PhotosMosaic.html', () => {
   const PHOTO_COUNT = 14;
 
   it('packs every photo into one cluster, each one a button with a description', () => {
@@ -615,11 +564,15 @@ describe('PhotosMosaic.html (layout to compare against the scatter)', () => {
 
       expect(image?.getAttribute('src')).toMatch(/^photos\/photo-\d{2}-sm\.jpg$/);
       expect(image?.getAttribute('alt')?.trim()).toBeTruthy();
+      expect(image?.getAttribute('width')).toBeTruthy();
+      expect(image?.getAttribute('height')).toBeTruthy();
     });
   });
 
   it('shows photos only: no words above or below the cluster', () => {
     expectNoTextOutsideViewer(mountSection('PhotosMosaic.html'));
+    expect(document.querySelector('[data-word]')).toBeNull();
+    expect(document.querySelector('.photos .section-title')).toBeNull();
   });
 
   it('opens a photo large on the paper and closes it again with Escape', () => {
