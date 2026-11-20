@@ -20,7 +20,9 @@
     padding-left: max(24px, env(safe-area-inset-left, 0px), calc(50% - 196px));
     padding-right: max(24px, env(safe-area-inset-right, 0px), calc(50% - 196px));
     padding-block: 72px 80px;
-    background: #000;
+    /* The same stamp-paper grain as the rest of the page, made black (textures/paper-black.png: a seamless
+       400px tile shown at 200px). Plain black shows until it loads. */
+    background: #000 url("textures/paper-black.png") 0 0 / 200px 200px repeat;
     color: var(--paper);
   }
 
