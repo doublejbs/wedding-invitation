@@ -7,16 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Photos: the invitation's photo section, laid out after the user's second reference image.
+  /* Photos: the invitation's photo section, packed into a heart (the user's request).
 
-     Fourteen flat photos fitted into one cluster with a narrow, even gap: one large photo in the middle, a few
-     medium ones and small ones around it, the outline left uneven (photos rising above or sticking out to the side,
-     empty corners). Photos only: no words at all (the user's request), no border, no shadow, no rounded corner,
-     no tilt, no overlap.
+     Fourteen flat photos fitted with a narrow, even gap into a stair-stepped heart: two lobes on top with a dip
+     between them, the widest band across the middle with the veil kiss (07) as the large center photo, then
+     narrowing bands down to one small photo at the point. Photos only: no words at all (the user's request),
+     no border, no shadow, no rounded corner, no tilt, no overlap.
 
      The cluster is a 48-column grid whose rows are as tall as its columns are wide, so a span of columns and rows
      fixes each photo's box before its image arrives. Everything is in --mosaic-unit, 1% of the cluster width
-     (the column inside a 24px margin, at most 440px), so the same arrangement holds from 320px to 440px. */
+     (the column inside a 24px margin, at most 440px), so the same heart holds from 320px to 440px. */
   .photos--mosaic {
     --mosaic-unit: calc((min(100vw, 440px) - 48px) / 100);
     --mosaic-gap: calc(var(--mosaic-unit) * 1.6);
@@ -24,8 +24,8 @@
     box-sizing: border-box;
     max-width: 440px;
     margin: 0 auto;
-    /* 48px above the top photo: the cluster's first two rows are empty (the tall photo rises from row 3). */
-    padding: calc(48px - 2 * (var(--mosaic-row) + var(--mosaic-gap))) 0 56px;
+    /* The heart's two inner lobe photos start on the first row. */
+    padding: 48px 0 56px;
     background: var(--paper);
   }
 
@@ -140,20 +140,20 @@
 
 <section class="photos photos--mosaic" aria-label="사진">
   <div data-mosaic class="mosaic__cluster">
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 3 / 23 / span 22 / span 13; --pos: 48% 52%"><img src="photos/photo-10-sm.jpg" alt="들판에 홀로 선 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 9 / 36 / span 16 / span 10; --pos: 50% 58%"><img src="photos/photo-09-sm.jpg" alt="들판에 홀로 선 신부" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 12 / 4 / span 13 / span 19; --pos: 50% 62%"><img src="photos/photo-14-sm.jpg" alt="바닷가에서 마주 보며 걷는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 25 / 1 / span 10 / span 13; --pos: 52% 45%"><img src="photos/photo-03-sm.jpg" alt="서로 마주 보며 웃는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 25 / 14 / span 33 / span 22; --pos: 55% 55%"><img src="photos/photo-07-sm.jpg" alt="베일 아래에서 입맞추는 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 25 / 36 / span 10 / span 13; --pos: 46% 45%"><img src="photos/photo-12-sm.jpg" alt="역광 속에서 미소 짓는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 35 / 4 / span 13 / span 10; --pos: 55% 48%"><img src="photos/photo-15-sm.jpg" alt="바닷가에서 신부를 뒤에서 안은 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 35 / 36 / span 16 / span 10; --pos: 40% 42%"><img src="photos/photo-05-sm.jpg" alt="앞에 선 신랑과 그 뒤에 선 신부" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 48 / 1 / span 10 / span 13; --pos: 50% 55%"><img src="photos/photo-04-sm.jpg" alt="하늘을 올려다보며 함께 걷는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 51 / 36 / span 20 / span 13; --pos: 48% 58%"><img src="photos/photo-13-sm.jpg" alt="노을 지는 바닷가에 선 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 58 / 4 / span 12 / span 18; --pos: 50% 62%"><img src="photos/photo-01-sm.jpg" alt="넓은 제주 들판 한가운데 선 두 사람의 원경" width="800" height="534" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 58 / 22 / span 23 / span 14; --pos: 45% 58%"><img src="photos/photo-11-sm.jpg" alt="역광 속에서 입맞추는 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 70 / 12 / span 14 / span 10; --pos: 50% 72%"><img src="photos/photo-08-sm.jpg" alt="들판을 바라보는 신부의 뒷모습" width="534" height="800" loading="lazy" decoding="async"></button>
-    <button type="button" data-photo class="mosaic__photo" style="grid-area: 71 / 36 / span 10 / span 13; --pos: 52% 38%"><img src="photos/photo-02-sm.jpg" alt="신랑이 신부의 볼에 입맞추는 모습" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 3 / 6 / span 8 / span 9; --pos: 40% 42%"><img src="photos/photo-05-sm.jpg" alt="앞에 선 신랑과 그 뒤에 선 신부" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 1 / 15 / span 10 / span 9; --pos: 48% 52%"><img src="photos/photo-10-sm.jpg" alt="들판에 홀로 선 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 1 / 26 / span 10 / span 9; --pos: 50% 58%"><img src="photos/photo-09-sm.jpg" alt="들판에 홀로 선 신부" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 3 / 35 / span 8 / span 9; --pos: 55% 48%"><img src="photos/photo-15-sm.jpg" alt="바닷가에서 신부를 뒤에서 안은 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 11 / 1 / span 9 / span 16; --pos: 50% 62%"><img src="photos/photo-14-sm.jpg" alt="바닷가에서 마주 보며 걷는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 11 / 17 / span 22 / span 16; --pos: 55% 55%"><img src="photos/photo-07-sm.jpg" alt="베일 아래에서 입맞추는 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 11 / 33 / span 9 / span 16; --pos: 46% 45%"><img src="photos/photo-12-sm.jpg" alt="역광 속에서 미소 짓는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 20 / 3 / span 9 / span 14; --pos: 52% 45%"><img src="photos/photo-03-sm.jpg" alt="서로 마주 보며 웃는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 20 / 33 / span 9 / span 14; --pos: 50% 55%"><img src="photos/photo-04-sm.jpg" alt="하늘을 올려다보며 함께 걷는 두 사람" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 29 / 8 / span 7 / span 9; --pos: 50% 62%"><img src="photos/photo-01-sm.jpg" alt="넓은 제주 들판 한가운데 선 두 사람의 원경" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 29 / 33 / span 7 / span 9; --pos: 52% 38%"><img src="photos/photo-02-sm.jpg" alt="신랑이 신부의 볼에 입맞추는 모습" width="800" height="534" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 33 / 17 / span 9 / span 8; --pos: 45% 58%"><img src="photos/photo-11-sm.jpg" alt="역광 속에서 입맞추는 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 33 / 25 / span 9 / span 8; --pos: 48% 58%"><img src="photos/photo-13-sm.jpg" alt="노을 지는 바닷가에 선 두 사람" width="534" height="800" loading="lazy" decoding="async"></button>
+    <button type="button" data-photo class="mosaic__photo" style="grid-area: 42 / 20 / span 7 / span 10; --pos: 50% 72%"><img src="photos/photo-08-sm.jpg" alt="들판을 바라보는 신부의 뒷모습" width="534" height="800" loading="lazy" decoding="async"></button>
   </div>
   <div class="mosaic__viewer" id="mosaic-viewer" role="dialog" aria-modal="true" aria-label="사진 크게 보기" aria-describedby="mosaic-viewer-image" hidden>
     <img class="mosaic__viewer-image" id="mosaic-viewer-image" alt="">

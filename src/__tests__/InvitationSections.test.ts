@@ -569,6 +569,44 @@ describe('PhotosMosaic.html', () => {
     });
   });
 
+  it('packs the photos into a heart without any two of them overlapping', () => {
+    mountSection('PhotosMosaic.html');
+
+    const GRID_COLUMNS = 48;
+    const AREA_PATTERN = /grid-area:\s*(\d+)\s*\/\s*(\d+)\s*\/\s*span\s*(\d+)\s*\/\s*span\s*(\d+)/;
+    const areas = [...document.querySelectorAll<HTMLButtonElement>('[data-mosaic] button[data-photo]')].map((photo) => {
+      const match = AREA_PATTERN.exec(photo.getAttribute('style') ?? '');
+
+      expect(match).not.toBeNull();
+
+      const [row, column, rowSpan, columnSpan] = (match ?? []).slice(1).map(Number);
+
+      return { row, column, rowSpan, columnSpan };
+    });
+    const taken = new Set<string>();
+
+    areas.forEach(({ row, column, rowSpan, columnSpan }) => {
+      expect(column + columnSpan - 1).toBeLessThanOrEqual(GRID_COLUMNS);
+
+      for (let y = row; y < row + rowSpan; y += 1) {
+        for (let x = column; x < column + columnSpan; x += 1) {
+          expect(taken.has(`${y}:${x}`)).toBe(false);
+          taken.add(`${y}:${x}`);
+        }
+      }
+    });
+
+    const rowWidth = (row: number) => [...taken].filter((cell) => cell.startsWith(`${row}:`)).length;
+    const lastRow = Math.max(...areas.map(({ row, rowSpan }) => row + rowSpan - 1));
+    const middleRow = Math.round(lastRow / 3);
+
+    // Two lobes with a dip between them on top, widest around a third of the way down, one photo at the point.
+    expect(taken.has(`1:${GRID_COLUMNS / 2}`)).toBe(false);
+    expect(rowWidth(middleRow)).toBe(GRID_COLUMNS);
+    expect(rowWidth(lastRow)).toBeLessThan(GRID_COLUMNS / 4);
+    expect(areas.filter(({ row, rowSpan }) => row + rowSpan - 1 === lastRow)).toHaveLength(1);
+  });
+
   it('shows photos only: no words above or below the cluster', () => {
     expectNoTextOutsideViewer(mountSection('PhotosMosaic.html'));
     expect(document.querySelector('[data-word]')).toBeNull();
