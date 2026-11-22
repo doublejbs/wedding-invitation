@@ -7,12 +7,12 @@
 - 신랑 서진용 (Seo Jinyong), 신부 장하림 (Jang Harim)
 - 2027년 3월 6일 토요일 오후 5시, 식물관PH (유리 온실 예식장)
 - 배포 주소: https://wedding-invitation-beta-sand.vercel.app (Vercel 프로젝트 `wedding-invitation`, 계정 doublejbs)
-- 저장소: https://github.com/doublejbs/wedding-invitation (비공개)
+- 저장소: https://github.com/doublejbs/wedding-invitation (**공개** — 커밋한 내용은 누구나 볼 수 있다. 계좌번호·연락처 같은 개인정보는 커밋 전에 사용자에게 확인한다)
 
-## 지금 어디까지 왔나 (2026-11-20)
+## 지금 어디까지 왔나 (2026-11-22)
 
-- 작업 브랜치: `feature/invitation-sections` (원격에 올라가 있음, `main`에는 아직 합치지 않음). 이어서 할 때는 이 브랜치를 받아서 시작한다.
-- 배포된 사이트는 이 브랜치의 내용이다.
+- 작업 브랜치: `feature/invitation-lower-sections` (원격에 올라가 있음, `main`에는 아직 합치지 않음). 이어서 할 때는 이 브랜치를 받아서 시작한다. 예전 브랜치 `feature/invitation-sections`에는 최근 변경이 없다.
+- 이 브랜치의 내용은 아직 배포하지 않았다.
 - 사용자가 정해 줘야 하는 것
   - 06번 사진(세로, 서로 기대어 웃는 사진)은 지금 어디에도 안 쓰인다. 사진 영역에 다시 넣을지.
   - 우표 종이 이미지(`textures/stamp-frame.png`)의 출처와 사용 조건.
