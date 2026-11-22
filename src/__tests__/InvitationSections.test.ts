@@ -148,21 +148,29 @@ describe('Invitation.html (built)', () => {
     expect(labels).toEqual(SECTION_ORDER);
   });
 
-  it('gives each titled section a "word – drawing – word" title', () => {
+  it('gives each titled section one big Korean title and one crayon illustration', () => {
     TITLED_SECTIONS.forEach((label) => {
-      const title = builtDocument.querySelector(`section[aria-label="${label}"] .section-title`);
+      const section = builtDocument.querySelector(`section[aria-label="${label}"]`);
+      const titles = section?.querySelectorAll('.section-title') ?? [];
+      const text = titles[0]?.textContent?.trim() ?? '';
+      const illustrations = section?.querySelectorAll('svg[data-illustration]') ?? [];
 
-      expect(title, label).not.toBeNull();
-      expect(title?.querySelector('.section-title__left')?.textContent?.trim(), label).not.toBe('');
-      expect(title?.querySelector('.section-title__glyph'), label).not.toBeNull();
-      expect(title?.querySelector('.section-title__right')?.textContent?.trim(), label).not.toBe('');
+      expect(section?.classList.contains('section--detail'), label).toBe(true);
+      expect(titles, label).toHaveLength(1);
+      expect(text, label).toMatch(/[가-힣]/);
+      expect(text, label).not.toMatch(/[A-Za-z]/);
+      expect(section?.querySelector('.section-title__glyph'), label).toBeNull();
+      expect(illustrations, label).toHaveLength(1);
+      expect(illustrations[0]?.getAttribute('aria-hidden'), label).toBe('true');
     });
+
+    expect(builtDocument.querySelector('section[aria-label="예식 안내"] .section-title')?.textContent?.trim()).toBe('예식 안내');
   });
 
-  it('lays the photos out on film strips', () => {
+  it('lays the photos out on a scrapbook page', () => {
     const photosSection = builtDocument.querySelector('section[aria-label="사진"]');
 
-    expect(photosSection?.querySelector('[data-film]')).not.toBeNull();
+    expect(photosSection?.querySelector('[data-scrap]')).not.toBeNull();
     expect(photosSection?.querySelectorAll('button[data-photo]')).toHaveLength(14);
   });
 
@@ -244,8 +252,8 @@ describe('site/ (deploy build)', () => {
     });
   });
 
-  it('shows the film strips on the main page and ships no second page', () => {
-    expect(siteDocument.querySelector('[data-film]')).not.toBeNull();
+  it('shows the scrapbook page on the main page and ships no second page', () => {
+    expect(siteDocument.querySelector('[data-scrap]')).not.toBeNull();
     expect(siteDocument.querySelectorAll('button[data-photo]')).toHaveLength(14);
     expect(readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8')).not.toContain('box-shadow');
     expect(existsSync(resolve(SITE_DIR, 'mosaic.html'))).toBe(false);
@@ -545,12 +553,12 @@ describe('GreetingCard.html', () => {
   });
 });
 
-describe('PhotosFilm.html', () => {
+describe('PhotosScrapbook.html', () => {
   const PHOTO_COUNT = 14;
 
-  it('puts every photo on the film, each one a button with a description', () => {
-    const section = mountSection('PhotosFilm.html');
-    const cluster = query('[data-film]');
+  it('puts every photo on the page, each one a button with a description', () => {
+    const section = mountSection('PhotosScrapbook.html');
+    const cluster = query('[data-scrap]');
     const photos = [...cluster.querySelectorAll<HTMLButtonElement>('button[data-photo]')];
     const sources = photos.map((photo) => photo.querySelector('img')?.getAttribute('src') ?? '');
 
@@ -569,21 +577,14 @@ describe('PhotosFilm.html', () => {
     });
   });
 
-  it('hangs the photos on three film strips of different lengths, landscape photos cropped to the frame', () => {
-    mountSection('PhotosFilm.html');
+  it('frames every photo in a crayon outline, landscape photos cropped to the frame', () => {
+    mountSection('PhotosScrapbook.html');
 
-    const strips = [...document.querySelectorAll<HTMLElement>('[data-film] .film__strip')];
-    const counts = strips.map((strip) => strip.querySelectorAll('button[data-photo]').length);
-
-    expect(strips).toHaveLength(3);
-    expect(counts.reduce((sum, count) => sum + count, 0)).toBe(PHOTO_COUNT);
-    expect(new Set(counts).size).toBe(3);
-
-    document.querySelectorAll<HTMLButtonElement>('[data-film] button[data-photo]').forEach((frame) => {
+    document.querySelectorAll<HTMLButtonElement>('[data-scrap] button[data-photo]').forEach((frame) => {
       const image = frame.querySelector('img');
       const isLandscape = Number(image?.getAttribute('width')) > Number(image?.getAttribute('height'));
 
-      expect(frame.classList.contains('film__frame')).toBe(true);
+      expect(frame.classList.contains('scrap__photo')).toBe(true);
 
       if (isLandscape) {
         expect(frame.style.getPropertyValue('--pos')).toMatch(/^\d+% \d+%$/);
@@ -591,14 +592,20 @@ describe('PhotosFilm.html', () => {
     });
   });
 
-  it('shows photos only: no words above or below the film', () => {
-    expectNoTextOutsideViewer(mountSection('PhotosFilm.html'));
+  it('adds no decorations next to the photos', () => {
+    mountSection('PhotosScrapbook.html');
+
+    expect(document.querySelector('[data-scrap] svg, [data-doodle], [data-star]')).toBeNull();
+  });
+
+  it('shows photos only: no words on the page', () => {
+    expectNoTextOutsideViewer(mountSection('PhotosScrapbook.html'));
     expect(document.querySelector('[data-word]')).toBeNull();
     expect(document.querySelector('.photos .section-title')).toBeNull();
   });
 
   it('opens a photo large on the paper and closes it again with Escape', () => {
-    mountSection('PhotosFilm.html');
+    mountSection('PhotosScrapbook.html');
 
     const photo = query<HTMLButtonElement>('button[data-photo]');
     const viewer = query('[role="dialog"]');
@@ -618,6 +625,14 @@ describe('PhotosFilm.html', () => {
 });
 
 describe('CeremonyInfo.html', () => {
+  it('names both families\' parents and keeps the title free of drawings', () => {
+    const section = mountSection('CeremonyInfo.html');
+    const parents = [...section.querySelectorAll('[data-parents]')].map((line) => line.textContent?.trim());
+
+    expect(parents).toEqual(['서재호 · 김선교', '장영인 · 김혜숙']);
+    expect(section.querySelector('.section-title svg, .section-title__glyph')).toBeNull();
+  });
+
   it('counts the days left until the wedding', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-11-19T09:00:00+09:00'));
@@ -648,6 +663,60 @@ describe('CeremonyInfo.html', () => {
     mountSection('CeremonyInfo.html');
 
     expect(query('[data-dday]').hidden).toBe(true);
+  });
+
+  it('stacks the groom\'s family above the bride\'s', () => {
+    const section = mountSection('CeremonyInfo.html');
+    const names = [...section.querySelectorAll('.ceremony__name')].map((name) => name.textContent?.trim());
+
+    expect(names).toEqual(['진용', '하림']);
+  });
+
+  it('labels the date and time', () => {
+    const section = mountSection('CeremonyInfo.html');
+
+    expect(section.querySelector('.ceremony__label')?.textContent?.trim()).toBe('일시');
+    expect(section.textContent).toContain('2027년 3월 6일 토요일');
+    expect(section.textContent).toContain('오후 5시');
+  });
+
+  it('runs a live countdown to the start of the ceremony', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2027-03-05T16:59:50+09:00'));
+    mountSection('CeremonyInfo.html');
+
+    const timer = query('[data-countdown]');
+
+    expect(timer.hidden).toBe(false);
+    expect(timer.getAttribute('aria-hidden')).toBe('true');
+    expect(timer.textContent?.replace(/\s+/g, ' ').trim()).toBe('1일 00시간 00분 10초');
+
+    vi.advanceTimersByTime(1000);
+
+    expect(timer.textContent?.replace(/\s+/g, ' ').trim()).toBe('1일 00시간 00분 09초');
+  });
+
+  it('hides the live countdown once the ceremony has started', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2027-03-06T16:59:59+09:00'));
+    mountSection('CeremonyInfo.html');
+
+    const timer = query('[data-countdown]');
+
+    expect(timer.hidden).toBe(false);
+
+    vi.advanceTimersByTime(1000);
+
+    expect(timer.hidden).toBe(true);
+    expect(query('[data-dday]').textContent?.trim()).toBe('TODAY');
+  });
+
+  it('keeps the live countdown hidden after the start', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2027-03-06T17:30:00+09:00'));
+    mountSection('CeremonyInfo.html');
+
+    expect(query('[data-countdown]').hidden).toBe(true);
   });
 });
 

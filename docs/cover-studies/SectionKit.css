@@ -292,3 +292,49 @@ body {
 .field[aria-invalid='true'] {
   background-image: var(--crayon-underline-bloom);
 }
+
+/* Detail sections (ceremony, directions, gift, RSVP, closing). The layout follows the reference
+   docs/references/OliveLineStyle.webp (one big centered title, small airy centered text, one drawing);
+   the tone stays the cover's: same tokens, fonts and crayon colours as everywhere else. */
+
+/* One big Korean title on the center axis, about the cover title's size and tracking. */
+.section--detail .section-title {
+  display: block;
+  margin: 0 0 30px;
+  font-family: var(--latin), var(--korean);
+  font-weight: 500;
+  font-size: clamp(28px, 8.5vw, 33px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* A small bold heading over a short paragraph (the reference's "Where to stay"). */
+.detail-sub {
+  margin: 0 0 6px;
+  font-family: var(--korean);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.section--detail .prose {
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: var(--soft);
+}
+
+/* The one crayon drawing of each section, above its title. Paths without their own colour
+   take the pencil line; coloured parts (leaf, bloom, gold, frame) set it on the path. */
+.crayon-art {
+  display: block;
+  width: 112px;
+  height: auto;
+  margin: 0 auto 20px;
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
