@@ -908,6 +908,14 @@ describe('CeremonyInfo.html', () => {
 });
 
 describe('Directions.html', () => {
+  // Every mount may append the Naver map script to <head> and set its auth-failure global.
+  afterEach(() => {
+    document.querySelectorAll('script[src^="https://oapi.map.naver.com"]').forEach((script) => {
+      script.remove();
+    });
+    Reflect.deleteProperty(window, 'navermap_authFailure');
+  });
+
   it('copies the address and confirms it in place for a moment', async () => {
     vi.useFakeTimers();
 
@@ -990,22 +998,192 @@ describe('Directions.html', () => {
     expect(hrefs[2]).toContain('tmap');
   });
 
-  it('shows a map of the address under the title instead of a drawing', () => {
-    const section = mountSection('Directions.html');
-    const map = section.querySelector('iframe');
-    const address = section.querySelector('[data-copy]')?.getAttribute('data-copy') ?? '';
+  describe('Naver map', () => {
+    const NAVER_MAP_SCRIPT_URL = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=p3b51v6ck2';
 
-    expect(section.querySelector('svg, .crayon-art')).toBeNull();
-    expect(section.querySelectorAll('iframe')).toHaveLength(1);
+    const VENUE = { lat: 37.4826902, lng: 127.0943672 };
 
-    const src = new URL(map?.getAttribute('src') ?? '');
+    const findMapScripts = () => {
+      return [...document.querySelectorAll<HTMLScriptElement>('script[src^="https://oapi.map.naver.com"]')];
+    };
 
-    expect(`${src.origin}${src.pathname}`).toBe('https://www.google.com/maps');
-    expect(src.searchParams.get('output')).toBe('embed');
-    expect(src.searchParams.get('q')).toBe(address);
-    expect(map?.getAttribute('loading')).toBe('lazy');
-    expect(map?.getAttribute('title')).toBe('식물관PH 위치 지도');
-    expect(section.querySelector('.section-title')?.nextElementSibling).toBe(map);
+    // A stand-in for IntersectionObserver: the test decides when the box comes near the viewport.
+    const stubIntersectionObserver = () => {
+      const observers: { callback: IntersectionObserverCallback; options?: IntersectionObserverInit; observe: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> }[] = [];
+
+      class FakeIntersectionObserver {
+        observe = vi.fn();
+
+        unobserve = vi.fn();
+
+        disconnect = vi.fn();
+
+        constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+          observers.push({ callback, options, observe: this.observe, disconnect: this.disconnect });
+        }
+      }
+
+      vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+
+      return observers;
+    };
+
+    // The parts of window.naver.maps the section uses, recording how they were called.
+    const stubNaverMaps = () => {
+      class LatLng {
+        constructor(
+          public lat: number,
+          public lng: number,
+        ) {}
+      }
+
+      const Map = vi.fn();
+      const Marker = vi.fn();
+      const maps = {
+        LatLng,
+        Map,
+        Marker,
+        Position: { TOP_RIGHT: 'TOP_RIGHT' },
+        ZoomControlStyle: { SMALL: 'SMALL' },
+      };
+
+      vi.stubGlobal('naver', { maps });
+
+      return maps;
+    };
+
+    it('puts an empty map box under the title instead of a drawing or an embed', () => {
+      const section = mountSection('Directions.html');
+      const map = section.querySelector<HTMLElement>('.directions__map[data-naver-map]');
+
+      expect(section.querySelector('svg, .crayon-art')).toBeNull();
+      expect(section.querySelector('iframe')).toBeNull();
+      expect(readStudy('Directions.html')).not.toMatch(/<iframe/i);
+      expect(map).not.toBeNull();
+      expect(section.querySelector('.section-title')?.nextElementSibling).toBe(map);
+      expect(map?.getAttribute('role')).toBe('region');
+      expect(map?.getAttribute('aria-label')).toBe('식물관PH 위치 지도');
+    });
+
+    it('loads the map script once right away without IntersectionObserver', () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+
+      mountSection('Directions.html');
+
+      const scripts = findMapScripts();
+
+      expect(scripts).toHaveLength(1);
+      expect(scripts[0].getAttribute('src')).toBe(NAVER_MAP_SCRIPT_URL);
+    });
+
+    it('waits until the map box comes near the viewport, then loads once and stops watching', () => {
+      const observers = stubIntersectionObserver();
+      const section = mountSection('Directions.html');
+      const map = section.querySelector('.directions__map');
+
+      expect(observers).toHaveLength(1);
+      expect(observers[0].options?.rootMargin).toBe('600px 0px');
+      expect(observers[0].observe).toHaveBeenCalledWith(map);
+      expect(findMapScripts()).toHaveLength(0);
+
+      const observer = {} as IntersectionObserver;
+
+      observers[0].callback([{ isIntersecting: false, target: map } as unknown as IntersectionObserverEntry], observer);
+
+      expect(findMapScripts()).toHaveLength(0);
+
+      observers[0].callback([{ isIntersecting: true, target: map } as unknown as IntersectionObserverEntry], observer);
+      observers[0].callback([{ isIntersecting: true, target: map } as unknown as IntersectionObserverEntry], observer);
+
+      expect(findMapScripts()).toHaveLength(1);
+      expect(findMapScripts()[0].getAttribute('src')).toBe(NAVER_MAP_SCRIPT_URL);
+      expect(observers[0].disconnect).toHaveBeenCalled();
+    });
+
+    it('draws a still map on the venue with one pin once the script has loaded', () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+
+      const section = mountSection('Directions.html');
+      const box = section.querySelector('.directions__map');
+      const maps = stubNaverMaps();
+
+      findMapScripts()[0].dispatchEvent(new Event('load'));
+
+      expect(maps.Map).toHaveBeenCalledTimes(1);
+
+      const [target, options] = maps.Map.mock.calls[0];
+
+      expect(target).toBe(box);
+      expect(options.center).toMatchObject(VENUE);
+      expect(options).toMatchObject({
+        zoom: 16,
+        draggable: false,
+        scrollWheel: false,
+        pinchZoom: false,
+        keyboardShortcuts: false,
+        zoomControl: true,
+      });
+      expect(maps.Marker).toHaveBeenCalledTimes(1);
+
+      const [marker] = maps.Marker.mock.calls[0];
+
+      expect(marker.position).toMatchObject(VENUE);
+      expect(marker.map).toBe(maps.Map.mock.instances[0]);
+      expect((box as HTMLElement).hidden).toBe(false);
+    });
+
+    it('hides the map box when the script loads without naver.maps', () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+
+      const section = mountSection('Directions.html');
+
+      findMapScripts()[0].dispatchEvent(new Event('load'));
+
+      expect(section.querySelector<HTMLElement>('.directions__map')?.hidden).toBe(true);
+    });
+
+    it('hides only the map box when the script fails to load', () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+
+      const section = mountSection('Directions.html');
+
+      findMapScripts()[0].dispatchEvent(new Event('error'));
+
+      expect(section.querySelector<HTMLElement>('.directions__map')?.hidden).toBe(true);
+      expect(section.querySelector('.directions__place')?.textContent).toBe('식물관PH');
+      expect(section.querySelector('[data-copy]')).not.toBeNull();
+      expect(section.querySelectorAll('a[data-map]')).toHaveLength(3);
+    });
+
+    it('hides the map box when Naver reports an authentication failure', () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+
+      const section = mountSection('Directions.html');
+      const handleAuthFailure = (window as unknown as { navermap_authFailure?: () => void }).navermap_authFailure;
+
+      expect(typeof handleAuthFailure).toBe('function');
+
+      handleAuthFailure?.();
+
+      expect(section.querySelector<HTMLElement>('.directions__map')?.hidden).toBe(true);
+    });
+
+    it('keeps the empty box hidden when hidden is set, despite display: block', () => {
+      expect(readStudy('Directions.html')).toMatch(/\.directions__map\[hidden\]\s*\{[^}]*display:\s*none/);
+    });
+
+    it('builds the map script URL from the client ID alone and never carries a secret', () => {
+      const source = readStudy('Directions.html');
+      const urls = [...source.matchAll(/'(https:\/\/oapi\.map\.naver\.com[^']*)'/g)].map((match) => match[1]);
+
+      expect(urls).toHaveLength(1);
+
+      const url = new URL(`${urls[0]}p3b51v6ck2`);
+
+      expect([...url.searchParams.keys()]).toEqual(['ncpKeyId']);
+      expect(source).not.toMatch(/secret/i);
+      expect(readStudy('Invitation.html')).not.toMatch(/secret/i);
+    });
   });
 });
 

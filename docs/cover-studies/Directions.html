@@ -8,15 +8,21 @@
 <link rel="stylesheet" href="SectionKit.css">
 <style>
   /* Directions: laid out like the ceremony (tokens, title, pills and the copy word come from SectionKit.css).
-     One centred column: a keyless Google Maps embed (searched by address, the place name drops no pin),
+     One centred column: a still Naver map with one pin on the venue (its script loads only near the viewport),
      the place, the address that copies itself, three map apps as outline pills, then the transit notes. */
 
+  /* Same size before and after the map loads, so nothing below moves; hidden if the map cannot load. */
   .directions__map {
     display: block;
     width: 100%;
     aspect-ratio: 4 / 3;
     margin: 0 0 28px;
     border: 0;
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+
+  .directions__map[hidden] {
+    display: none;
   }
 
   /* One line that copies itself. 복사했어요 is shorter and stays on the same line, so nothing below moves. */
@@ -70,11 +76,10 @@
 
 <section class="section section--detail directions" aria-label="오시는 길">
   <h2 class="section-title">오시는 길</h2>
-  <!-- Address unconfirmed: change q together with data-copy, the aria-label and the text below. -->
-  <iframe class="directions__map" src="https://www.google.com/maps?q=%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EA%B4%91%ED%8F%89%EB%A1%9C34%EA%B8%B8%2024&amp;output=embed&amp;hl=ko&amp;z=16" title="식물관PH 위치 지도" loading="lazy" referrerpolicy="no-referrer"></iframe>
+  <!-- If the venue changes, change VENUE_POSITION in the script together with data-copy, the aria-label and the text below. -->
+  <div class="directions__map" data-naver-map role="region" aria-label="식물관PH 위치 지도"></div>
 
   <p class="lead directions__place">식물관PH</p>
-  <!-- TODO: confirm address of 식물관PH (data-copy, aria-label and the text). -->
   <p class="directions__address">
     <button class="crayon-link" type="button" data-copy="서울 강남구 광평로34길 24" aria-label="주소 복사: 서울 강남구 광평로34길 24">서울 강남구 광평로34길 24</button>
   </p>
@@ -121,5 +126,104 @@
     }
 
     appOnlyItem.hidden = true;
+  })();
+
+  // NAVER Maps v3: the script loads once, only when the box comes near the viewport. The client ID is public
+  // and works only on the web service URLs registered for it. If the map cannot load, only the box is hidden.
+  (() => {
+    const NAVER_MAP_CLIENT_ID = 'p3b51v6ck2';
+    const NAVER_MAP_SCRIPT_URL = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + NAVER_MAP_CLIENT_ID;
+    const VENUE_POSITION = { lat: 37.4826902, lng: 127.0943672 };
+    const MAP_ZOOM = 16;
+    const LOAD_MARGIN = '600px 0px';
+    const box = document.querySelector('.directions [data-naver-map]');
+
+    if (!box) {
+      return;
+    }
+
+    let isRequested = false;
+
+    const hideMap = () => {
+      box.hidden = true;
+    };
+
+    const handleScriptLoad = () => {
+      const maps = window.naver && window.naver.maps;
+
+      if (!maps) {
+        hideMap();
+
+        return;
+      }
+
+      const position = new maps.LatLng(VENUE_POSITION.lat, VENUE_POSITION.lng);
+      // Still map: dragging and wheel would catch the page scroll; only the zoom buttons stay.
+      const map = new maps.Map(box, {
+        center: position,
+        zoom: MAP_ZOOM,
+        draggable: false,
+        pinchZoom: false,
+        scrollWheel: false,
+        keyboardShortcuts: false,
+        disableDoubleClickZoom: true,
+        disableDoubleTapZoom: true,
+        disableTwoFingerTapZoom: true,
+        zoomControl: true,
+        zoomControlOptions: {
+          position: maps.Position.TOP_RIGHT,
+          style: maps.ZoomControlStyle.SMALL,
+        },
+        scaleControl: false,
+        mapDataControl: false,
+      });
+
+      new maps.Marker({ position, map });
+    };
+
+    const handleScriptError = () => {
+      hideMap();
+    };
+
+    const loadScript = () => {
+      if (isRequested) {
+        return;
+      }
+
+      isRequested = true;
+
+      const script = document.createElement('script');
+
+      script.src = NAVER_MAP_SCRIPT_URL;
+      script.async = true;
+      script.addEventListener('load', handleScriptLoad);
+      script.addEventListener('error', handleScriptError);
+      document.head.appendChild(script);
+    };
+
+    // The API calls this global when the client ID is rejected (e.g. an unregistered domain).
+    window.navermap_authFailure = hideMap;
+
+    if (typeof window.IntersectionObserver !== 'function') {
+      loadScript();
+
+      return;
+    }
+
+    // observer is declared below; the callback only runs after it exists.
+    const handleIntersect = (entries) => {
+      const isNear = entries.some((entry) => entry.isIntersecting);
+
+      if (!isNear) {
+        return;
+      }
+
+      observer.disconnect();
+      loadScript();
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, { rootMargin: LOAD_MARGIN });
+
+    observer.observe(box);
   })();
 </script>
