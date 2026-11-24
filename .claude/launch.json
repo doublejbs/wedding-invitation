@@ -5,7 +5,8 @@
       "name": "invitation-preview",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["vite", "--port", "4317", "--strictPort"],
-      "port": 4317
+      "port": 4317,
+      "url": "https://localhost:4317"
     }
   ]
 }

@@ -7,271 +7,272 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Ceremony: reference layout in the cover tone (tokens, title, drawing and type sizes come from SectionKit.css).
-     One centered column: the title, the two families stacked, the date and time under a small label,
-     the countdown, then two or three sentences. */
+  /* Ceremony: laid out like the user's reference page. White paper, one centred column, no title:
+     the date line and place open the section, then the month over a crayon line, the day circled
+     in crayon, a countdown, then the calendar link (the kit's pill). The families are in the section after the greeting. */
 
-  /* Families: one row each, the parents small and soft, the name large, sharing a baseline. */
-  .ceremony__families {
-    margin: 0;
-    display: grid;
-    row-gap: 14px;
-    justify-items: center;
-  }
-
-  .ceremony__family {
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    column-gap: 0.9em;
-    white-space: nowrap;
-  }
-
-  .ceremony__parents {
-    font-family: var(--korean);
-    font-size: clamp(13.5px, 3.9vw, 15.5px);
-    font-weight: 500;
-    line-height: 1.3;
-    color: var(--soft);
-  }
-
-  .ceremony__name {
-    font-family: var(--latin), var(--korean);
-    font-size: clamp(24px, 7vw, 27px);
-    font-weight: 500;
-    line-height: 1.15;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-  }
-
-  /* Date and time under a small soft label. */
-  .ceremony__when {
-    margin-top: 52px;
+  .ceremony {
+    padding-block: 88px;
     text-align: center;
-  }
-
-  .ceremony__label {
-    margin: 0 0 12px;
     font-family: var(--korean);
-    font-size: 13.5px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    color: var(--soft);
-  }
-
-  .ceremony__datetime {
-    margin: 0;
-    font-family: var(--korean);
-    font-size: clamp(19px, 5.4vw, 22px);
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--ink);
-  }
-
-  .ceremony__datetime span {
-    display: block;
-  }
-
-  /* Countdown: the D-day mark, then the running time. Tabular digits padded to two places,
-     so the line never changes width while it ticks. */
-  .ceremony__countdown {
-    margin-top: 28px;
-    text-align: center;
-  }
-
-  .ceremony__countdown [data-dday-row] {
-    margin: 0;
-    font-family: var(--latin), var(--korean);
-    font-size: clamp(22px, 6.4vw, 26px);
-    font-weight: 500;
-    color: var(--ink);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.95;
     letter-spacing: -0.01em;
   }
 
-  .ceremony__timer {
-    margin: 8px 0 0;
-    font-family: var(--korean);
-    font-size: 15.5px;
+  .ceremony p {
+    margin: 0;
+  }
+
+  .ceremony .ceremony__when {
+    font-family: var(--latin), var(--korean);
+    font-size: 15px;
     font-weight: 500;
-    color: var(--soft);
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
   }
 
-  .ceremony__timer b {
+  .ceremony__place {
+    color: var(--soft);
+    font-family: var(--korean);
+    line-height: 1.6;
+  }
+
+  /* The month sits on the only rule in the section: a crayon line as wide as the grid. */
+  .ceremony .calendar__month {
+    max-width: 301px;
+    margin: 50px auto 0;
+    padding-bottom: 12px;
+    background: var(--crayon-underline-ink) bottom center / 100% 8px no-repeat;
+    font-family: var(--latin), var(--korean);
+    font-size: clamp(22px, 6.6vw, 26px);
     font-weight: 500;
-    color: var(--ink);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
   }
 
-  .ceremony .prose {
-    margin-top: 48px;
-    font-size: 14.5px;
+  /* Numbers on paper: no table, no rules. */
+  .calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    row-gap: 4px;
+    max-width: 301px;
+    margin: 16px auto 18px;
+    font-family: var(--latin), var(--korean);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .calendar__weekday {
+    color: var(--soft);
+    font-family: var(--latin);
+    font-size: 12px;
+    line-height: 28px;
+  }
+
+  .calendar__day {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 36px;
+  }
+
+  /* 1 March 2027 is a Monday, the second column. */
+  .calendar__day--first {
+    grid-column-start: 2;
+  }
+
+  .calendar__day--wedding {
+    background: var(--crayon-circle) center / min(100%, 42px) 34px no-repeat;
+  }
+
+  /* Time left: four units in one row, separators level with the numbers. Hidden until the script runs. */
+  .countdown {
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 22px;
+    font-family: var(--latin), var(--korean);
+  }
+
+  .countdown[hidden] {
+    display: none;
+  }
+
+  .countdown__unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 44px;
+  }
+
+  .countdown__value,
+  .countdown__sep {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown__sep {
+    color: var(--soft);
+  }
+
+  .countdown__label {
+    color: var(--soft);
+    font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.12em;
+  }
+
+  .calendar .calendar__add {
+    margin-top: 28px;
   }
 </style>
 
-<section class="section section--detail ceremony" aria-label="예식 안내">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 100" aria-hidden="true">
-    <!-- A small bouquet: three loose roses, two leaves, the paper wrap and a ribbon bow. -->
-    <g>
-      <path fill="#ffffff" d="M41 52 C 50 56.5, 70 55.5, 79.5 51 L 61.2 94 C 60.6 94.8, 59.6 94.7, 59.1 93.8 Z"/>
-      <path stroke="#4f9a3e" d="M44 44 C 50 54, 55 62, 58.5 70 M50.5 38 C 54 50, 57 60, 59.4 70 M62 31 C 61 45, 60.4 58, 60.2 70 M73 37 C 69 50, 64 60, 61.2 70"/>
-      <path stroke="#d8433b" d="M41 28 C 41 22.5, 45.5 19.6, 50 20.8 C 54.4 22, 56.2 26.4, 54.8 30 C 53.2 34.2, 47.6 35.8, 44.6 33.2 C 41.8 30.8, 43.2 26.6, 46.6 26.8 C 48.8 27, 49.4 29.4, 48 30.4"/>
-      <path stroke="#d8433b" d="M55 18 C 55 12.5, 59.5 9.6, 64 10.8 C 68.4 12, 70.2 16.4, 68.8 20 C 67.2 24.2, 61.6 25.8, 58.6 23.2 C 55.8 20.8, 57.2 16.6, 60.6 16.8 C 62.8 17, 63.4 19.4, 62 20.4"/>
-      <path stroke="#d8433b" d="M68 30 C 68 24.5, 72.5 21.6, 77 22.8 C 81.4 24, 83.2 28.4, 81.8 32 C 80.2 36.2, 74.6 37.8, 71.6 35.2 C 68.8 32.8, 70.2 28.6, 73.6 28.8 C 75.8 29, 76.4 31.4, 75 32.4"/>
-      <path stroke="#4f9a3e" d="M35.5 40.5 C 37.5 37, 41.5 36.5, 43.5 39 M86 38 C 84.5 35, 80.5 34.6, 78.6 37"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M45 59 C 37 57.5, 32.5 51.5, 33 46.5 C 39.5 47.5, 44 52.5, 45 59 Z M75.5 57 C 83.5 55, 88 49, 87.4 44 C 81 45.5, 76.6 50.5, 75.5 57 Z"/>
-      <path stroke="#c9a24d" d="M60 72 C 52 65.5, 46.5 71.5, 51.5 75 C 54.6 76.6, 58 74.4, 60 72 C 68 65.5, 73.5 71.5, 68.5 75 C 65.4 76.6, 62 74.4, 60 72 M59.6 72.4 C 57 78, 54.4 83, 52 86.5 M60.4 72.4 C 63 78, 65.8 82.4, 68.6 85.6"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M41 52 C 50 56.5, 70 55.5, 79.5 51 L 61.2 94 C 60.6 94.8, 59.6 94.7, 59.1 93.8 Z"/>
-      <path fill="none" stroke="#4f9a3e" d="M44 44 C 50 54, 55 62, 58.5 70 M50.5 38 C 54 50, 57 60, 59.4 70 M62 31 C 61 45, 60.4 58, 60.2 70 M73 37 C 69 50, 64 60, 61.2 70"/>
-      <path fill="none" stroke="#d8433b" d="M41 28 C 41 22.5, 45.5 19.6, 50 20.8 C 54.4 22, 56.2 26.4, 54.8 30 C 53.2 34.2, 47.6 35.8, 44.6 33.2 C 41.8 30.8, 43.2 26.6, 46.6 26.8 C 48.8 27, 49.4 29.4, 48 30.4"/>
-      <path fill="none" stroke="#d8433b" d="M55 18 C 55 12.5, 59.5 9.6, 64 10.8 C 68.4 12, 70.2 16.4, 68.8 20 C 67.2 24.2, 61.6 25.8, 58.6 23.2 C 55.8 20.8, 57.2 16.6, 60.6 16.8 C 62.8 17, 63.4 19.4, 62 20.4"/>
-      <path fill="none" stroke="#d8433b" d="M68 30 C 68 24.5, 72.5 21.6, 77 22.8 C 81.4 24, 83.2 28.4, 81.8 32 C 80.2 36.2, 74.6 37.8, 71.6 35.2 C 68.8 32.8, 70.2 28.6, 73.6 28.8 C 75.8 29, 76.4 31.4, 75 32.4"/>
-      <path fill="none" stroke="#4f9a3e" d="M35.5 40.5 C 37.5 37, 41.5 36.5, 43.5 39 M86 38 C 84.5 35, 80.5 34.6, 78.6 37"/>
-      <path fill="none" stroke="#2f7d4a" d="M45 59 C 37 57.5, 32.5 51.5, 33 46.5 C 39.5 47.5, 44 52.5, 45 59 Z M75.5 57 C 83.5 55, 88 49, 87.4 44 C 81 45.5, 76.6 50.5, 75.5 57 Z"/>
-      <path fill="none" stroke="#c9a24d" d="M60 72 C 52 65.5, 46.5 71.5, 51.5 75 C 54.6 76.6, 58 74.4, 60 72 C 68 65.5, 73.5 71.5, 68.5 75 C 65.4 76.6, 62 74.4, 60 72 M59.6 72.4 C 57 78, 54.4 83, 52 86.5 M60.4 72.4 C 63 78, 65.8 82.4, 68.6 85.6"/>
-    </g>
-  </svg>
-  <h2 class="section-title">예식 안내</h2>
-
-  <div class="ceremony__families">
-    <p class="ceremony__family"><span class="ceremony__parents"><span data-parents>서재호 · 김선교</span>의 아들</span><span class="ceremony__name">진용</span></p>
-    <p class="ceremony__family"><span class="ceremony__parents"><span data-parents>장영인 · 김혜숙</span>의 딸</span><span class="ceremony__name">하림</span></p>
+<section class="section ceremony" aria-label="예식 안내">
+  <time class="visually-hidden" datetime="2027-03-06T17:00:00+09:00">2027년 3월 6일 토요일 오후 5시</time>
+  <p class="ceremony__when" aria-hidden="true">2027.03.06 SAT PM 5:00</p>
+  <p class="ceremony__place">식물관PH</p>
+  <div class="calendar">
+    <p class="calendar__month" aria-hidden="true">2027.03</p>
+    <div class="calendar__grid" aria-hidden="true">
+      <span class="calendar__weekday">S</span>
+      <span class="calendar__weekday">M</span>
+      <span class="calendar__weekday">T</span>
+      <span class="calendar__weekday">W</span>
+      <span class="calendar__weekday">T</span>
+      <span class="calendar__weekday">F</span>
+      <span class="calendar__weekday">S</span>
+      <span class="calendar__day calendar__day--first">1</span>
+      <span class="calendar__day">2</span>
+      <span class="calendar__day">3</span>
+      <span class="calendar__day">4</span>
+      <span class="calendar__day">5</span>
+      <span class="calendar__day calendar__day--wedding">6</span>
+      <span class="calendar__day">7</span>
+      <span class="calendar__day">8</span>
+      <span class="calendar__day">9</span>
+      <span class="calendar__day">10</span>
+      <span class="calendar__day">11</span>
+      <span class="calendar__day">12</span>
+      <span class="calendar__day">13</span>
+      <span class="calendar__day">14</span>
+      <span class="calendar__day">15</span>
+      <span class="calendar__day">16</span>
+      <span class="calendar__day">17</span>
+      <span class="calendar__day">18</span>
+      <span class="calendar__day">19</span>
+      <span class="calendar__day">20</span>
+      <span class="calendar__day">21</span>
+      <span class="calendar__day">22</span>
+      <span class="calendar__day">23</span>
+      <span class="calendar__day">24</span>
+      <span class="calendar__day">25</span>
+      <span class="calendar__day">26</span>
+      <span class="calendar__day">27</span>
+      <span class="calendar__day">28</span>
+      <span class="calendar__day">29</span>
+      <span class="calendar__day">30</span>
+      <span class="calendar__day">31</span>
+    </div>
+    <div class="countdown" aria-hidden="true" hidden>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">DAYS</span></span>
+      <span class="countdown__sep">:</span>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">HOURS</span></span>
+      <span class="countdown__sep">:</span>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">MINS</span></span>
+      <span class="countdown__sep">:</span>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">SECS</span></span>
+    </div>
+    <p class="calendar__add"><a class="pill" data-add-calendar href="wedding.ics">캘린더에 추가</a></p>
   </div>
-
-  <div class="ceremony__when">
-    <p class="ceremony__label">일시</p>
-    <p class="ceremony__datetime"><span>2027년 3월 6일 토요일</span><span>오후 5시</span></p>
-  </div>
-
-  <div class="ceremony__countdown">
-    <!-- Hidden until the script counts, so a failed script shows the date alone.
-         Screen readers skip an aria-label on a <p>, so the short mark (D-107) and the ticking line are
-         hidden from them and one spoken sentence sits next to the mark. -->
-    <p data-dday-row hidden><span data-dday aria-hidden="true" hidden></span><span class="visually-hidden" data-dday-spoken></span></p>
-    <p class="ceremony__timer" data-countdown aria-hidden="true" hidden></p>
-  </div>
-
-  <!-- TODO: confirm how dinner is served (seated course or buffet) and adjust the second line. -->
-  <p class="prose">
-    예식은 식물관PH 온실에서 열립니다.<br>
-    예식 후 저녁 식사를 준비했습니다.<br>
-    조금 일찍 오셔서 온실을 둘러보세요.
-  </p>
 </section>
 
 <script src="SectionKit.js"></script>
 <script>
-  // Countdown: calendar days left until the wedding, counted on Korean calendar dates (KST, UTC+9),
-  // so a guest abroad sees the same number as a guest in Seoul.
-  // The row stays hidden unless this script fills it, and once the day has passed it is hidden again.
+  // Add to calendar: without this script the link is the event file itself (share/wedding.ics).
+  // Android often only downloads that file, so it gets Google Calendar's form instead. KakaoTalk's browser
+  // on iPhone cannot open the file, so it hands the address over to Safari.
   (() => {
-    const WEDDING_YEAR = 2027;
-    const WEDDING_MONTH_INDEX = 2;
-    const WEDDING_DAY = 6;
-    const DAY_MS = 24 * 60 * 60 * 1000;
-    const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
-    const TODAY_LABEL = 'TODAY';
-    const TODAY_SPOKEN = '오늘이 결혼식입니다';
-    const row = document.querySelector('.ceremony [data-dday-row]');
-    const dday = row ? row.querySelector('[data-dday]') : null;
-    const spoken = row ? row.querySelector('[data-dday-spoken]') : null;
+    const EVENT_TITLE = '서진용 · 장하림 결혼식';
+    const EVENT_DATES = '20270306T080000Z/20270306T100000Z';
+    const EVENT_PLACE = '식물관PH';
+    const GOOGLE_CALENDAR_URL = 'https://calendar.google.com/calendar/render';
+    const KAKAO_EXTERNAL_URL = 'kakaotalk://web/openExternal';
+    const link = document.querySelector('.ceremony a[data-add-calendar]');
 
-    if (!row || !dday || !spoken) {
+    if (!link) {
       return;
     }
 
-    // Shifting by nine hours and reading the UTC fields gives today's date in Korea, whatever the device's zone.
-    const koreaNow = new Date(Date.now() + KST_OFFSET_MS);
-    const today = Date.UTC(koreaNow.getUTCFullYear(), koreaNow.getUTCMonth(), koreaNow.getUTCDate());
-    const wedding = Date.UTC(WEDDING_YEAR, WEDDING_MONTH_INDEX, WEDDING_DAY);
-    const daysLeft = Math.round((wedding - today) / DAY_MS);
+    const userAgent = navigator.userAgent;
 
-    if (daysLeft < 0) {
-      row.hidden = true;
-      dday.hidden = true;
+    if (/Android/i.test(userAgent)) {
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: EVENT_TITLE,
+        dates: EVENT_DATES,
+        location: EVENT_PLACE,
+      });
+
+      link.href = `${GOOGLE_CALENDAR_URL}?${params}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
 
       return;
     }
 
-    if (daysLeft === 0) {
-      dday.textContent = TODAY_LABEL;
-      spoken.textContent = TODAY_SPOKEN;
-    } else {
-      dday.textContent = `D-${daysLeft}`;
-      spoken.textContent = `결혼식까지 ${daysLeft}일`;
-    }
+    if (/iPhone|iPad|iPod/i.test(userAgent) && /KAKAOTALK/i.test(userAgent)) {
+      const fileUrl = new URL(link.getAttribute('href'), window.location.href).href;
 
-    dday.hidden = false;
-    row.hidden = false;
+      link.href = `${KAKAO_EXTERNAL_URL}?url=${encodeURIComponent(fileUrl)}`;
+    }
   })();
 
-  // Running countdown to the ceremony's start (17:00 KST), ticking every second; hidden from the start on.
+  // Countdown to the ceremony, refreshed on each second. Hidden without the script and once it has begun.
   (() => {
-    const CEREMONY_START_MS = Date.parse('2027-03-06T17:00:00+09:00');
-    const TICK_MS = 1000;
-    const timer = document.querySelector('.ceremony [data-countdown]');
+    const WEDDING_TIME = Date.parse('2027-03-06T17:00:00+09:00');
+    const MS_PER_SECOND = 1000;
+    const countdown = document.querySelector('.ceremony .countdown');
 
-    if (!timer) {
+    if (!countdown) {
       return;
     }
 
-    const pad = (value) => {
-      return String(value).padStart(2, '0');
-    };
+    const values = countdown.querySelectorAll('.countdown__value');
+    const padTwo = (value) => String(value).padStart(2, '0');
+    const handleTick = () => {
+      const remaining = WEDDING_TIME - Date.now();
 
-    let intervalId = null;
-
-    const stop = () => {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    };
-
-    const render = () => {
-      const totalSeconds = Math.ceil((CEREMONY_START_MS - Date.now()) / TICK_MS);
-
-      if (totalSeconds <= 0) {
-        timer.hidden = true;
-        stop();
-
-        return false;
-      }
-
-      const days = Math.floor(totalSeconds / 86400);
-      const hours = Math.floor((totalSeconds % 86400) / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-
-      timer.innerHTML = `<b>${days}</b>일 <b>${pad(hours)}</b>시간 <b>${pad(minutes)}</b>분 <b>${pad(seconds)}</b>초`;
-      timer.hidden = false;
-
-      return true;
-    };
-
-    const start = () => {
-      stop();
-
-      if (render()) {
-        intervalId = setInterval(render, TICK_MS);
-      }
-    };
-
-    // Pause while the page is in the background; catch up at once when it comes back.
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stop();
+      if (remaining <= 0) {
+        countdown.hidden = true;
 
         return;
       }
 
-      start();
-    });
+      const totalSeconds = Math.floor(remaining / MS_PER_SECOND);
+      const parts = [
+        String(Math.floor(totalSeconds / 86400)),
+        padTwo(Math.floor(totalSeconds / 3600) % 24),
+        padTwo(Math.floor(totalSeconds / 60) % 60),
+        padTwo(totalSeconds % 60),
+      ];
 
-    start();
+      parts.forEach((part, index) => {
+        if (values[index]) {
+          values[index].textContent = part;
+        }
+      });
+
+      countdown.hidden = false;
+
+      // Wake on the next whole second so the numbers change together with the clock.
+      setTimeout(handleTick, remaining % MS_PER_SECOND || MS_PER_SECOND);
+    };
+
+    handleTick();
   })();
 </script>

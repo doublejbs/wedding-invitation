@@ -4,7 +4,7 @@ Usage (from the project root): python3 scripts/BuildSite.py [site-url]
 Rebuilds docs/cover-studies/Invitation.html first (scripts/BuildInvitation.py), so a stale page is never
 deployed, then writes site/index.html (a full HTML document around it) and copies the photos and textures it uses
 (only the files the page names, e.g. textures/stamp-frame.png; the kept stamp-frame-source.png is not shipped), plus the
-favicons and the share card from docs/cover-studies/share/ (made by scripts/BuildShareImages.mjs; only copied here).
+favicons, the share card (both made by scripts/BuildShareImages.mjs) and wedding.ics from docs/cover-studies/share/ (only copied here).
 site-url, if given, makes the share-preview addresses absolute, which KakaoTalk and other link previews need.
 """
 import pathlib
@@ -33,12 +33,13 @@ SHARE_IMAGE_HEIGHT = 630
 SHARE_IMAGE_ALT = '크레파스로 그린 유리 온실 안에 야자수와 붉은 꽃이 가득하고 가운데로 흰 버진로드가 난 그림'
 THEME_COLOR = '#fbfbf8'
 # Copied to the site root as they are; the generated PNGs are committed, so no browser is needed here.
-SHARE_FILES = ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'og-image.png']
+# wedding.ics is the event behind 캘린더에 추가 in CeremonyInfo.html.
+SHARE_FILES = ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'og-image.png', 'wedding.ics']
 
 missing_share = [name for name in SHARE_FILES if not (SHARE / name).is_file()]
 
 if missing_share:
-    sys.exit(f'BuildSite failed: share files not found in docs/cover-studies/share: {missing_share} (run node scripts/BuildShareImages.mjs)')
+    sys.exit(f'BuildSite failed: share files not found in docs/cover-studies/share: {missing_share} (images: node scripts/BuildShareImages.mjs; wedding.ics is kept in git)')
 
 try:
     BuildInvitation.build()

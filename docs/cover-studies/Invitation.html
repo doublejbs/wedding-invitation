@@ -8,9 +8,10 @@
 <style>
   /* SectionKit */
   /* Shared kit for every section after the cover (see docs/SectionsSpec.md, chapter 1).
-     One flat printed look on white stock: no shadows, no borders, no filled blocks.
-     Tappable words carry a crayon underline; a chosen word gets a crayon circle.
-     Single look on purpose (a printed card), so no dark theme. */
+     One flat printed look on white and black stock: no shadows, no blocks but the black paper, no borders
+     but the outline pill's. Actions are pills; text that copies itself carries a crayon underline; a chosen
+     word gets a crayon circle.
+     Single look on purpose (a printed card), so it does not follow the system dark mode. */
   :root {
     color-scheme: light;
     --paper: #fbfbf8;
@@ -23,6 +24,8 @@
     --gold: #c9a24d;
     --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
     --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+    /* Letters on a filled pill: the opposite of the ink it is filled with. */
+    --pill-text: var(--paper);
 
     /* Crayon marks as SVG backgrounds. Colors are literal (url() cannot read custom properties):
        pencil #3a3a37, bloom #d8433b, ink #161616. Two loose passes, stretched to the box. */
@@ -68,73 +71,30 @@
     padding-block: 48px 56px;
   }
 
-  /* Section title, built like the cover title: words hug a centered crayon object. */
-  .section-title {
-    margin: 0 0 28px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: 0.45em;
-    font-family: var(--latin), var(--korean);
-    font-weight: 500;
-    font-size: clamp(19px, 5.4vw, 23px);
-    letter-spacing: -0.02em;
-    line-height: 1;
+  /* Black paper, as under the greeting: the colour runs edge to edge, the column stays 440px.
+     Ink turns to paper, soft to a light grey, the crayon underline to paper, and pills to paper with ink letters.
+     Only the underline is redrawn for dark paper, so toggles, choices and fields must not be used here. */
+  .section--dark {
+    --ink: var(--paper);
+    --soft: #b9b9b4;
+    --pill-text: #161616;
+    --crayon-underline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%23fbfbf8' stroke-width='1.7' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%23fbfbf8' stroke-width='1' stroke-linecap='round' opacity='.55' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    max-width: none;
+    padding-left: max(24px, env(safe-area-inset-left, 0px), calc(50% - 196px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px), calc(50% - 196px));
+    background: #000 url("textures/paper-black.png") 0 0 / 200px 200px repeat;
+    color: var(--ink);
   }
 
-  .section-title__left {
-    justify-self: end;
-  }
-
-  .section-title__right {
-    justify-self: start;
-  }
-
-  .section-title__glyph {
-    display: block;
-    width: 1.7em;
-    height: 1.3em;
-  }
-
-  /* A pair facing each other across the center axis, like the cover's date and place row. */
-  .pair {
-    margin: 0;
-    display: grid;
-    grid-template-columns: auto auto;
-    justify-content: space-between;
-    align-items: end;
-    column-gap: 16px;
-    word-break: keep-all;
-  }
-
-  .pair > :first-child {
-    justify-self: start;
-    text-align: left;
-  }
-
-  .pair > :last-child {
-    justify-self: end;
-    text-align: right;
-  }
-
-  /* Two type sizes only: the lead (the cover's date) and one step below it (the cover's time and place). */
+  /* The one big size, as the ceremony's month: a place name or a number. */
   .lead {
     margin: 0;
     font-family: var(--latin), var(--korean);
     font-weight: 500;
-    font-size: clamp(22px, 6.4vw, 26px);
-    line-height: 1.12;
+    font-size: clamp(22px, 6.6vw, 26px);
+    line-height: 1.3;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-  }
-
-  .sub {
-    margin: 0;
-    font-family: var(--latin), var(--korean);
-    font-weight: 500;
-    font-size: clamp(18px, 5.2vw, 21px);
-    line-height: 1.25;
-    letter-spacing: -0.02em;
   }
 
   /* Body sentences, centered like the greeting. */
@@ -150,11 +110,60 @@
   }
 
   .label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--soft);
   }
 
-  /* Tappable words (<a> or <button>): plain text with a crayon underline right under the letters.
+  /* Actions (<a> or <button>): a filled ink pill with paper letters; on black paper the colours swap.
+     .pill--line is the secondary action: an ink outline, no fill. */
+  .pill {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 46px;
+    margin: 0;
+    padding: 0 26px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--pill-text);
+    font-family: var(--korean);
+    font-size: 14.5px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pill--line {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .pill:active {
+    opacity: 0.85;
+  }
+
+  .pill:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .pill:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  /* Text that copies itself (<button>): plain text with a crayon underline right under the letters.
      The vertical padding makes a 44px target; the underline is positioned against the content box
      so it hugs the text, not the bottom of the target. */
   .crayon-link,
@@ -301,50 +310,29 @@
     background-image: var(--crayon-underline-bloom);
   }
 
-  /* Detail sections (ceremony, directions, gift, RSVP, closing). The layout follows the reference
-     docs/references/OliveLineStyle.webp (one big centered title, small airy centered text, one drawing);
-     the tone stays the cover's: same tokens, fonts and crayon colours as everywhere else. */
+  /* Detail sections: directions, gift and RSVP follow the ceremony (docs/SectionsSpec.md 1-1): one centred
+     column under one Korean title, 15px lines, 12px soft labels. The closing (stamp, no title)
+     only borrows the prose and spacing. */
+  .section--detail {
+    padding-block: 88px;
+    text-align: center;
+  }
 
-  /* One big Korean title on the center axis, about the cover title's size and tracking. */
   .section--detail .section-title {
-    display: block;
-    margin: 0 0 30px;
+    margin: 0 0 36px;
     font-family: var(--latin), var(--korean);
     font-weight: 500;
     font-size: clamp(28px, 8.5vw, 33px);
-    line-height: 1.1;
+    line-height: 1.2;
     letter-spacing: -0.035em;
     text-align: center;
     word-break: keep-all;
   }
 
-  /* A small bold heading over a short paragraph (the reference's "Where to stay"). */
-  .detail-sub {
-    margin: 0 0 6px;
-    font-family: var(--korean);
-    font-size: 13.5px;
-    font-weight: 500;
-    color: var(--ink);
-  }
-
   .section--detail .prose {
-    font-size: 14.5px;
-    line-height: 1.9;
+    font-size: 15px;
+    line-height: 1.95;
     color: var(--soft);
-  }
-
-  /* The one crayon drawing of each section, above its title. Paths without their own colour
-     take the pencil line; coloured parts (leaf, bloom, gold, frame) set it on the path. */
-  .crayon-art {
-    display: block;
-    width: 112px;
-    height: auto;
-    margin: 0 auto 20px;
-    fill: none;
-    stroke: var(--pencil);
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
   }
 
   /* Layout: one white sheet; a left-aligned sentence headline, a crayon greenhouse that fills with plants, big date numerals.
@@ -787,6 +775,48 @@
     color: var(--paper);
   }
 
+  /* Families: right after the greeting, the layout of the user's reference image: each family's parents,
+     then the relation and name, then one plain photo. No letters, stickers or cut-outs from that reference. */
+
+  .families {
+    padding-block: 96px 104px;
+    text-align: center;
+  }
+
+  .families__family + .families__family {
+    margin-top: 104px;
+  }
+
+  .families__parents {
+    margin: 0;
+    color: var(--soft);
+    font-family: var(--korean);
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+  }
+
+  .families__name {
+    margin: 2px 0 0;
+    color: var(--ink);
+    font-family: var(--korean);
+    font-size: clamp(18px, 5.2vw, 21px);
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: -0.02em;
+  }
+
+  /* One photo, no frame or shadow. photo-10 and photo-09, kept by the couple. */
+  .families__photo {
+    display: block;
+    width: min(78%, 300px);
+    height: auto;
+    aspect-ratio: 3 / 4;
+    margin: 28px auto 0;
+    object-fit: cover;
+    background: #d9d6cf;
+  }
+
   /* Photos: a scrapbook page (the user's reference): photos of clearly different sizes scattered unevenly on
      the paper, one big landscape hero in the middle, smaller ones staggered left and right above and below it,
      all kept inside the screen so every crayon frame shows whole. Each photo is outlined by a hand-drawn crayon rectangle (the cover's greenhouse frame color, two loose passes),
@@ -941,198 +971,172 @@
     }
   }
 
-  /* Ceremony: reference layout in the cover tone (tokens, title, drawing and type sizes come from the section kit).
-     One centered column: the title, the two families stacked, the date and time under a small label,
-     the countdown, then two or three sentences. */
+  /* Ceremony: laid out like the user's reference page. White paper, one centred column, no title:
+     the date line and place open the section, then the month over a crayon line, the day circled
+     in crayon, a countdown, then the calendar link (the kit's pill). The families are in the section after the greeting. */
 
-  /* Families: one row each, the parents small and soft, the name large, sharing a baseline. */
-  .ceremony__families {
-    margin: 0;
-    display: grid;
-    row-gap: 14px;
-    justify-items: center;
-  }
-
-  .ceremony__family {
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    column-gap: 0.9em;
-    white-space: nowrap;
-  }
-
-  .ceremony__parents {
-    font-family: var(--korean);
-    font-size: clamp(13.5px, 3.9vw, 15.5px);
-    font-weight: 500;
-    line-height: 1.3;
-    color: var(--soft);
-  }
-
-  .ceremony__name {
-    font-family: var(--latin), var(--korean);
-    font-size: clamp(24px, 7vw, 27px);
-    font-weight: 500;
-    line-height: 1.15;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-  }
-
-  /* Date and time under a small soft label. */
-  .ceremony__when {
-    margin-top: 52px;
+  .ceremony {
+    padding-block: 88px;
     text-align: center;
-  }
-
-  .ceremony__label {
-    margin: 0 0 12px;
     font-family: var(--korean);
-    font-size: 13.5px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    color: var(--soft);
-  }
-
-  .ceremony__datetime {
-    margin: 0;
-    font-family: var(--korean);
-    font-size: clamp(19px, 5.4vw, 22px);
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--ink);
-  }
-
-  .ceremony__datetime span {
-    display: block;
-  }
-
-  /* Countdown: the D-day mark, then the running time. Tabular digits padded to two places,
-     so the line never changes width while it ticks. */
-  .ceremony__countdown {
-    margin-top: 28px;
-    text-align: center;
-  }
-
-  .ceremony__countdown [data-dday-row] {
-    margin: 0;
-    font-family: var(--latin), var(--korean);
-    font-size: clamp(22px, 6.4vw, 26px);
-    font-weight: 500;
-    color: var(--ink);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.95;
     letter-spacing: -0.01em;
   }
 
-  .ceremony__timer {
-    margin: 8px 0 0;
-    font-family: var(--korean);
-    font-size: 15.5px;
+  .ceremony p {
+    margin: 0;
+  }
+
+  .ceremony .ceremony__when {
+    font-family: var(--latin), var(--korean);
+    font-size: 15px;
     font-weight: 500;
-    color: var(--soft);
     font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+  }
+
+  .ceremony__place {
+    color: var(--soft);
+    font-family: var(--korean);
+    line-height: 1.6;
+  }
+
+  /* The month sits on the only rule in the section: a crayon line as wide as the grid. */
+  .ceremony .calendar__month {
+    max-width: 301px;
+    margin: 50px auto 0;
+    padding-bottom: 12px;
+    background: var(--crayon-underline-ink) bottom center / 100% 8px no-repeat;
+    font-family: var(--latin), var(--korean);
+    font-size: clamp(22px, 6.6vw, 26px);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Numbers on paper: no table, no rules. */
+  .calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    row-gap: 4px;
+    max-width: 301px;
+    margin: 16px auto 18px;
+    font-family: var(--latin), var(--korean);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .calendar__weekday {
+    color: var(--soft);
+    font-family: var(--latin);
+    font-size: 12px;
+    line-height: 28px;
+  }
+
+  .calendar__day {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 36px;
+  }
+
+  /* 1 March 2027 is a Monday, the second column. */
+  .calendar__day--first {
+    grid-column-start: 2;
+  }
+
+  .calendar__day--wedding {
+    background: var(--crayon-circle) center / min(100%, 42px) 34px no-repeat;
+  }
+
+  /* Time left: four units in one row, separators level with the numbers. Hidden until the script runs. */
+  .countdown {
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 22px;
+    font-family: var(--latin), var(--korean);
+  }
+
+  .countdown[hidden] {
+    display: none;
+  }
+
+  .countdown__unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 44px;
+  }
+
+  .countdown__value,
+  .countdown__sep {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown__sep {
+    color: var(--soft);
+  }
+
+  .countdown__label {
+    color: var(--soft);
+    font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.12em;
+  }
+
+  .calendar .calendar__add {
+    margin-top: 28px;
+  }
+
+  /* Directions: laid out like the ceremony (tokens, title, pills and the copy word come from the section kit).
+     One centred column: a keyless Google Maps embed (searched by address, the place name drops no pin),
+     the place, the address that copies itself, three map apps as outline pills, then the transit notes. */
+
+  .directions__map {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin: 0 0 28px;
+    border: 0;
+  }
+
+  /* One line that copies itself. 복사했어요 is shorter and stays on the same line, so nothing below moves. */
+  .directions__address {
+    margin: 2px 0 0;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+
+  .directions__address .crayon-link {
     white-space: nowrap;
   }
 
-  .ceremony__timer b {
-    font-weight: 500;
-    color: var(--ink);
-  }
-
-  .ceremony .prose {
-    margin-top: 48px;
-    font-size: 14.5px;
-  }
-
-  /* Directions: in the cover's tone (tokens, container, title, pair and crayon link come from the section kit).
-     The place faces its address like the cover's date faces the time and place, then three map apps
-     as plain underlined words, then the transit notes as text only. No map image: the tiles clash with the paper. */
-
-  /* The lead sits on the address's last line, not on the bottom of the 44px tap target under it. */
-  .directions__place {
-    margin-bottom: max(8px, calc((44px - 1lh) / 2));
-  }
-
-  /* The kit's link inherits its font (it overrides .sub), so the cover's time-and-place type is set here
-     again, at the same weight as 식물관PH on the left. The button keeps its two-line height while it reads
-     복사했어요, and that word sits on the second line's place, so nothing below jumps.
-     A two-line address in one button: each line carries its own crayon underline, so the button's own
-     underline is turned off (also on focus) and the mark hugs the letters instead of the whole block. */
-  .directions__address,
-  .directions__address:focus-visible {
-    background-image: none;
-  }
-
-  .directions__address {
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
-    min-height: calc(2lh + 10px + 2 * max(8px, (44px - 1lh) / 2));
-    font-family: var(--latin), var(--korean);
-    font-weight: 500;
-    font-size: clamp(18px, 5.2vw, 21px);
-    line-height: 1.25;
-    letter-spacing: -0.02em;
-  }
-
-  .directions__line {
-    display: block;
-    width: fit-content;
-    margin-left: auto;
-    padding-bottom: 3px;
-    background-image: var(--crayon-underline);
-    background-repeat: no-repeat;
-    background-size: 100% 7px;
-    background-position: left 0 bottom -3px;
-  }
-
-  .directions__line + .directions__line {
-    margin-top: 4px;
-  }
-
-  .directions__address:focus-visible .directions__line {
-    background-image: var(--crayon-underline-bloom);
-  }
-
-  /* Three map apps on one row, built like the title: the middle word on the center axis,
-     the outer two flush with the place and the address above. */
+  /* Three outline pills on one row. Narrower sides than the kit's so all three fit 272px at 320px wide;
+     on a computer the TMAP item is hidden (see the script) and the other two stay centred. */
   .directions__maps {
-    margin: 22px 0 0;
+    margin: 20px 0 0;
     padding: 0;
     list-style: none;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    column-gap: 12px;
-    font-size: 15px;
-    word-break: keep-all;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
 
-  .directions__maps li:first-child {
-    justify-self: start;
-  }
-
-  .directions__maps li:nth-child(2) {
-    justify-self: center;
-  }
-
-  .directions__maps li:last-child {
-    justify-self: end;
-  }
-
-  /* On a computer the TMAP app link is hidden (see the script), so the two words left face each other
-     on the column edges, like the place and the address above them. */
-  .directions__maps--two {
-    grid-template-columns: auto auto;
-    justify-content: space-between;
-  }
-
-  .directions__maps--two li:nth-child(2) {
-    justify-self: end;
+  .directions__maps .pill {
+    padding-inline: 14px;
   }
 
   /* Transit notes: a small soft name, its sentence right under it, space between items and nothing else. */
   .directions__transit {
-    margin: 44px 0 0;
+    margin: 48px 0 0;
     display: grid;
     row-gap: 24px;
   }
@@ -1143,40 +1147,28 @@
 
   .directions__item .label {
     display: block;
-    margin-bottom: 2px;
     line-height: 1.6;
   }
 
   .directions__item .prose {
     display: block;
-    text-align: left;
-    line-height: 1.75;
+    color: var(--ink);
   }
 
-  /* Gift: in the cover's tone (tokens, container, title, toggles and copy words come from the section kit).
-     One sentence, then 신랑측 and 신부측 facing each other; each opens its own accounts right below it. */
+  /* Gift: laid out like the ceremony (tokens, title, toggles and copy words come from the section kit).
+     One sentence, then 신랑측 and 신부측 side by side on the centre axis; each opens its accounts below. */
 
   .gift__toggles {
-    margin-top: 28px;
-    align-items: center;
+    margin: 24px 0 0;
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
-  /* Pull each toggle's crayon mark back to the column edge, so the word lines up with the accounts below it. */
-  .gift__toggles > :first-child {
-    margin-left: -14px;
-  }
-
-  .gift__toggles > :last-child {
-    margin-right: -14px;
-  }
-
-  /* An open side unfolds under its own word: the groom's to the left, the bride's to the right. */
   .gift__panel {
-    margin-top: 14px;
-  }
-
-  .gift__panel--bride {
-    text-align: right;
+    margin-top: 18px;
   }
 
   .gift__accounts {
@@ -1188,19 +1180,15 @@
   .gift__account {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .gift__account + .gift__account {
-    margin-top: 10px;
-  }
-
-  .gift__panel--bride .gift__account {
-    align-items: flex-end;
+    margin-top: 12px;
   }
 
   .gift__account .label {
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   /* The number line is one tap target; it never wraps, so a number is always read in one piece. */
@@ -1237,15 +1225,14 @@
     }
   }
 
-  /* RSVP: in the cover's tone (tokens, container, title, choices and the field come from the section kit).
-     One question per line, each answered by two facing words, so the form reads like the cover's
-     lower pairs rather than a form: no boxes, no numbers, no visible question labels. */
+  /* RSVP: laid out like the ceremony (tokens, title, choices, the field and the pill come from the section kit).
+     One question per row, its words side by side on the centre axis: no boxes, no numbers, no visible question labels. */
 
   .rsvp__form {
     margin: 0;
   }
 
-  /* A fieldset only groups the two words for assistive tech; it draws nothing on the paper. */
+  /* A fieldset only groups the words for assistive tech; it draws nothing on the paper. */
   .rsvp__row {
     min-width: 0;
     margin: 0;
@@ -1253,11 +1240,10 @@
     border: 0;
   }
 
-  /* Rows breathe like the cover's bottom pairs, not like a dense form. */
   .rsvp__row + .rsvp__row,
   .rsvp__name,
   .rsvp__attending {
-    margin-top: 22px;
+    margin-top: 18px;
   }
 
   .rsvp__attending .rsvp__row:first-child {
@@ -1265,17 +1251,17 @@
   }
 
   .rsvp__attending .rsvp__row + .rsvp__row {
-    margin-top: 22px;
+    margin-top: 18px;
   }
 
-  /* The words sit on the column edges; pull out by the circle's padding so the letters line up
-     with the name line and the title, and the circle spills into the gutter instead. */
-  .rsvp .pair > .choice:first-child {
-    margin-left: -14px;
-  }
-
-  .rsvp .pair > .choice:last-child {
-    margin-right: -14px;
+  /* Two words of one question, side by side; the circle's padding keeps their marks apart. */
+  .rsvp__options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 28px;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
   /* An unanswered question: the pencil underline both words already carry turns red,
@@ -1285,20 +1271,25 @@
   }
 
   .rsvp__name .field {
-    font-family: var(--latin), var(--korean);
-    font-size: clamp(18px, 5.2vw, 21px);
-    letter-spacing: -0.02em;
+    font-family: var(--korean);
+    letter-spacing: -0.01em;
+    text-align: center;
   }
 
-  /* Head count: the label faces a small stepper, the number at lead size between two bare signs. */
+  /* Head count: a small soft label over the number at the big size between two bare signs. */
   .rsvp__guests {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+  }
+
+  .rsvp__guests .label {
+    line-height: 1.6;
   }
 
   .rsvp__stepper {
     display: inline-flex;
     align-items: center;
-    margin-right: -10px;
   }
 
   .rsvp__step {
@@ -1314,7 +1305,7 @@
     color: var(--ink);
     background: transparent;
     font-family: var(--latin), var(--korean);
-    font-size: clamp(22px, 6.4vw, 26px);
+    font-size: clamp(22px, 6.6vw, 26px);
     line-height: 1;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -1335,18 +1326,13 @@
     text-align: center;
   }
 
-  /* The send word sits alone on the center axis, below a wider gap than the rows. */
+  /* The send pill sits alone on the centre axis, below a wider gap than the rows. */
   .rsvp__send {
     margin: 40px 0 0;
-    text-align: center;
   }
 
-  .rsvp__send .crayon-link:disabled {
-    color: var(--soft);
-    cursor: default;
-  }
-
-  .rsvp__error {
+  /* Two classes, so the red wins over the kit's soft .section--detail .prose. */
+  .rsvp .rsvp__error {
     margin-top: 8px;
     color: var(--bloom);
   }
@@ -1361,34 +1347,59 @@
     outline: none;
   }
 
-  /* Closing: the last sheet: a toast drawing and the hand-lettered 고맙습니다,
-     then one short sentence and a pair of share words. Nothing after that but paper. */
-
-  /* The last page ends on generous empty paper, clear of the home indicator. */
+  /* Closing: the greeting's twin on black paper: one stamp, the last words, then two pills. No title, no drawing. */
   .closing {
+    padding-top: 80px;
     padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Share words face each other, pulled in from the edges like the greeting's signature row.
-     The inset shrinks on narrow screens and the words never wrap, so 청첩장 보내기 stays on one line at 320px. */
+  /* The greeting's stamp at the same size, with one photo in the whole window. */
+  .closing__stamp {
+    position: relative;
+    width: clamp(86px, 25.6vw, 112px);
+    aspect-ratio: 595 / 860;
+    margin: 0 auto 52px;
+  }
+
+  .closing__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .closing__window {
+    position: absolute;
+    top: 7.209%;
+    left: 10.420%;
+    width: 79.160%;
+    height: 85.582%;
+    overflow: hidden;
+  }
+
+  /* photo-06-sm (534 x 800), source x 126-446, y 300-800: both heads down to the bouquet. */
+  .closing__photo {
+    position: absolute;
+    top: -59.9%;
+    left: -39.375%;
+    display: block;
+    width: 166.875%;
+    max-width: none;
+    height: auto;
+  }
+
+  .closing .prose {
+    color: var(--ink);
+  }
+
+  /* Two pills stacked on the centre axis: share filled on top, copy outlined under it (both swap to paper here).
+     Each has its own row, so the copy feedback only changes the copy pill's width: the share pill never moves.
+     Without the system share sheet the share pill is hidden and the copy pill stays centred alone. */
   .closing__share {
     margin-top: 40px;
-    padding-inline: clamp(0px, 12%, 80px);
-    font-size: 15px;
-    letter-spacing: -0.01em;
-  }
-
-  .closing__share > .crayon-link {
-    white-space: nowrap;
-  }
-
-  /* Without the system share sheet only the copy word is left; it moves to the center axis. */
-  .closing__share--solo {
-    justify-content: center;
-  }
-
-  .closing__share--solo > :last-child {
-    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
 </style>
 
@@ -1443,6 +1454,20 @@
   </p>
 </section>
 
+<section class="section families" aria-label="두 사람">
+  <div class="families__family">
+    <p class="families__parents">서재호 &amp; 김선교의</p>
+    <p class="families__name">아들 진용</p>
+    <img class="families__photo" src="photos/photo-10.jpg" srcset="photos/photo-10-sm.jpg 534w, photos/photo-10.jpg 1066w" sizes="min(78vw, 300px)" width="1066" height="1600" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
+  </div>
+
+  <div class="families__family">
+    <p class="families__parents">장영인 &amp; 김혜숙의</p>
+    <p class="families__name">딸 하림</p>
+    <img class="families__photo" src="photos/photo-09.jpg" srcset="photos/photo-09-sm.jpg 534w, photos/photo-09.jpg 1066w" sizes="min(78vw, 300px)" width="1066" height="1600" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
+  </div>
+</section>
+
 <section class="photos photos--scrap" aria-label="사진">
   <div data-scrap class="scrap__page">
     <button type="button" data-photo class="scrap__photo" style="--x: 8; --y: 6; --w: 34; --r: 3 / 4"><img src="photos/photo-10-sm.jpg" alt="들판에 홀로 선 신랑" width="534" height="800" loading="lazy" decoding="async"></button>
@@ -1466,92 +1491,80 @@
   </div>
 </section>
 
-<section class="section section--detail ceremony" aria-label="예식 안내">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 100" aria-hidden="true">
-    <!-- A small bouquet: three loose roses, two leaves, the paper wrap and a ribbon bow. -->
-    <g>
-      <path fill="#ffffff" d="M41 52 C 50 56.5, 70 55.5, 79.5 51 L 61.2 94 C 60.6 94.8, 59.6 94.7, 59.1 93.8 Z"/>
-      <path stroke="#4f9a3e" d="M44 44 C 50 54, 55 62, 58.5 70 M50.5 38 C 54 50, 57 60, 59.4 70 M62 31 C 61 45, 60.4 58, 60.2 70 M73 37 C 69 50, 64 60, 61.2 70"/>
-      <path stroke="#d8433b" d="M41 28 C 41 22.5, 45.5 19.6, 50 20.8 C 54.4 22, 56.2 26.4, 54.8 30 C 53.2 34.2, 47.6 35.8, 44.6 33.2 C 41.8 30.8, 43.2 26.6, 46.6 26.8 C 48.8 27, 49.4 29.4, 48 30.4"/>
-      <path stroke="#d8433b" d="M55 18 C 55 12.5, 59.5 9.6, 64 10.8 C 68.4 12, 70.2 16.4, 68.8 20 C 67.2 24.2, 61.6 25.8, 58.6 23.2 C 55.8 20.8, 57.2 16.6, 60.6 16.8 C 62.8 17, 63.4 19.4, 62 20.4"/>
-      <path stroke="#d8433b" d="M68 30 C 68 24.5, 72.5 21.6, 77 22.8 C 81.4 24, 83.2 28.4, 81.8 32 C 80.2 36.2, 74.6 37.8, 71.6 35.2 C 68.8 32.8, 70.2 28.6, 73.6 28.8 C 75.8 29, 76.4 31.4, 75 32.4"/>
-      <path stroke="#4f9a3e" d="M35.5 40.5 C 37.5 37, 41.5 36.5, 43.5 39 M86 38 C 84.5 35, 80.5 34.6, 78.6 37"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M45 59 C 37 57.5, 32.5 51.5, 33 46.5 C 39.5 47.5, 44 52.5, 45 59 Z M75.5 57 C 83.5 55, 88 49, 87.4 44 C 81 45.5, 76.6 50.5, 75.5 57 Z"/>
-      <path stroke="#c9a24d" d="M60 72 C 52 65.5, 46.5 71.5, 51.5 75 C 54.6 76.6, 58 74.4, 60 72 C 68 65.5, 73.5 71.5, 68.5 75 C 65.4 76.6, 62 74.4, 60 72 M59.6 72.4 C 57 78, 54.4 83, 52 86.5 M60.4 72.4 C 63 78, 65.8 82.4, 68.6 85.6"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M41 52 C 50 56.5, 70 55.5, 79.5 51 L 61.2 94 C 60.6 94.8, 59.6 94.7, 59.1 93.8 Z"/>
-      <path fill="none" stroke="#4f9a3e" d="M44 44 C 50 54, 55 62, 58.5 70 M50.5 38 C 54 50, 57 60, 59.4 70 M62 31 C 61 45, 60.4 58, 60.2 70 M73 37 C 69 50, 64 60, 61.2 70"/>
-      <path fill="none" stroke="#d8433b" d="M41 28 C 41 22.5, 45.5 19.6, 50 20.8 C 54.4 22, 56.2 26.4, 54.8 30 C 53.2 34.2, 47.6 35.8, 44.6 33.2 C 41.8 30.8, 43.2 26.6, 46.6 26.8 C 48.8 27, 49.4 29.4, 48 30.4"/>
-      <path fill="none" stroke="#d8433b" d="M55 18 C 55 12.5, 59.5 9.6, 64 10.8 C 68.4 12, 70.2 16.4, 68.8 20 C 67.2 24.2, 61.6 25.8, 58.6 23.2 C 55.8 20.8, 57.2 16.6, 60.6 16.8 C 62.8 17, 63.4 19.4, 62 20.4"/>
-      <path fill="none" stroke="#d8433b" d="M68 30 C 68 24.5, 72.5 21.6, 77 22.8 C 81.4 24, 83.2 28.4, 81.8 32 C 80.2 36.2, 74.6 37.8, 71.6 35.2 C 68.8 32.8, 70.2 28.6, 73.6 28.8 C 75.8 29, 76.4 31.4, 75 32.4"/>
-      <path fill="none" stroke="#4f9a3e" d="M35.5 40.5 C 37.5 37, 41.5 36.5, 43.5 39 M86 38 C 84.5 35, 80.5 34.6, 78.6 37"/>
-      <path fill="none" stroke="#2f7d4a" d="M45 59 C 37 57.5, 32.5 51.5, 33 46.5 C 39.5 47.5, 44 52.5, 45 59 Z M75.5 57 C 83.5 55, 88 49, 87.4 44 C 81 45.5, 76.6 50.5, 75.5 57 Z"/>
-      <path fill="none" stroke="#c9a24d" d="M60 72 C 52 65.5, 46.5 71.5, 51.5 75 C 54.6 76.6, 58 74.4, 60 72 C 68 65.5, 73.5 71.5, 68.5 75 C 65.4 76.6, 62 74.4, 60 72 M59.6 72.4 C 57 78, 54.4 83, 52 86.5 M60.4 72.4 C 63 78, 65.8 82.4, 68.6 85.6"/>
-    </g>
-  </svg>
-  <h2 class="section-title">예식 안내</h2>
-
-  <div class="ceremony__families">
-    <p class="ceremony__family"><span class="ceremony__parents"><span data-parents>서재호 · 김선교</span>의 아들</span><span class="ceremony__name">진용</span></p>
-    <p class="ceremony__family"><span class="ceremony__parents"><span data-parents>장영인 · 김혜숙</span>의 딸</span><span class="ceremony__name">하림</span></p>
+<section class="section ceremony" aria-label="예식 안내">
+  <time class="visually-hidden" datetime="2027-03-06T17:00:00+09:00">2027년 3월 6일 토요일 오후 5시</time>
+  <p class="ceremony__when" aria-hidden="true">2027.03.06 SAT PM 5:00</p>
+  <p class="ceremony__place">식물관PH</p>
+  <div class="calendar">
+    <p class="calendar__month" aria-hidden="true">2027.03</p>
+    <div class="calendar__grid" aria-hidden="true">
+      <span class="calendar__weekday">S</span>
+      <span class="calendar__weekday">M</span>
+      <span class="calendar__weekday">T</span>
+      <span class="calendar__weekday">W</span>
+      <span class="calendar__weekday">T</span>
+      <span class="calendar__weekday">F</span>
+      <span class="calendar__weekday">S</span>
+      <span class="calendar__day calendar__day--first">1</span>
+      <span class="calendar__day">2</span>
+      <span class="calendar__day">3</span>
+      <span class="calendar__day">4</span>
+      <span class="calendar__day">5</span>
+      <span class="calendar__day calendar__day--wedding">6</span>
+      <span class="calendar__day">7</span>
+      <span class="calendar__day">8</span>
+      <span class="calendar__day">9</span>
+      <span class="calendar__day">10</span>
+      <span class="calendar__day">11</span>
+      <span class="calendar__day">12</span>
+      <span class="calendar__day">13</span>
+      <span class="calendar__day">14</span>
+      <span class="calendar__day">15</span>
+      <span class="calendar__day">16</span>
+      <span class="calendar__day">17</span>
+      <span class="calendar__day">18</span>
+      <span class="calendar__day">19</span>
+      <span class="calendar__day">20</span>
+      <span class="calendar__day">21</span>
+      <span class="calendar__day">22</span>
+      <span class="calendar__day">23</span>
+      <span class="calendar__day">24</span>
+      <span class="calendar__day">25</span>
+      <span class="calendar__day">26</span>
+      <span class="calendar__day">27</span>
+      <span class="calendar__day">28</span>
+      <span class="calendar__day">29</span>
+      <span class="calendar__day">30</span>
+      <span class="calendar__day">31</span>
+    </div>
+    <div class="countdown" aria-hidden="true" hidden>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">DAYS</span></span>
+      <span class="countdown__sep">:</span>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">HOURS</span></span>
+      <span class="countdown__sep">:</span>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">MINS</span></span>
+      <span class="countdown__sep">:</span>
+      <span class="countdown__unit"><span class="countdown__value">0</span><span class="countdown__label">SECS</span></span>
+    </div>
+    <p class="calendar__add"><a class="pill" data-add-calendar href="wedding.ics">캘린더에 추가</a></p>
   </div>
-
-  <div class="ceremony__when">
-    <p class="ceremony__label">일시</p>
-    <p class="ceremony__datetime"><span>2027년 3월 6일 토요일</span><span>오후 5시</span></p>
-  </div>
-
-  <div class="ceremony__countdown">
-    <!-- Hidden until the script counts, so a failed script shows the date alone.
-         Screen readers skip an aria-label on a <p>, so the short mark (D-107) and the ticking line are
-         hidden from them and one spoken sentence sits next to the mark. -->
-    <p data-dday-row hidden><span data-dday aria-hidden="true" hidden></span><span class="visually-hidden" data-dday-spoken></span></p>
-    <p class="ceremony__timer" data-countdown aria-hidden="true" hidden></p>
-  </div>
-
-  <!-- TODO: confirm how dinner is served (seated course or buffet) and adjust the second line. -->
-  <p class="prose">
-    예식은 식물관PH 온실에서 열립니다.<br>
-    예식 후 저녁 식사를 준비했습니다.<br>
-    조금 일찍 오셔서 온실을 둘러보세요.
-  </p>
 </section>
 
 <section class="section section--detail directions" aria-label="오시는 길">
-  <svg class="crayon-art" data-illustration viewBox="0 0 130 100" aria-hidden="true">
-    <!-- The venue, a glass greenhouse: gabled frame, glazing bars, a round-topped door, plants inside, a tree outside. -->
-    <g>
-      <path d="M6 88.4 C 40 87.2, 90 89, 124 87.6"/>
-      <path stroke="#7f8b8a" fill="#7fb069" fill-opacity=".1" d="M24 87.6 C 23.6 74, 24.4 60, 23.8 48.4 L 65 18.6 L 106.4 48 C 106 61, 106.6 74, 106.2 87.8"/>
-      <path stroke="#7f8b8a" d="M44.5 87.6 L 44.2 33.6 M65 87.6 L 65.2 18.8 M85.6 87.6 L 85.8 33.4 M24 64.6 C 50 63.6, 80 65.4, 106.2 64.2 M34 41 C 54 40.4, 76 41.2, 96.4 40.6"/>
-      <path stroke="#7f8b8a" d="M58.4 87.6 L 58.6 71.4 C 58.8 66.6, 71.4 66.4, 71.6 71.2 L 71.8 87.6"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M31 87.4 C 29.4 80.4, 31.6 74.6, 35.6 72 C 36.4 78.4, 34.6 84, 31 87.4 Z M36.4 87.4 C 37.4 82, 40.2 78.2, 42.8 77.4 M98 87.4 C 99.6 80.6, 97.4 75, 93.4 72.4 C 92.6 78.6, 94.4 84, 98 87.4 Z"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M12.6 87.8 C 12.2 81, 13 76, 12.4 70.4 M12.4 70.4 C 6.4 69.4, 5 61.6, 10.2 59.4 C 11.2 53.4, 18.8 53.8, 19.4 59 C 24 61, 22 68.4, 17.2 69.6 C 15.6 70.6, 14 70.8, 12.4 70.4"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M6 88.4 C 40 87.2, 90 89, 124 87.6"/>
-      <path fill="none" stroke="#7f8b8a" d="M24 87.6 C 23.6 74, 24.4 60, 23.8 48.4 L 65 18.6 L 106.4 48 C 106 61, 106.6 74, 106.2 87.8"/>
-      <path fill="none" stroke="#7f8b8a" d="M44.5 87.6 L 44.2 33.6 M65 87.6 L 65.2 18.8 M85.6 87.6 L 85.8 33.4 M24 64.6 C 50 63.6, 80 65.4, 106.2 64.2 M34 41 C 54 40.4, 76 41.2, 96.4 40.6"/>
-      <path fill="none" stroke="#7f8b8a" d="M58.4 87.6 L 58.6 71.4 C 58.8 66.6, 71.4 66.4, 71.6 71.2 L 71.8 87.6"/>
-      <path fill="none" stroke="#2f7d4a" d="M31 87.4 C 29.4 80.4, 31.6 74.6, 35.6 72 C 36.4 78.4, 34.6 84, 31 87.4 Z M36.4 87.4 C 37.4 82, 40.2 78.2, 42.8 77.4 M98 87.4 C 99.6 80.6, 97.4 75, 93.4 72.4 C 92.6 78.6, 94.4 84, 98 87.4 Z"/>
-      <path fill="none" stroke="#2f7d4a" d="M12.6 87.8 C 12.2 81, 13 76, 12.4 70.4 M12.4 70.4 C 6.4 69.4, 5 61.6, 10.2 59.4 C 11.2 53.4, 18.8 53.8, 19.4 59 C 24 61, 22 68.4, 17.2 69.6 C 15.6 70.6, 14 70.8, 12.4 70.4"/>
-    </g>
-  </svg>
   <h2 class="section-title">오시는 길</h2>
+  <!-- Address unconfirmed: change q together with data-copy, the aria-label and the text below. -->
+  <iframe class="directions__map" src="https://www.google.com/maps?q=%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EA%B4%91%ED%8F%89%EB%A1%9C34%EA%B8%B8%2024&amp;output=embed&amp;hl=ko&amp;z=16" title="식물관PH 위치 지도" loading="lazy" referrerpolicy="no-referrer"></iframe>
 
-  <div class="pair">
-    <p class="lead directions__place">식물관PH</p>
-    <!-- TODO: confirm address of 식물관PH (data-copy, aria-label and both lines). -->
-    <button class="crayon-link sub directions__address" type="button" data-copy="서울 강남구 광평로34길 24" aria-label="주소 복사: 서울 강남구 광평로34길 24"><span class="directions__line">서울 강남구</span><span class="directions__line">광평로34길 24</span></button>
-  </div>
+  <p class="lead directions__place">식물관PH</p>
+  <!-- TODO: confirm address of 식물관PH (data-copy, aria-label and the text). -->
+  <p class="directions__address">
+    <button class="crayon-link" type="button" data-copy="서울 강남구 광평로34길 24" aria-label="주소 복사: 서울 강남구 광평로34길 24">서울 강남구 광평로34길 24</button>
+  </p>
 
   <ul class="directions__maps" aria-label="지도 앱으로 보기">
-    <li><a class="crayon-link" data-map="naver" href="https://map.naver.com/p/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">네이버 지도</a></li>
-    <li><a class="crayon-link" data-map="kakao" href="https://map.kakao.com/link/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">카카오맵</a></li>
-    <li data-map-app-only><a class="crayon-link" data-map="tmap" href="tmap://search?name=%EC%8B%9D%EB%AC%BC%EA%B4%80PH">티맵</a></li>
+    <li><a class="pill pill--line" data-map="naver" href="https://map.naver.com/p/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">네이버 지도</a></li>
+    <li><a class="pill pill--line" data-map="kakao" href="https://map.kakao.com/link/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">카카오맵</a></li>
+    <li data-map-app-only><a class="pill pill--line" data-map="tmap" href="tmap://search?name=%EC%8B%9D%EB%AC%BC%EA%B4%80PH">티맵</a></li>
   </ul>
 
   <!-- TODO: fill in the transit details from the venue (station, exit, walk time, bus stop and lines, parking).
@@ -1573,27 +1586,11 @@
 </section>
 
 <section class="section section--detail gift" aria-label="마음 전하실 곳">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 90" aria-hidden="true">
-    <!-- A sealed envelope with a little heart seal and a sprig tucked behind it. -->
-    <g>
-      <path fill="#ffffff" d="M18 27 C 45 25.6, 75 27.4, 102.4 25.6 C 103 42, 102.2 58, 103 74.4 C 75 75.6, 45 73.6, 17.4 75.4 C 18.2 59, 17.4 43, 18 27 Z"/>
-      <path d="M18.4 27.6 C 34.6 40, 47.6 49.6, 60 54 C 72.6 49.4, 86 39.6, 102 26.4 M18 74.6 C 28 66.4, 38 58.6, 47.4 51.4 M102.6 74.2 C 92.6 66, 82.6 58.4, 72.8 51.2"/>
-      <path stroke="#d8433b" fill="#d8433b" fill-opacity=".7" d="M60 49.6 C 57.8 45.4, 51.6 46.4, 52.6 51.2 C 53.4 55.2, 60 58.6, 60 58.6 C 60 58.6, 66.6 55.4, 67.4 51.2 C 68.4 46.4, 62.2 45.4, 60 49.6 Z"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M88 26 C 91.4 17.6, 97.6 12, 105 9.4 M93.6 18.4 C 90.6 14.4, 91.4 10.2, 94.4 8.6 C 96 12.2, 95.6 15.8, 93.6 18.4 Z M99.6 13 C 101.2 8.6, 104.8 6.6, 108 7.6 C 106.6 11, 103.6 13, 99.6 13 Z"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M18 27 C 45 25.6, 75 27.4, 102.4 25.6 C 103 42, 102.2 58, 103 74.4 C 75 75.6, 45 73.6, 17.4 75.4 C 18.2 59, 17.4 43, 18 27 Z"/>
-      <path fill="none" d="M18.4 27.6 C 34.6 40, 47.6 49.6, 60 54 C 72.6 49.4, 86 39.6, 102 26.4 M18 74.6 C 28 66.4, 38 58.6, 47.4 51.4 M102.6 74.2 C 92.6 66, 82.6 58.4, 72.8 51.2"/>
-      <path fill="none" stroke="#d8433b" d="M60 49.6 C 57.8 45.4, 51.6 46.4, 52.6 51.2 C 53.4 55.2, 60 58.6, 60 58.6 C 60 58.6, 66.6 55.4, 67.4 51.2 C 68.4 46.4, 62.2 45.4, 60 49.6 Z"/>
-      <path fill="none" stroke="#2f7d4a" d="M88 26 C 91.4 17.6, 97.6 12, 105 9.4 M93.6 18.4 C 90.6 14.4, 91.4 10.2, 94.4 8.6 C 96 12.2, 95.6 15.8, 93.6 18.4 Z M99.6 13 C 101.2 8.6, 104.8 6.6, 108 7.6 C 106.6 11, 103.6 13, 99.6 13 Z"/>
-    </g>
-  </svg>
   <h2 class="section-title">마음 전하실 곳</h2>
 
   <p class="prose">참석이 어려우신 분들을 위해<br>계좌번호를 적어 둡니다.</p>
 
-  <p class="pair sub gift__toggles">
+  <p class="gift__toggles">
     <button class="crayon-toggle" type="button" data-side-toggle="groom" aria-expanded="true" aria-controls="gift-groom-accounts">신랑측</button>
     <button class="crayon-toggle" type="button" data-side-toggle="bride" aria-expanded="true" aria-controls="gift-bride-accounts">신부측</button>
   </p>
@@ -1639,32 +1636,14 @@
 </section>
 
 <section class="section section--detail rsvp" aria-label="참석 여부">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 100" aria-hidden="true">
-    <!-- A letter sheet with a few written lines, and a fountain pen resting across it. -->
-    <g>
-      <path fill="#ffffff" d="M22 22.6 C 42 20.4, 62 18.6, 82.4 16.8 C 85.4 39, 88.2 61, 90.6 83.4 C 70.4 85.6, 50.4 87.6, 30.4 89.6 C 27.4 67, 25 45, 22 22.6 Z"/>
-      <path d="M32 36.4 C 46 35, 60 33.6, 72.4 32 M33.4 47.6 C 46 46.2, 58 45, 68.6 43.6 M34.8 58.6 C 44 57.6, 52 57, 60 56"/>
-      <path stroke="#d8433b" d="M37.6 75.6 C 40 71.6, 42.4 71.6, 43.4 75 C 44.4 78, 46.4 72.4, 48.6 72.6 C 50.6 72.8, 50.2 76.4, 53.4 75"/>
-      <path stroke="#c9a24d" fill="#c9a24d" fill-opacity=".35" d="M97.4 8.4 C 100 10.4, 102.8 12.8, 105 15.6 L 74.4 62.2 C 71.4 60.4, 68.6 58.2, 66.2 55.6 Z"/>
-      <path d="M66.2 55.6 L 61.4 70.2 L 74.4 62.2 M63.6 66.4 L 67.4 61.4 M99.6 12.6 L 91.4 25.4"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M22 22.6 C 42 20.4, 62 18.6, 82.4 16.8 C 85.4 39, 88.2 61, 90.6 83.4 C 70.4 85.6, 50.4 87.6, 30.4 89.6 C 27.4 67, 25 45, 22 22.6 Z"/>
-      <path fill="none" d="M32 36.4 C 46 35, 60 33.6, 72.4 32 M33.4 47.6 C 46 46.2, 58 45, 68.6 43.6 M34.8 58.6 C 44 57.6, 52 57, 60 56"/>
-      <path fill="none" stroke="#d8433b" d="M37.6 75.6 C 40 71.6, 42.4 71.6, 43.4 75 C 44.4 78, 46.4 72.4, 48.6 72.6 C 50.6 72.8, 50.2 76.4, 53.4 75"/>
-      <path fill="none" stroke="#c9a24d" d="M97.4 8.4 C 100 10.4, 102.8 12.8, 105 15.6 L 74.4 62.2 C 71.4 60.4, 68.6 58.2, 66.2 55.6 Z"/>
-      <path fill="none" d="M66.2 55.6 L 61.4 70.2 L 74.4 62.2 M63.6 66.4 L 67.4 61.4 M99.6 12.6 L 91.4 25.4"/>
-    </g>
-  </svg>
   <h2 class="section-title">참석 여부</h2>
 
   <!-- method and action keep a script-less submit from putting the name in the address bar;
-       the send word also stays disabled until the script is running. -->
+       the send pill also stays disabled until the script is running. -->
   <form class="rsvp__form" data-rsvp method="post" action="#" novalidate>
     <fieldset class="rsvp__row" data-rsvp-row="side">
       <legend class="visually-hidden">어느 쪽 손님이신가요</legend>
-      <div class="pair sub">
+      <div class="rsvp__options">
         <label class="choice"><input type="radio" name="side" value="groom"><span class="choice__text">신랑측</span></label>
         <label class="choice"><input type="radio" name="side" value="bride"><span class="choice__text">신부측</span></label>
       </div>
@@ -1672,7 +1651,7 @@
 
     <fieldset class="rsvp__row" data-rsvp-row="attendance">
       <legend class="visually-hidden">참석하시나요</legend>
-      <div class="pair sub">
+      <div class="rsvp__options">
         <label class="choice"><input type="radio" name="attendance" value="attend"><span class="choice__text">참석해요</span></label>
         <label class="choice"><input type="radio" name="attendance" value="absent"><span class="choice__text">마음만 보내요</span></label>
       </div>
@@ -1686,7 +1665,7 @@
     <div class="rsvp__attending" data-when-attending hidden>
       <fieldset class="rsvp__row">
         <legend class="visually-hidden">함께 오시는 인원</legend>
-        <div class="pair rsvp__guests">
+        <div class="rsvp__guests">
           <span class="label" aria-hidden="true">인원</span>
           <span class="rsvp__stepper">
             <button class="rsvp__step" type="button" data-guests-minus aria-label="인원 줄이기">−</button>
@@ -1698,15 +1677,15 @@
 
       <fieldset class="rsvp__row" data-rsvp-row="meal">
         <legend class="visually-hidden">식사하시나요</legend>
-        <div class="pair sub">
+        <div class="rsvp__options">
           <label class="choice"><input type="radio" name="meal" value="yes"><span class="choice__text">식사해요</span></label>
           <label class="choice"><input type="radio" name="meal" value="no"><span class="choice__text">식사 안 해요</span></label>
         </div>
       </fieldset>
     </div>
 
-    <p class="sub rsvp__send">
-      <button class="crayon-link" type="submit" disabled>보내기</button>
+    <p class="rsvp__send">
+      <button class="pill" type="submit" disabled>보내기</button>
     </p>
     <p class="prose rsvp__error" data-rsvp-error role="alert" hidden></p>
     <p class="visually-hidden" data-rsvp-hint aria-live="polite"></p>
@@ -1720,26 +1699,13 @@
   </noscript>
 </section>
 
-<section class="section section--detail closing" aria-label="마무리">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 100" aria-hidden="true">
-    <!-- Two glasses meeting in a toast, with three short strokes where they touch. -->
-    <g>
-      <path d="M29.6 20.4 C 27.6 34, 33.4 46.4, 45.6 48.2 C 56 46.6, 60.4 34.4, 57 18.4 C 47.6 19.8, 38.6 20.6, 29.6 20.4 Z"/>
-      <path d="M90.4 20.4 C 92.4 34, 86.6 46.4, 74.4 48.2 C 64 46.6, 59.6 34.4, 63 18.4 C 72.4 19.8, 81.4 20.6, 90.4 20.4 Z"/>
-      <path stroke="#c9a24d" d="M31 30.4 C 40 32.4, 50 31.6, 57.6 28.4 M89 30.4 C 80 32.4, 70 31.6, 62.4 28.4"/>
-      <path d="M45.6 48.2 C 46.2 57, 46.8 66, 47.6 76.4 M38 78.6 C 44 76.4, 51.6 76.2, 58 78.4 M74.4 48.2 C 73.8 57, 73.2 66, 72.4 76.4 M62 78.4 C 68.4 76.2, 76 76.4, 82 78.6"/>
-      <path stroke="#c9a24d" d="M60 11.4 L 60.2 3.6 M52.6 12 L 48.4 5.4 M67.4 12 L 71.6 5.4"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M29.6 20.4 C 27.6 34, 33.4 46.4, 45.6 48.2 C 56 46.6, 60.4 34.4, 57 18.4 C 47.6 19.8, 38.6 20.6, 29.6 20.4 Z"/>
-      <path fill="none" d="M90.4 20.4 C 92.4 34, 86.6 46.4, 74.4 48.2 C 64 46.6, 59.6 34.4, 63 18.4 C 72.4 19.8, 81.4 20.6, 90.4 20.4 Z"/>
-      <path fill="none" stroke="#c9a24d" d="M31 30.4 C 40 32.4, 50 31.6, 57.6 28.4 M89 30.4 C 80 32.4, 70 31.6, 62.4 28.4"/>
-      <path fill="none" d="M45.6 48.2 C 46.2 57, 46.8 66, 47.6 76.4 M38 78.6 C 44 76.4, 51.6 76.2, 58 78.4 M74.4 48.2 C 73.8 57, 73.2 66, 72.4 76.4 M62 78.4 C 68.4 76.2, 76 76.4, 82 78.6"/>
-      <path fill="none" stroke="#c9a24d" d="M60 11.4 L 60.2 3.6 M52.6 12 L 48.4 5.4 M67.4 12 L 71.6 5.4"/>
-    </g>
-  </svg>
-  <h2 class="section-title">고맙습니다</h2>
+<section class="section section--detail section--dark closing" data-tone="dark" aria-label="마무리">
+  <div class="closing__stamp" data-stamp>
+    <img class="closing__frame" src="textures/stamp-frame.png" width="595" height="860" loading="lazy" decoding="async" alt="">
+    <span class="closing__window">
+      <img class="closing__photo" src="photos/photo-06-sm.jpg" width="534" height="800" loading="lazy" decoding="async" alt="신랑에게 기대어 웃는 신부">
+    </span>
+  </div>
 
   <!-- Draft wording: the closing sentence is not confirmed yet. -->
   <p class="prose">
@@ -1748,9 +1714,9 @@
     오래도록 다정하게 살겠습니다.
   </p>
 
-  <div class="pair closing__share">
-    <button class="crayon-link" type="button" data-share>청첩장 보내기</button>
-    <button class="crayon-link" type="button" data-copy-url>주소 복사</button>
+  <div class="closing__share">
+    <button class="pill" type="button" data-share>청첩장 보내기</button>
+    <button class="pill pill--line" type="button" data-copy-url>주소 복사</button>
   </div>
 </section>
 </main>
@@ -3304,120 +3270,93 @@
 </script>
 
 <script>
-  // Countdown: calendar days left until the wedding, counted on Korean calendar dates (KST, UTC+9),
-  // so a guest abroad sees the same number as a guest in Seoul.
-  // The row stays hidden unless this script fills it, and once the day has passed it is hidden again.
+  // Add to calendar: without this script the link is the event file itself (share/wedding.ics).
+  // Android often only downloads that file, so it gets Google Calendar's form instead. KakaoTalk's browser
+  // on iPhone cannot open the file, so it hands the address over to Safari.
   (() => {
-    const WEDDING_YEAR = 2027;
-    const WEDDING_MONTH_INDEX = 2;
-    const WEDDING_DAY = 6;
-    const DAY_MS = 24 * 60 * 60 * 1000;
-    const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
-    const TODAY_LABEL = 'TODAY';
-    const TODAY_SPOKEN = '오늘이 결혼식입니다';
-    const row = document.querySelector('.ceremony [data-dday-row]');
-    const dday = row ? row.querySelector('[data-dday]') : null;
-    const spoken = row ? row.querySelector('[data-dday-spoken]') : null;
+    const EVENT_TITLE = '서진용 · 장하림 결혼식';
+    const EVENT_DATES = '20270306T080000Z/20270306T100000Z';
+    const EVENT_PLACE = '식물관PH';
+    const GOOGLE_CALENDAR_URL = 'https://calendar.google.com/calendar/render';
+    const KAKAO_EXTERNAL_URL = 'kakaotalk://web/openExternal';
+    const link = document.querySelector('.ceremony a[data-add-calendar]');
 
-    if (!row || !dday || !spoken) {
+    if (!link) {
       return;
     }
 
-    // Shifting by nine hours and reading the UTC fields gives today's date in Korea, whatever the device's zone.
-    const koreaNow = new Date(Date.now() + KST_OFFSET_MS);
-    const today = Date.UTC(koreaNow.getUTCFullYear(), koreaNow.getUTCMonth(), koreaNow.getUTCDate());
-    const wedding = Date.UTC(WEDDING_YEAR, WEDDING_MONTH_INDEX, WEDDING_DAY);
-    const daysLeft = Math.round((wedding - today) / DAY_MS);
+    const userAgent = navigator.userAgent;
 
-    if (daysLeft < 0) {
-      row.hidden = true;
-      dday.hidden = true;
+    if (/Android/i.test(userAgent)) {
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: EVENT_TITLE,
+        dates: EVENT_DATES,
+        location: EVENT_PLACE,
+      });
+
+      link.href = `${GOOGLE_CALENDAR_URL}?${params}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
 
       return;
     }
 
-    if (daysLeft === 0) {
-      dday.textContent = TODAY_LABEL;
-      spoken.textContent = TODAY_SPOKEN;
-    } else {
-      dday.textContent = `D-${daysLeft}`;
-      spoken.textContent = `결혼식까지 ${daysLeft}일`;
-    }
+    if (/iPhone|iPad|iPod/i.test(userAgent) && /KAKAOTALK/i.test(userAgent)) {
+      const fileUrl = new URL(link.getAttribute('href'), window.location.href).href;
 
-    dday.hidden = false;
-    row.hidden = false;
+      link.href = `${KAKAO_EXTERNAL_URL}?url=${encodeURIComponent(fileUrl)}`;
+    }
   })();
 
-  // Running countdown to the ceremony's start (17:00 KST), ticking every second; hidden from the start on.
+  // Countdown to the ceremony, refreshed on each second. Hidden without the script and once it has begun.
   (() => {
-    const CEREMONY_START_MS = Date.parse('2027-03-06T17:00:00+09:00');
-    const TICK_MS = 1000;
-    const timer = document.querySelector('.ceremony [data-countdown]');
+    const WEDDING_TIME = Date.parse('2027-03-06T17:00:00+09:00');
+    const MS_PER_SECOND = 1000;
+    const countdown = document.querySelector('.ceremony .countdown');
 
-    if (!timer) {
+    if (!countdown) {
       return;
     }
 
-    const pad = (value) => {
-      return String(value).padStart(2, '0');
-    };
+    const values = countdown.querySelectorAll('.countdown__value');
+    const padTwo = (value) => String(value).padStart(2, '0');
+    const handleTick = () => {
+      const remaining = WEDDING_TIME - Date.now();
 
-    let intervalId = null;
-
-    const stop = () => {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    };
-
-    const render = () => {
-      const totalSeconds = Math.ceil((CEREMONY_START_MS - Date.now()) / TICK_MS);
-
-      if (totalSeconds <= 0) {
-        timer.hidden = true;
-        stop();
-
-        return false;
-      }
-
-      const days = Math.floor(totalSeconds / 86400);
-      const hours = Math.floor((totalSeconds % 86400) / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-
-      timer.innerHTML = `<b>${days}</b>일 <b>${pad(hours)}</b>시간 <b>${pad(minutes)}</b>분 <b>${pad(seconds)}</b>초`;
-      timer.hidden = false;
-
-      return true;
-    };
-
-    const start = () => {
-      stop();
-
-      if (render()) {
-        intervalId = setInterval(render, TICK_MS);
-      }
-    };
-
-    // Pause while the page is in the background; catch up at once when it comes back.
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stop();
+      if (remaining <= 0) {
+        countdown.hidden = true;
 
         return;
       }
 
-      start();
-    });
+      const totalSeconds = Math.floor(remaining / MS_PER_SECOND);
+      const parts = [
+        String(Math.floor(totalSeconds / 86400)),
+        padTwo(Math.floor(totalSeconds / 3600) % 24),
+        padTwo(Math.floor(totalSeconds / 60) % 60),
+        padTwo(totalSeconds % 60),
+      ];
 
-    start();
+      parts.forEach((part, index) => {
+        if (values[index]) {
+          values[index].textContent = part;
+        }
+      });
+
+      countdown.hidden = false;
+
+      // Wake on the next whole second so the numbers change together with the clock.
+      setTimeout(handleTick, remaining % MS_PER_SECOND || MS_PER_SECOND);
+    };
+
+    handleTick();
   })();
 </script>
 
 <script>
   // TMAP opens only through its app link (tmap://), which errors on a computer. With a mouse-like pointer
-  // the word is hidden but kept in the DOM; without matchMedia nothing changes.
+  // its pill is hidden but kept in the DOM (the row stays centred); without matchMedia nothing changes.
   (() => {
     const DESKTOP_QUERY = '(hover: hover) and (pointer: fine)';
     const maps = document.querySelector('.directions .directions__maps');
@@ -3432,7 +3371,6 @@
     }
 
     appOnlyItem.hidden = true;
-    maps.classList.add('directions__maps--two');
   })();
 </script>
 
@@ -3793,7 +3731,7 @@
     renderGuests();
     syncAttending();
 
-    // The send word ships disabled so a page without script cannot submit the form.
+    // The send pill ships disabled so a page without script cannot submit the form.
     if (submitButton) {
       submitButton.disabled = false;
     }
@@ -3807,19 +3745,14 @@
     const SHARE_TITLE = '서진용 · 장하림 결혼합니다';
     const SHARE_TEXT = '2027년 3월 6일 토요일 오후 5시, 식물관PH';
     const shareButton = document.querySelector('.closing button[data-share]');
-    const shareRow = document.querySelector('.closing .closing__share');
 
     if (!shareButton) {
       return;
     }
 
-    // No share sheet (most desktop browsers): keep the button in the DOM but hidden, copy word centered.
+    // No share sheet (most desktop browsers): keep the button in the DOM but hidden; the copy pill stays centred.
     if (typeof navigator.share !== 'function') {
       shareButton.hidden = true;
-
-      if (shareRow) {
-        shareRow.classList.add('closing__share--solo');
-      }
 
       return;
     }

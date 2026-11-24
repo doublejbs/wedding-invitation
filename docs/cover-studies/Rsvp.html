@@ -7,15 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* RSVP: in the cover's tone (tokens, container, title, choices and the field come from SectionKit.css).
-     One question per line, each answered by two facing words, so the form reads like the cover's
-     lower pairs rather than a form: no boxes, no numbers, no visible question labels. */
+  /* RSVP: laid out like the ceremony (tokens, title, choices, the field and the pill come from SectionKit.css).
+     One question per row, its words side by side on the centre axis: no boxes, no numbers, no visible question labels. */
 
   .rsvp__form {
     margin: 0;
   }
 
-  /* A fieldset only groups the two words for assistive tech; it draws nothing on the paper. */
+  /* A fieldset only groups the words for assistive tech; it draws nothing on the paper. */
   .rsvp__row {
     min-width: 0;
     margin: 0;
@@ -23,11 +22,10 @@
     border: 0;
   }
 
-  /* Rows breathe like the cover's bottom pairs, not like a dense form. */
   .rsvp__row + .rsvp__row,
   .rsvp__name,
   .rsvp__attending {
-    margin-top: 22px;
+    margin-top: 18px;
   }
 
   .rsvp__attending .rsvp__row:first-child {
@@ -35,17 +33,17 @@
   }
 
   .rsvp__attending .rsvp__row + .rsvp__row {
-    margin-top: 22px;
+    margin-top: 18px;
   }
 
-  /* The words sit on the column edges; pull out by the circle's padding so the letters line up
-     with the name line and the title, and the circle spills into the gutter instead. */
-  .rsvp .pair > .choice:first-child {
-    margin-left: -14px;
-  }
-
-  .rsvp .pair > .choice:last-child {
-    margin-right: -14px;
+  /* Two words of one question, side by side; the circle's padding keeps their marks apart. */
+  .rsvp__options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 28px;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
   /* An unanswered question: the pencil underline both words already carry turns red,
@@ -55,20 +53,25 @@
   }
 
   .rsvp__name .field {
-    font-family: var(--latin), var(--korean);
-    font-size: clamp(18px, 5.2vw, 21px);
-    letter-spacing: -0.02em;
+    font-family: var(--korean);
+    letter-spacing: -0.01em;
+    text-align: center;
   }
 
-  /* Head count: the label faces a small stepper, the number at lead size between two bare signs. */
+  /* Head count: a small soft label over the number at the big size between two bare signs. */
   .rsvp__guests {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+  }
+
+  .rsvp__guests .label {
+    line-height: 1.6;
   }
 
   .rsvp__stepper {
     display: inline-flex;
     align-items: center;
-    margin-right: -10px;
   }
 
   .rsvp__step {
@@ -84,7 +87,7 @@
     color: var(--ink);
     background: transparent;
     font-family: var(--latin), var(--korean);
-    font-size: clamp(22px, 6.4vw, 26px);
+    font-size: clamp(22px, 6.6vw, 26px);
     line-height: 1;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -105,18 +108,13 @@
     text-align: center;
   }
 
-  /* The send word sits alone on the center axis, below a wider gap than the rows. */
+  /* The send pill sits alone on the centre axis, below a wider gap than the rows. */
   .rsvp__send {
     margin: 40px 0 0;
-    text-align: center;
   }
 
-  .rsvp__send .crayon-link:disabled {
-    color: var(--soft);
-    cursor: default;
-  }
-
-  .rsvp__error {
+  /* Two classes, so the red wins over the kit's soft .section--detail .prose. */
+  .rsvp .rsvp__error {
     margin-top: 8px;
     color: var(--bloom);
   }
@@ -133,32 +131,14 @@
 </style>
 
 <section class="section section--detail rsvp" aria-label="참석 여부">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 100" aria-hidden="true">
-    <!-- A letter sheet with a few written lines, and a fountain pen resting across it. -->
-    <g>
-      <path fill="#ffffff" d="M22 22.6 C 42 20.4, 62 18.6, 82.4 16.8 C 85.4 39, 88.2 61, 90.6 83.4 C 70.4 85.6, 50.4 87.6, 30.4 89.6 C 27.4 67, 25 45, 22 22.6 Z"/>
-      <path d="M32 36.4 C 46 35, 60 33.6, 72.4 32 M33.4 47.6 C 46 46.2, 58 45, 68.6 43.6 M34.8 58.6 C 44 57.6, 52 57, 60 56"/>
-      <path stroke="#d8433b" d="M37.6 75.6 C 40 71.6, 42.4 71.6, 43.4 75 C 44.4 78, 46.4 72.4, 48.6 72.6 C 50.6 72.8, 50.2 76.4, 53.4 75"/>
-      <path stroke="#c9a24d" fill="#c9a24d" fill-opacity=".35" d="M97.4 8.4 C 100 10.4, 102.8 12.8, 105 15.6 L 74.4 62.2 C 71.4 60.4, 68.6 58.2, 66.2 55.6 Z"/>
-      <path d="M66.2 55.6 L 61.4 70.2 L 74.4 62.2 M63.6 66.4 L 67.4 61.4 M99.6 12.6 L 91.4 25.4"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M22 22.6 C 42 20.4, 62 18.6, 82.4 16.8 C 85.4 39, 88.2 61, 90.6 83.4 C 70.4 85.6, 50.4 87.6, 30.4 89.6 C 27.4 67, 25 45, 22 22.6 Z"/>
-      <path fill="none" d="M32 36.4 C 46 35, 60 33.6, 72.4 32 M33.4 47.6 C 46 46.2, 58 45, 68.6 43.6 M34.8 58.6 C 44 57.6, 52 57, 60 56"/>
-      <path fill="none" stroke="#d8433b" d="M37.6 75.6 C 40 71.6, 42.4 71.6, 43.4 75 C 44.4 78, 46.4 72.4, 48.6 72.6 C 50.6 72.8, 50.2 76.4, 53.4 75"/>
-      <path fill="none" stroke="#c9a24d" d="M97.4 8.4 C 100 10.4, 102.8 12.8, 105 15.6 L 74.4 62.2 C 71.4 60.4, 68.6 58.2, 66.2 55.6 Z"/>
-      <path fill="none" d="M66.2 55.6 L 61.4 70.2 L 74.4 62.2 M63.6 66.4 L 67.4 61.4 M99.6 12.6 L 91.4 25.4"/>
-    </g>
-  </svg>
   <h2 class="section-title">참석 여부</h2>
 
   <!-- method and action keep a script-less submit from putting the name in the address bar;
-       the send word also stays disabled until the script is running. -->
+       the send pill also stays disabled until the script is running. -->
   <form class="rsvp__form" data-rsvp method="post" action="#" novalidate>
     <fieldset class="rsvp__row" data-rsvp-row="side">
       <legend class="visually-hidden">어느 쪽 손님이신가요</legend>
-      <div class="pair sub">
+      <div class="rsvp__options">
         <label class="choice"><input type="radio" name="side" value="groom"><span class="choice__text">신랑측</span></label>
         <label class="choice"><input type="radio" name="side" value="bride"><span class="choice__text">신부측</span></label>
       </div>
@@ -166,7 +146,7 @@
 
     <fieldset class="rsvp__row" data-rsvp-row="attendance">
       <legend class="visually-hidden">참석하시나요</legend>
-      <div class="pair sub">
+      <div class="rsvp__options">
         <label class="choice"><input type="radio" name="attendance" value="attend"><span class="choice__text">참석해요</span></label>
         <label class="choice"><input type="radio" name="attendance" value="absent"><span class="choice__text">마음만 보내요</span></label>
       </div>
@@ -180,7 +160,7 @@
     <div class="rsvp__attending" data-when-attending hidden>
       <fieldset class="rsvp__row">
         <legend class="visually-hidden">함께 오시는 인원</legend>
-        <div class="pair rsvp__guests">
+        <div class="rsvp__guests">
           <span class="label" aria-hidden="true">인원</span>
           <span class="rsvp__stepper">
             <button class="rsvp__step" type="button" data-guests-minus aria-label="인원 줄이기">−</button>
@@ -192,15 +172,15 @@
 
       <fieldset class="rsvp__row" data-rsvp-row="meal">
         <legend class="visually-hidden">식사하시나요</legend>
-        <div class="pair sub">
+        <div class="rsvp__options">
           <label class="choice"><input type="radio" name="meal" value="yes"><span class="choice__text">식사해요</span></label>
           <label class="choice"><input type="radio" name="meal" value="no"><span class="choice__text">식사 안 해요</span></label>
         </div>
       </fieldset>
     </div>
 
-    <p class="sub rsvp__send">
-      <button class="crayon-link" type="submit" disabled>보내기</button>
+    <p class="rsvp__send">
+      <button class="pill" type="submit" disabled>보내기</button>
     </p>
     <p class="prose rsvp__error" data-rsvp-error role="alert" hidden></p>
     <p class="visually-hidden" data-rsvp-hint aria-live="polite"></p>
@@ -532,7 +512,7 @@
     renderGuests();
     syncAttending();
 
-    // The send word ships disabled so a page without script cannot submit the form.
+    // The send pill ships disabled so a page without script cannot submit the form.
     if (submitButton) {
       submitButton.disabled = false;
     }

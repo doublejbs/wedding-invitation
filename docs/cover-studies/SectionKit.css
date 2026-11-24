@@ -1,8 +1,9 @@
 /* SectionKit */
 /* Shared kit for every section after the cover (see docs/SectionsSpec.md, chapter 1).
-   One flat printed look on white stock: no shadows, no borders, no filled blocks.
-   Tappable words carry a crayon underline; a chosen word gets a crayon circle.
-   Single look on purpose (a printed card), so no dark theme. */
+   One flat printed look on white and black stock: no shadows, no blocks but the black paper, no borders
+   but the outline pill's. Actions are pills; text that copies itself carries a crayon underline; a chosen
+   word gets a crayon circle.
+   Single look on purpose (a printed card), so it does not follow the system dark mode. */
 :root {
   color-scheme: light;
   --paper: #fbfbf8;
@@ -15,6 +16,8 @@
   --gold: #c9a24d;
   --latin: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  /* Letters on a filled pill: the opposite of the ink it is filled with. */
+  --pill-text: var(--paper);
 
   /* Crayon marks as SVG backgrounds. Colors are literal (url() cannot read custom properties):
      pencil #3a3a37, bloom #d8433b, ink #161616. Two loose passes, stretched to the box. */
@@ -60,73 +63,30 @@ body {
   padding-block: 48px 56px;
 }
 
-/* Section title, built like the cover title: words hug a centered crayon object. */
-.section-title {
-  margin: 0 0 28px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: 0.45em;
-  font-family: var(--latin), var(--korean);
-  font-weight: 500;
-  font-size: clamp(19px, 5.4vw, 23px);
-  letter-spacing: -0.02em;
-  line-height: 1;
+/* Black paper, as under the greeting: the colour runs edge to edge, the column stays 440px.
+   Ink turns to paper, soft to a light grey, the crayon underline to paper, and pills to paper with ink letters.
+   Only the underline is redrawn for dark paper, so toggles, choices and fields must not be used here. */
+.section--dark {
+  --ink: var(--paper);
+  --soft: #b9b9b4;
+  --pill-text: #161616;
+  --crayon-underline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 4.6C34 3.3 70 5.2 104 3.9S168 5 198 3.4' fill='none' stroke='%23fbfbf8' stroke-width='1.7' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M5 5.7C48 4.8 96 6.5 140 5.1S186 6 196 5.1' fill='none' stroke='%23fbfbf8' stroke-width='1' stroke-linecap='round' opacity='.55' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  max-width: none;
+  padding-left: max(24px, env(safe-area-inset-left, 0px), calc(50% - 196px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px), calc(50% - 196px));
+  background: #000 url("textures/paper-black.png") 0 0 / 200px 200px repeat;
+  color: var(--ink);
 }
 
-.section-title__left {
-  justify-self: end;
-}
-
-.section-title__right {
-  justify-self: start;
-}
-
-.section-title__glyph {
-  display: block;
-  width: 1.7em;
-  height: 1.3em;
-}
-
-/* A pair facing each other across the center axis, like the cover's date and place row. */
-.pair {
-  margin: 0;
-  display: grid;
-  grid-template-columns: auto auto;
-  justify-content: space-between;
-  align-items: end;
-  column-gap: 16px;
-  word-break: keep-all;
-}
-
-.pair > :first-child {
-  justify-self: start;
-  text-align: left;
-}
-
-.pair > :last-child {
-  justify-self: end;
-  text-align: right;
-}
-
-/* Two type sizes only: the lead (the cover's date) and one step below it (the cover's time and place). */
+/* The one big size, as the ceremony's month: a place name or a number. */
 .lead {
   margin: 0;
   font-family: var(--latin), var(--korean);
   font-weight: 500;
-  font-size: clamp(22px, 6.4vw, 26px);
-  line-height: 1.12;
+  font-size: clamp(22px, 6.6vw, 26px);
+  line-height: 1.3;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-}
-
-.sub {
-  margin: 0;
-  font-family: var(--latin), var(--korean);
-  font-weight: 500;
-  font-size: clamp(18px, 5.2vw, 21px);
-  line-height: 1.25;
-  letter-spacing: -0.02em;
 }
 
 /* Body sentences, centered like the greeting. */
@@ -142,11 +102,60 @@ body {
 }
 
 .label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--soft);
 }
 
-/* Tappable words (<a> or <button>): plain text with a crayon underline right under the letters.
+/* Actions (<a> or <button>): a filled ink pill with paper letters; on black paper the colours swap.
+   .pill--line is the secondary action: an ink outline, no fill. */
+.pill {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 46px;
+  margin: 0;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--pill-text);
+  font-family: var(--korean);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pill--line {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+}
+
+.pill:active {
+  opacity: 0.85;
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.pill:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Text that copies itself (<button>): plain text with a crayon underline right under the letters.
    The vertical padding makes a 44px target; the underline is positioned against the content box
    so it hugs the text, not the bottom of the target. */
 .crayon-link,
@@ -293,48 +302,27 @@ body {
   background-image: var(--crayon-underline-bloom);
 }
 
-/* Detail sections (ceremony, directions, gift, RSVP, closing). The layout follows the reference
-   docs/references/OliveLineStyle.webp (one big centered title, small airy centered text, one drawing);
-   the tone stays the cover's: same tokens, fonts and crayon colours as everywhere else. */
+/* Detail sections: directions, gift and RSVP follow the ceremony (docs/SectionsSpec.md 1-1): one centred
+   column under one Korean title, 15px lines, 12px soft labels. The closing (stamp, no title)
+   only borrows the prose and spacing. */
+.section--detail {
+  padding-block: 88px;
+  text-align: center;
+}
 
-/* One big Korean title on the center axis, about the cover title's size and tracking. */
 .section--detail .section-title {
-  display: block;
-  margin: 0 0 30px;
+  margin: 0 0 36px;
   font-family: var(--latin), var(--korean);
   font-weight: 500;
   font-size: clamp(28px, 8.5vw, 33px);
-  line-height: 1.1;
+  line-height: 1.2;
   letter-spacing: -0.035em;
   text-align: center;
   word-break: keep-all;
 }
 
-/* A small bold heading over a short paragraph (the reference's "Where to stay"). */
-.detail-sub {
-  margin: 0 0 6px;
-  font-family: var(--korean);
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--ink);
-}
-
 .section--detail .prose {
-  font-size: 14.5px;
-  line-height: 1.9;
+  font-size: 15px;
+  line-height: 1.95;
   color: var(--soft);
-}
-
-/* The one crayon drawing of each section, above its title. Paths without their own colour
-   take the pencil line; coloured parts (leaf, bloom, gold, frame) set it on the path. */
-.crayon-art {
-  display: block;
-  width: 112px;
-  height: auto;
-  margin: 0 auto 20px;
-  fill: none;
-  stroke: var(--pencil);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }

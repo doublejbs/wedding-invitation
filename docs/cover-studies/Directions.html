@@ -7,96 +7,48 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Directions: in the cover's tone (tokens, container, title, pair and crayon link come from SectionKit.css).
-     The place faces its address like the cover's date faces the time and place, then three map apps
-     as plain underlined words, then the transit notes as text only. No map image: the tiles clash with the paper. */
+  /* Directions: laid out like the ceremony (tokens, title, pills and the copy word come from SectionKit.css).
+     One centred column: a keyless Google Maps embed (searched by address, the place name drops no pin),
+     the place, the address that copies itself, three map apps as outline pills, then the transit notes. */
 
-  /* The lead sits on the address's last line, not on the bottom of the 44px tap target under it. */
-  .directions__place {
-    margin-bottom: max(8px, calc((44px - 1lh) / 2));
-  }
-
-  /* The kit's link inherits its font (it overrides .sub), so the cover's time-and-place type is set here
-     again, at the same weight as 식물관PH on the left. The button keeps its two-line height while it reads
-     복사했어요, and that word sits on the second line's place, so nothing below jumps.
-     A two-line address in one button: each line carries its own crayon underline, so the button's own
-     underline is turned off (also on focus) and the mark hugs the letters instead of the whole block. */
-  .directions__address,
-  .directions__address:focus-visible {
-    background-image: none;
-  }
-
-  .directions__address {
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
-    min-height: calc(2lh + 10px + 2 * max(8px, (44px - 1lh) / 2));
-    font-family: var(--latin), var(--korean);
-    font-weight: 500;
-    font-size: clamp(18px, 5.2vw, 21px);
-    line-height: 1.25;
-    letter-spacing: -0.02em;
-  }
-
-  .directions__line {
+  .directions__map {
     display: block;
-    width: fit-content;
-    margin-left: auto;
-    padding-bottom: 3px;
-    background-image: var(--crayon-underline);
-    background-repeat: no-repeat;
-    background-size: 100% 7px;
-    background-position: left 0 bottom -3px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin: 0 0 28px;
+    border: 0;
   }
 
-  .directions__line + .directions__line {
-    margin-top: 4px;
+  /* One line that copies itself. 복사했어요 is shorter and stays on the same line, so nothing below moves. */
+  .directions__address {
+    margin: 2px 0 0;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
-  .directions__address:focus-visible .directions__line {
-    background-image: var(--crayon-underline-bloom);
+  .directions__address .crayon-link {
+    white-space: nowrap;
   }
 
-  /* Three map apps on one row, built like the title: the middle word on the center axis,
-     the outer two flush with the place and the address above. */
+  /* Three outline pills on one row. Narrower sides than the kit's so all three fit 272px at 320px wide;
+     on a computer the TMAP item is hidden (see the script) and the other two stay centred. */
   .directions__maps {
-    margin: 22px 0 0;
+    margin: 20px 0 0;
     padding: 0;
     list-style: none;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    column-gap: 12px;
-    font-size: 15px;
-    word-break: keep-all;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
 
-  .directions__maps li:first-child {
-    justify-self: start;
-  }
-
-  .directions__maps li:nth-child(2) {
-    justify-self: center;
-  }
-
-  .directions__maps li:last-child {
-    justify-self: end;
-  }
-
-  /* On a computer the TMAP app link is hidden (see the script), so the two words left face each other
-     on the column edges, like the place and the address above them. */
-  .directions__maps--two {
-    grid-template-columns: auto auto;
-    justify-content: space-between;
-  }
-
-  .directions__maps--two li:nth-child(2) {
-    justify-self: end;
+  .directions__maps .pill {
+    padding-inline: 14px;
   }
 
   /* Transit notes: a small soft name, its sentence right under it, space between items and nothing else. */
   .directions__transit {
-    margin: 44px 0 0;
+    margin: 48px 0 0;
     display: grid;
     row-gap: 24px;
   }
@@ -107,50 +59,30 @@
 
   .directions__item .label {
     display: block;
-    margin-bottom: 2px;
     line-height: 1.6;
   }
 
   .directions__item .prose {
     display: block;
-    text-align: left;
-    line-height: 1.75;
+    color: var(--ink);
   }
 </style>
 
 <section class="section section--detail directions" aria-label="오시는 길">
-  <svg class="crayon-art" data-illustration viewBox="0 0 130 100" aria-hidden="true">
-    <!-- The venue, a glass greenhouse: gabled frame, glazing bars, a round-topped door, plants inside, a tree outside. -->
-    <g>
-      <path d="M6 88.4 C 40 87.2, 90 89, 124 87.6"/>
-      <path stroke="#7f8b8a" fill="#7fb069" fill-opacity=".1" d="M24 87.6 C 23.6 74, 24.4 60, 23.8 48.4 L 65 18.6 L 106.4 48 C 106 61, 106.6 74, 106.2 87.8"/>
-      <path stroke="#7f8b8a" d="M44.5 87.6 L 44.2 33.6 M65 87.6 L 65.2 18.8 M85.6 87.6 L 85.8 33.4 M24 64.6 C 50 63.6, 80 65.4, 106.2 64.2 M34 41 C 54 40.4, 76 41.2, 96.4 40.6"/>
-      <path stroke="#7f8b8a" d="M58.4 87.6 L 58.6 71.4 C 58.8 66.6, 71.4 66.4, 71.6 71.2 L 71.8 87.6"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M31 87.4 C 29.4 80.4, 31.6 74.6, 35.6 72 C 36.4 78.4, 34.6 84, 31 87.4 Z M36.4 87.4 C 37.4 82, 40.2 78.2, 42.8 77.4 M98 87.4 C 99.6 80.6, 97.4 75, 93.4 72.4 C 92.6 78.6, 94.4 84, 98 87.4 Z"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M12.6 87.8 C 12.2 81, 13 76, 12.4 70.4 M12.4 70.4 C 6.4 69.4, 5 61.6, 10.2 59.4 C 11.2 53.4, 18.8 53.8, 19.4 59 C 24 61, 22 68.4, 17.2 69.6 C 15.6 70.6, 14 70.8, 12.4 70.4"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M6 88.4 C 40 87.2, 90 89, 124 87.6"/>
-      <path fill="none" stroke="#7f8b8a" d="M24 87.6 C 23.6 74, 24.4 60, 23.8 48.4 L 65 18.6 L 106.4 48 C 106 61, 106.6 74, 106.2 87.8"/>
-      <path fill="none" stroke="#7f8b8a" d="M44.5 87.6 L 44.2 33.6 M65 87.6 L 65.2 18.8 M85.6 87.6 L 85.8 33.4 M24 64.6 C 50 63.6, 80 65.4, 106.2 64.2 M34 41 C 54 40.4, 76 41.2, 96.4 40.6"/>
-      <path fill="none" stroke="#7f8b8a" d="M58.4 87.6 L 58.6 71.4 C 58.8 66.6, 71.4 66.4, 71.6 71.2 L 71.8 87.6"/>
-      <path fill="none" stroke="#2f7d4a" d="M31 87.4 C 29.4 80.4, 31.6 74.6, 35.6 72 C 36.4 78.4, 34.6 84, 31 87.4 Z M36.4 87.4 C 37.4 82, 40.2 78.2, 42.8 77.4 M98 87.4 C 99.6 80.6, 97.4 75, 93.4 72.4 C 92.6 78.6, 94.4 84, 98 87.4 Z"/>
-      <path fill="none" stroke="#2f7d4a" d="M12.6 87.8 C 12.2 81, 13 76, 12.4 70.4 M12.4 70.4 C 6.4 69.4, 5 61.6, 10.2 59.4 C 11.2 53.4, 18.8 53.8, 19.4 59 C 24 61, 22 68.4, 17.2 69.6 C 15.6 70.6, 14 70.8, 12.4 70.4"/>
-    </g>
-  </svg>
   <h2 class="section-title">오시는 길</h2>
+  <!-- Address unconfirmed: change q together with data-copy, the aria-label and the text below. -->
+  <iframe class="directions__map" src="https://www.google.com/maps?q=%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EA%B4%91%ED%8F%89%EB%A1%9C34%EA%B8%B8%2024&amp;output=embed&amp;hl=ko&amp;z=16" title="식물관PH 위치 지도" loading="lazy" referrerpolicy="no-referrer"></iframe>
 
-  <div class="pair">
-    <p class="lead directions__place">식물관PH</p>
-    <!-- TODO: confirm address of 식물관PH (data-copy, aria-label and both lines). -->
-    <button class="crayon-link sub directions__address" type="button" data-copy="서울 강남구 광평로34길 24" aria-label="주소 복사: 서울 강남구 광평로34길 24"><span class="directions__line">서울 강남구</span><span class="directions__line">광평로34길 24</span></button>
-  </div>
+  <p class="lead directions__place">식물관PH</p>
+  <!-- TODO: confirm address of 식물관PH (data-copy, aria-label and the text). -->
+  <p class="directions__address">
+    <button class="crayon-link" type="button" data-copy="서울 강남구 광평로34길 24" aria-label="주소 복사: 서울 강남구 광평로34길 24">서울 강남구 광평로34길 24</button>
+  </p>
 
   <ul class="directions__maps" aria-label="지도 앱으로 보기">
-    <li><a class="crayon-link" data-map="naver" href="https://map.naver.com/p/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">네이버 지도</a></li>
-    <li><a class="crayon-link" data-map="kakao" href="https://map.kakao.com/link/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">카카오맵</a></li>
-    <li data-map-app-only><a class="crayon-link" data-map="tmap" href="tmap://search?name=%EC%8B%9D%EB%AC%BC%EA%B4%80PH">티맵</a></li>
+    <li><a class="pill pill--line" data-map="naver" href="https://map.naver.com/p/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">네이버 지도</a></li>
+    <li><a class="pill pill--line" data-map="kakao" href="https://map.kakao.com/link/search/%EC%8B%9D%EB%AC%BC%EA%B4%80PH" target="_blank" rel="noopener">카카오맵</a></li>
+    <li data-map-app-only><a class="pill pill--line" data-map="tmap" href="tmap://search?name=%EC%8B%9D%EB%AC%BC%EA%B4%80PH">티맵</a></li>
   </ul>
 
   <!-- TODO: fill in the transit details from the venue (station, exit, walk time, bus stop and lines, parking).
@@ -174,7 +106,7 @@
 <script src="SectionKit.js"></script>
 <script>
   // TMAP opens only through its app link (tmap://), which errors on a computer. With a mouse-like pointer
-  // the word is hidden but kept in the DOM; without matchMedia nothing changes.
+  // its pill is hidden but kept in the DOM (the row stays centred); without matchMedia nothing changes.
   (() => {
     const DESKTOP_QUERY = '(hover: hover) and (pointer: fine)';
     const maps = document.querySelector('.directions .directions__maps');
@@ -189,6 +121,5 @@
     }
 
     appOnlyItem.hidden = true;
-    maps.classList.add('directions__maps--two');
   })();
 </script>

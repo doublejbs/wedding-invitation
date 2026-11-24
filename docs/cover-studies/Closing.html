@@ -7,57 +7,69 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Closing: the last sheet: a toast drawing and the hand-lettered 고맙습니다,
-     then one short sentence and a pair of share words. Nothing after that but paper. */
-
-  /* The last page ends on generous empty paper, clear of the home indicator. */
+  /* Closing: the greeting's twin on black paper: one stamp, the last words, then two pills. No title, no drawing. */
   .closing {
+    padding-top: 80px;
     padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Share words face each other, pulled in from the edges like the greeting's signature row.
-     The inset shrinks on narrow screens and the words never wrap, so 청첩장 보내기 stays on one line at 320px. */
+  /* The greeting's stamp at the same size, with one photo in the whole window. */
+  .closing__stamp {
+    position: relative;
+    width: clamp(86px, 25.6vw, 112px);
+    aspect-ratio: 595 / 860;
+    margin: 0 auto 52px;
+  }
+
+  .closing__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .closing__window {
+    position: absolute;
+    top: 7.209%;
+    left: 10.420%;
+    width: 79.160%;
+    height: 85.582%;
+    overflow: hidden;
+  }
+
+  /* photo-06-sm (534 x 800), source x 126-446, y 300-800: both heads down to the bouquet. */
+  .closing__photo {
+    position: absolute;
+    top: -59.9%;
+    left: -39.375%;
+    display: block;
+    width: 166.875%;
+    max-width: none;
+    height: auto;
+  }
+
+  .closing .prose {
+    color: var(--ink);
+  }
+
+  /* Two pills stacked on the centre axis: share filled on top, copy outlined under it (both swap to paper here).
+     Each has its own row, so the copy feedback only changes the copy pill's width: the share pill never moves.
+     Without the system share sheet the share pill is hidden and the copy pill stays centred alone. */
   .closing__share {
     margin-top: 40px;
-    padding-inline: clamp(0px, 12%, 80px);
-    font-size: 15px;
-    letter-spacing: -0.01em;
-  }
-
-  .closing__share > .crayon-link {
-    white-space: nowrap;
-  }
-
-  /* Without the system share sheet only the copy word is left; it moves to the center axis. */
-  .closing__share--solo {
-    justify-content: center;
-  }
-
-  .closing__share--solo > :last-child {
-    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
 </style>
 
-<section class="section section--detail closing" aria-label="마무리">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 100" aria-hidden="true">
-    <!-- Two glasses meeting in a toast, with three short strokes where they touch. -->
-    <g>
-      <path d="M29.6 20.4 C 27.6 34, 33.4 46.4, 45.6 48.2 C 56 46.6, 60.4 34.4, 57 18.4 C 47.6 19.8, 38.6 20.6, 29.6 20.4 Z"/>
-      <path d="M90.4 20.4 C 92.4 34, 86.6 46.4, 74.4 48.2 C 64 46.6, 59.6 34.4, 63 18.4 C 72.4 19.8, 81.4 20.6, 90.4 20.4 Z"/>
-      <path stroke="#c9a24d" d="M31 30.4 C 40 32.4, 50 31.6, 57.6 28.4 M89 30.4 C 80 32.4, 70 31.6, 62.4 28.4"/>
-      <path d="M45.6 48.2 C 46.2 57, 46.8 66, 47.6 76.4 M38 78.6 C 44 76.4, 51.6 76.2, 58 78.4 M74.4 48.2 C 73.8 57, 73.2 66, 72.4 76.4 M62 78.4 C 68.4 76.2, 76 76.4, 82 78.6"/>
-      <path stroke="#c9a24d" d="M60 11.4 L 60.2 3.6 M52.6 12 L 48.4 5.4 M67.4 12 L 71.6 5.4"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M29.6 20.4 C 27.6 34, 33.4 46.4, 45.6 48.2 C 56 46.6, 60.4 34.4, 57 18.4 C 47.6 19.8, 38.6 20.6, 29.6 20.4 Z"/>
-      <path fill="none" d="M90.4 20.4 C 92.4 34, 86.6 46.4, 74.4 48.2 C 64 46.6, 59.6 34.4, 63 18.4 C 72.4 19.8, 81.4 20.6, 90.4 20.4 Z"/>
-      <path fill="none" stroke="#c9a24d" d="M31 30.4 C 40 32.4, 50 31.6, 57.6 28.4 M89 30.4 C 80 32.4, 70 31.6, 62.4 28.4"/>
-      <path fill="none" d="M45.6 48.2 C 46.2 57, 46.8 66, 47.6 76.4 M38 78.6 C 44 76.4, 51.6 76.2, 58 78.4 M74.4 48.2 C 73.8 57, 73.2 66, 72.4 76.4 M62 78.4 C 68.4 76.2, 76 76.4, 82 78.6"/>
-      <path fill="none" stroke="#c9a24d" d="M60 11.4 L 60.2 3.6 M52.6 12 L 48.4 5.4 M67.4 12 L 71.6 5.4"/>
-    </g>
-  </svg>
-  <h2 class="section-title">고맙습니다</h2>
+<section class="section section--detail section--dark closing" data-tone="dark" aria-label="마무리">
+  <div class="closing__stamp" data-stamp>
+    <img class="closing__frame" src="textures/stamp-frame.png" width="595" height="860" loading="lazy" decoding="async" alt="">
+    <span class="closing__window">
+      <img class="closing__photo" src="photos/photo-06-sm.jpg" width="534" height="800" loading="lazy" decoding="async" alt="신랑에게 기대어 웃는 신부">
+    </span>
+  </div>
 
   <!-- Draft wording: the closing sentence is not confirmed yet. -->
   <p class="prose">
@@ -66,9 +78,9 @@
     오래도록 다정하게 살겠습니다.
   </p>
 
-  <div class="pair closing__share">
-    <button class="crayon-link" type="button" data-share>청첩장 보내기</button>
-    <button class="crayon-link" type="button" data-copy-url>주소 복사</button>
+  <div class="closing__share">
+    <button class="pill" type="button" data-share>청첩장 보내기</button>
+    <button class="pill pill--line" type="button" data-copy-url>주소 복사</button>
   </div>
 </section>
 
@@ -80,19 +92,14 @@
     const SHARE_TITLE = '서진용 · 장하림 결혼합니다';
     const SHARE_TEXT = '2027년 3월 6일 토요일 오후 5시, 식물관PH';
     const shareButton = document.querySelector('.closing button[data-share]');
-    const shareRow = document.querySelector('.closing .closing__share');
 
     if (!shareButton) {
       return;
     }
 
-    // No share sheet (most desktop browsers): keep the button in the DOM but hidden, copy word centered.
+    // No share sheet (most desktop browsers): keep the button in the DOM but hidden; the copy pill stays centred.
     if (typeof navigator.share !== 'function') {
       shareButton.hidden = true;
-
-      if (shareRow) {
-        shareRow.classList.add('closing__share--solo');
-      }
 
       return;
     }

@@ -7,30 +7,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Gift: in the cover's tone (tokens, container, title, toggles and copy words come from SectionKit.css).
-     One sentence, then 신랑측 and 신부측 facing each other; each opens its own accounts right below it. */
+  /* Gift: laid out like the ceremony (tokens, title, toggles and copy words come from SectionKit.css).
+     One sentence, then 신랑측 and 신부측 side by side on the centre axis; each opens its accounts below. */
 
   .gift__toggles {
-    margin-top: 28px;
-    align-items: center;
+    margin: 24px 0 0;
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
-  /* Pull each toggle's crayon mark back to the column edge, so the word lines up with the accounts below it. */
-  .gift__toggles > :first-child {
-    margin-left: -14px;
-  }
-
-  .gift__toggles > :last-child {
-    margin-right: -14px;
-  }
-
-  /* An open side unfolds under its own word: the groom's to the left, the bride's to the right. */
   .gift__panel {
-    margin-top: 14px;
-  }
-
-  .gift__panel--bride {
-    text-align: right;
+    margin-top: 18px;
   }
 
   .gift__accounts {
@@ -42,19 +32,15 @@
   .gift__account {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .gift__account + .gift__account {
-    margin-top: 10px;
-  }
-
-  .gift__panel--bride .gift__account {
-    align-items: flex-end;
+    margin-top: 12px;
   }
 
   .gift__account .label {
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   /* The number line is one tap target; it never wraps, so a number is always read in one piece. */
@@ -93,27 +79,11 @@
 </style>
 
 <section class="section section--detail gift" aria-label="마음 전하실 곳">
-  <svg class="crayon-art" data-illustration viewBox="0 0 120 90" aria-hidden="true">
-    <!-- A sealed envelope with a little heart seal and a sprig tucked behind it. -->
-    <g>
-      <path fill="#ffffff" d="M18 27 C 45 25.6, 75 27.4, 102.4 25.6 C 103 42, 102.2 58, 103 74.4 C 75 75.6, 45 73.6, 17.4 75.4 C 18.2 59, 17.4 43, 18 27 Z"/>
-      <path d="M18.4 27.6 C 34.6 40, 47.6 49.6, 60 54 C 72.6 49.4, 86 39.6, 102 26.4 M18 74.6 C 28 66.4, 38 58.6, 47.4 51.4 M102.6 74.2 C 92.6 66, 82.6 58.4, 72.8 51.2"/>
-      <path stroke="#d8433b" fill="#d8433b" fill-opacity=".7" d="M60 49.6 C 57.8 45.4, 51.6 46.4, 52.6 51.2 C 53.4 55.2, 60 58.6, 60 58.6 C 60 58.6, 66.6 55.4, 67.4 51.2 C 68.4 46.4, 62.2 45.4, 60 49.6 Z"/>
-      <path stroke="#2f7d4a" fill="#7fb069" fill-opacity=".55" d="M88 26 C 91.4 17.6, 97.6 12, 105 9.4 M93.6 18.4 C 90.6 14.4, 91.4 10.2, 94.4 8.6 C 96 12.2, 95.6 15.8, 93.6 18.4 Z M99.6 13 C 101.2 8.6, 104.8 6.6, 108 7.6 C 106.6 11, 103.6 13, 99.6 13 Z"/>
-    </g>
-    <!-- Second, lighter crayon pass, a hair off the first. -->
-    <g transform="translate(0.7 0.6)" stroke-width="0.8" opacity="0.35">
-      <path fill="none" d="M18 27 C 45 25.6, 75 27.4, 102.4 25.6 C 103 42, 102.2 58, 103 74.4 C 75 75.6, 45 73.6, 17.4 75.4 C 18.2 59, 17.4 43, 18 27 Z"/>
-      <path fill="none" d="M18.4 27.6 C 34.6 40, 47.6 49.6, 60 54 C 72.6 49.4, 86 39.6, 102 26.4 M18 74.6 C 28 66.4, 38 58.6, 47.4 51.4 M102.6 74.2 C 92.6 66, 82.6 58.4, 72.8 51.2"/>
-      <path fill="none" stroke="#d8433b" d="M60 49.6 C 57.8 45.4, 51.6 46.4, 52.6 51.2 C 53.4 55.2, 60 58.6, 60 58.6 C 60 58.6, 66.6 55.4, 67.4 51.2 C 68.4 46.4, 62.2 45.4, 60 49.6 Z"/>
-      <path fill="none" stroke="#2f7d4a" d="M88 26 C 91.4 17.6, 97.6 12, 105 9.4 M93.6 18.4 C 90.6 14.4, 91.4 10.2, 94.4 8.6 C 96 12.2, 95.6 15.8, 93.6 18.4 Z M99.6 13 C 101.2 8.6, 104.8 6.6, 108 7.6 C 106.6 11, 103.6 13, 99.6 13 Z"/>
-    </g>
-  </svg>
   <h2 class="section-title">마음 전하실 곳</h2>
 
   <p class="prose">참석이 어려우신 분들을 위해<br>계좌번호를 적어 둡니다.</p>
 
-  <p class="pair sub gift__toggles">
+  <p class="gift__toggles">
     <button class="crayon-toggle" type="button" data-side-toggle="groom" aria-expanded="true" aria-controls="gift-groom-accounts">신랑측</button>
     <button class="crayon-toggle" type="button" data-side-toggle="bride" aria-expanded="true" aria-controls="gift-bride-accounts">신부측</button>
   </p>

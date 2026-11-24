@@ -19,9 +19,13 @@ const ORIGINAL_CLIPBOARD = Object.getOwnPropertyDescriptor(navigator, 'clipboard
 
 const COPY_FEEDBACK_MS = 2000;
 
-const SECTION_ORDER = ['커버', '인사말', '사진', '예식 안내', '오시는 길', '마음 전하실 곳', '참석 여부', '마무리'];
+const SECTION_ORDER = ['커버', '인사말', '두 사람', '사진', '예식 안내', '오시는 길', '마음 전하실 곳', '참석 여부', '마무리'];
 
-const TITLED_SECTIONS = ['예식 안내', '오시는 길', '마음 전하실 곳', '참석 여부', '마무리'];
+const TITLED_SECTIONS = ['오시는 길', '마음 전하실 곳', '참석 여부'];
+
+const CENTRED_SECTIONS = ['오시는 길', '마음 전하실 곳', '참석 여부', '마무리'];
+
+const DARK_SECTIONS = ['인사말', '마무리'];
 
 const readStudy = (fileName: string) => {
   return readFileSync(resolve(STUDIES_DIR, fileName), 'utf-8');
@@ -148,23 +152,62 @@ describe('Invitation.html (built)', () => {
     expect(labels).toEqual(SECTION_ORDER);
   });
 
-  it('gives each titled section one big Korean title and one crayon illustration', () => {
+  it('titles each detail section with its Korean name and uses no English titles', () => {
     TITLED_SECTIONS.forEach((label) => {
       const section = builtDocument.querySelector(`section[aria-label="${label}"]`);
-      const titles = section?.querySelectorAll('.section-title') ?? [];
-      const text = titles[0]?.textContent?.trim() ?? '';
-      const illustrations = section?.querySelectorAll('svg[data-illustration]') ?? [];
+      const titles = section?.querySelectorAll('h2') ?? [];
 
       expect(section?.classList.contains('section--detail'), label).toBe(true);
       expect(titles, label).toHaveLength(1);
-      expect(text, label).toMatch(/[가-힣]/);
-      expect(text, label).not.toMatch(/[A-Za-z]/);
-      expect(section?.querySelector('.section-title__glyph'), label).toBeNull();
-      expect(illustrations, label).toHaveLength(1);
-      expect(illustrations[0]?.getAttribute('aria-hidden'), label).toBe('true');
+      expect(titles[0]?.classList.contains('section-title'), label).toBe(true);
+      expect(titles[0]?.textContent?.trim(), label).toBe(label);
     });
 
-    expect(builtDocument.querySelector('section[aria-label="예식 안내"] .section-title')?.textContent?.trim()).toBe('예식 안내');
+    const headings = [...builtDocument.querySelectorAll('main > section h2')].map((heading) => heading.textContent?.trim());
+
+    expect(headings).toEqual(TITLED_SECTIONS);
+    expect(builtDocument.querySelector('.section-kicker')).toBeNull();
+    expect(readStudy('SectionKit.css')).not.toContain('.section-kicker');
+  });
+
+  it('has no drawings in the sections', () => {
+    const drawings = [...builtDocument.querySelectorAll('main > section svg, main > section .crayon-art')];
+
+    expect(drawings).toHaveLength(0);
+    expect(readStudy('SectionKit.css')).not.toContain('.crayon-art');
+  });
+
+  it('has no facing pairs in the sections after the ceremony', () => {
+    CENTRED_SECTIONS.forEach((label) => {
+      const section = builtDocument.querySelector(`section[aria-label="${label}"]`);
+
+      expect(section, label).not.toBeNull();
+      expect(section?.querySelector('.pair'), label).toBeNull();
+    });
+  });
+
+  it('draws actions as pill buttons and keeps the underline for text that copies itself', () => {
+    const kit = readStudy('SectionKit.css');
+    const readClasses = (selector: string) => {
+      return [...builtDocument.querySelectorAll(selector)].map((element) => [...element.classList].sort().join(' '));
+    };
+
+    expect(kit).toMatch(/\n\.pill \{[^}]*min-height: 46px;[^}]*background: var\(--ink\);[^}]*color: var\(--pill-text\);/);
+    expect(kit).toMatch(/\n\.pill--line \{[^}]*min-height: 44px;[^}]*border: 1px solid var\(--ink\);/);
+    expect(kit).toMatch(/\n\.pill:focus-visible \{[^}]*outline: 2px solid var\(--ink\);/);
+    expect(kit).toMatch(/\n\.pill:disabled \{[^}]*opacity: 0\.35;/);
+    expect(kit.indexOf('\n.pill--line {')).toBeGreaterThan(kit.indexOf('\n.pill {'));
+    expect(kit).toMatch(/\n\.section--dark \{[^}]*--pill-text: #161616;/);
+    expect(readStudy('Rsvp.html')).toMatch(/\.rsvp \.rsvp__error \{[^}]*color: var\(--bloom\);/);
+    expect(readStudy('Closing.html')).toMatch(/\.closing__share \{[^}]*flex-direction: column;[^}]*align-items: center;/);
+    expect(readClasses('a[data-add-calendar]')).toEqual(['pill']);
+    expect(readClasses('.rsvp button[type="submit"]')).toEqual(['pill']);
+    expect(readClasses('button[data-share]')).toEqual(['pill']);
+    expect(readClasses('button[data-copy-url]')).toEqual(['pill pill--line']);
+    expect(readClasses('a[data-map]')).toEqual(['pill pill--line', 'pill pill--line', 'pill pill--line']);
+    builtDocument.querySelectorAll('button[data-copy]').forEach((button) => {
+      expect(button.classList.contains('crayon-link'), button.getAttribute('data-copy') ?? '').toBe(true);
+    });
   });
 
   it('lays the photos out on a scrapbook page', () => {
@@ -172,6 +215,14 @@ describe('Invitation.html (built)', () => {
 
     expect(photosSection?.querySelector('[data-scrap]')).not.toBeNull();
     expect(photosSection?.querySelectorAll('button[data-photo]')).toHaveLength(14);
+  });
+
+  it('opens and closes the letter on black paper', () => {
+    const dark = [...builtDocument.querySelectorAll('main > section[data-tone="dark"]')].map((section) => {
+      return section.getAttribute('aria-label');
+    });
+
+    expect(dark).toEqual(DARK_SECTIONS);
   });
 
   it('leaves the greeting and photos sections without a title', () => {
@@ -257,6 +308,10 @@ describe('site/ (deploy build)', () => {
     expect(siteDocument.querySelectorAll('button[data-photo]')).toHaveLength(14);
     expect(readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8')).not.toContain('box-shadow');
     expect(existsSync(resolve(SITE_DIR, 'mosaic.html'))).toBe(false);
+  });
+
+  it('ships the calendar event next to the page', () => {
+    expect(readFileSync(resolve(SITE_DIR, 'wedding.ics'), 'utf-8')).toContain('BEGIN:VEVENT');
   });
 
   it('ships the stamp paper the greeting photo sits in', () => {
@@ -624,99 +679,231 @@ describe('PhotosScrapbook.html', () => {
   });
 });
 
+describe('Families.html', () => {
+  it('gives each family its parents, then the relation and name, then one photo', () => {
+    const section = mountSection('Families.html');
+    const families = [...section.querySelectorAll('.families__family')].map((family) => {
+      return {
+        parents: family.querySelector('.families__parents')?.textContent?.trim(),
+        name: family.querySelector('.families__name')?.textContent?.trim(),
+        photos: [...family.querySelectorAll('img')].map((image) => image.getAttribute('src')),
+      };
+    });
+
+    expect(families).toEqual([
+      { parents: '서재호 & 김선교의', name: '아들 진용', photos: ['photos/photo-10.jpg'] },
+      { parents: '장영인 & 김혜숙의', name: '딸 하림', photos: ['photos/photo-09.jpg'] },
+    ]);
+  });
+
+  it('keeps the photos plain and described', () => {
+    const section = mountSection('Families.html');
+
+    section.querySelectorAll('img').forEach((image) => {
+      expect(image.getAttribute('alt')).toMatch(/신랑|신부/);
+      expect(image.getAttribute('loading')).toBe('lazy');
+    });
+    expect(section.querySelector('h2, .section-title, svg, .prose')).toBeNull();
+  });
+});
+
 describe('CeremonyInfo.html', () => {
-  it('names both families\' parents and keeps the title free of drawings', () => {
-    const section = mountSection('CeremonyInfo.html');
-    const parents = [...section.querySelectorAll('[data-parents]')].map((line) => line.textContent?.trim());
-
-    expect(parents).toEqual(['서재호 · 김선교', '장영인 · 김혜숙']);
-    expect(section.querySelector('.section-title svg, .section-title__glyph')).toBeNull();
-  });
-
-  it('counts the days left until the wedding', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-11-19T09:00:00+09:00'));
-    mountSection('CeremonyInfo.html');
-
-    expect(query('[data-dday]').textContent?.trim()).toBe('D-107');
-  });
-
-  it('still counts one day just before midnight in Korea', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2027-03-05T23:30:00+09:00'));
-    mountSection('CeremonyInfo.html');
-
-    expect(query('[data-dday]').textContent?.trim()).toBe('D-1');
-  });
-
-  it('says TODAY on the wedding day', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2027-03-06T00:30:00+09:00'));
-    mountSection('CeremonyInfo.html');
-
-    expect(query('[data-dday]').textContent?.trim()).toBe('TODAY');
-  });
-
-  it('hides the count once the wedding day has passed', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2027-03-07T00:01:00+09:00'));
-    mountSection('CeremonyInfo.html');
-
-    expect(query('[data-dday]').hidden).toBe(true);
-  });
-
-  it('stacks the groom\'s family above the bride\'s', () => {
-    const section = mountSection('CeremonyInfo.html');
-    const names = [...section.querySelectorAll('.ceremony__name')].map((name) => name.textContent?.trim());
-
-    expect(names).toEqual(['진용', '하림']);
-  });
-
-  it('labels the date and time', () => {
+  it('leaves the families to the section after the greeting', () => {
     const section = mountSection('CeremonyInfo.html');
 
-    expect(section.querySelector('.ceremony__label')?.textContent?.trim()).toBe('일시');
-    expect(section.textContent).toContain('2027년 3월 6일 토요일');
-    expect(section.textContent).toContain('오후 5시');
+    expect(section.textContent).not.toMatch(/서재호|장영인|아들|딸/);
   });
 
-  it('runs a live countdown to the start of the ceremony', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2027-03-05T16:59:50+09:00'));
-    mountSection('CeremonyInfo.html');
+  it('follows the reference order: date line, place, month, calendar, countdown, calendar link', () => {
+    const section = mountSection('CeremonyInfo.html');
+    const order = ['.ceremony__when', '.ceremony__place', '.calendar__month', '.calendar__grid', '.countdown', '.calendar__add'];
+    const elements = order.map((selector) => section.querySelector(selector));
 
-    const timer = query('[data-countdown]');
+    elements.forEach((element, index) => {
+      expect(element, order[index]).not.toBeNull();
+    });
+    elements.slice(1).forEach((element, index) => {
+      const previous = elements[index] as Element;
 
-    expect(timer.hidden).toBe(false);
-    expect(timer.getAttribute('aria-hidden')).toBe('true');
-    expect(timer.textContent?.replace(/\s+/g, ' ').trim()).toBe('1일 00시간 00분 10초');
-
-    vi.advanceTimersByTime(1000);
-
-    expect(timer.textContent?.replace(/\s+/g, ' ').trim()).toBe('1일 00시간 00분 09초');
+      expect(previous.compareDocumentPosition(element as Element) & Node.DOCUMENT_POSITION_FOLLOWING, order[index + 1]).toBeTruthy();
+    });
   });
 
-  it('hides the live countdown once the ceremony has started', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2027-03-06T16:59:59+09:00'));
-    mountSection('CeremonyInfo.html');
+  it('has no title or drawing, on white paper, with no sentences', () => {
+    const section = mountSection('CeremonyInfo.html');
 
-    const timer = query('[data-countdown]');
-
-    expect(timer.hidden).toBe(false);
-
-    vi.advanceTimersByTime(1000);
-
-    expect(timer.hidden).toBe(true);
-    expect(query('[data-dday]').textContent?.trim()).toBe('TODAY');
+    expect(section.querySelector('h2, .ceremony__title, svg, img, .prose, .section-title')).toBeNull();
+    expect(section.textContent).not.toContain('The Wedding Day');
+    expect(readStudy('CeremonyInfo.html')).not.toContain('ceremony__title');
+    expect(section.classList.contains('section--dark')).toBe(false);
   });
 
-  it('keeps the live countdown hidden after the start', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2027-03-06T17:30:00+09:00'));
-    mountSection('CeremonyInfo.html');
+  it('opens with the date line and the place', () => {
+    const section = mountSection('CeremonyInfo.html');
+    const when = section.querySelector('.ceremony__when');
+    const place = section.querySelector('.ceremony__place');
 
-    expect(query('[data-countdown]').hidden).toBe(true);
+    expect(when?.textContent?.trim()).toBe('2027.03.06 SAT PM 5:00');
+    expect(when?.getAttribute('aria-hidden')).toBe('true');
+    expect(place?.textContent?.trim()).toBe('식물관PH');
+    expect(place?.hasAttribute('aria-hidden')).toBe(false);
+  });
+
+  it('draws one crayon line under the month', () => {
+    const section = mountSection('CeremonyInfo.html');
+
+    expect(section.querySelector('.calendar__month')?.textContent?.trim()).toBe('2027.03');
+    expect(readStudy('CeremonyInfo.html')).toMatch(/\.calendar__month[^{]*\{[^}]*var\(--crayon-underline-ink\)/);
+  });
+
+  it('shows March 2027 from Sunday, with the first on a Monday and the sixth circled', () => {
+    const section = mountSection('CeremonyInfo.html');
+    const days = [...section.querySelectorAll('.calendar__day')];
+    const weekdays = [...section.querySelectorAll('.calendar__weekday')].map((day) => day.textContent?.trim());
+
+    expect(weekdays).toEqual(['S', 'M', 'T', 'W', 'T', 'F', 'S']);
+    expect(days.map((day) => day.textContent?.trim())).toEqual(Array.from({ length: 31 }, (_, index) => String(index + 1)));
+    expect(days[0].classList.contains('calendar__day--first')).toBe(true);
+
+    // jsdom does not lay out grids, so the first day's column is read from the CSS.
+    const firstColumn = new Date('2027-03-01T00:00:00Z').getUTCDay() + 1;
+
+    expect(readStudy('CeremonyInfo.html')).toMatch(new RegExp(`calendar__day--first \\{\\s*grid-column-start: ${firstColumn};`));
+    expect([...section.querySelectorAll('.calendar__day--wedding')].map((day) => day.textContent)).toEqual(['6']);
+  });
+
+  const CALENDAR_AGENTS = {
+    android: 'Mozilla/5.0 (Linux; Android 15; SM-S928N) AppleWebKit/537.36 Chrome/131.0 Mobile Safari/537.36 KAKAOTALK 11.2.0',
+    iphoneKakao: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 KAKAOTALK 11.2.0',
+    iphoneSafari: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Version/18.1 Mobile/15E148 Safari/604.1',
+    desktop: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/131.0 Safari/537.36',
+  };
+
+  const mountCalendarLink = (userAgent: string) => {
+    const spy = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(userAgent);
+
+    mountSection('CeremonyInfo.html');
+    spy.mockRestore();
+
+    return query<HTMLAnchorElement>('a[data-add-calendar]');
+  };
+
+  it('offers a pill button, not an underlined word, to add the day to a calendar', () => {
+    const link = mountCalendarLink(CALENDAR_AGENTS.desktop);
+
+    expect(link.textContent?.trim()).toBe('캘린더에 추가');
+    expect([...link.classList]).toEqual(['pill']);
+    expect(readStudy('CeremonyInfo.html')).not.toContain('.calendar__button');
+  });
+
+  it.each(['desktop', 'iphoneSafari'] as const)('gives %s the event file', (device) => {
+    const link = mountCalendarLink(CALENDAR_AGENTS[device]);
+
+    expect(link.getAttribute('href')).toBe('wedding.ics');
+    expect(link.hasAttribute('target')).toBe(false);
+  });
+
+  it('sends an iPhone inside KakaoTalk out to Safari for the file', () => {
+    const link = mountCalendarLink(CALENDAR_AGENTS.iphoneKakao);
+    const fileUrl = new URL('wedding.ics', window.location.href).href;
+
+    expect(link.getAttribute('href')).toBe(`kakaotalk://web/openExternal?url=${encodeURIComponent(fileUrl)}`);
+  });
+
+  it('opens Google Calendar on Android, with the same event as the file', () => {
+    const link = mountCalendarLink(CALENDAR_AGENTS.android);
+    const url = new URL(link.href);
+    const file = readStudy('share/wedding.ics');
+    const readField = (name: string) => {
+      return file.match(new RegExp(`^${name}:(.+)\\r$`, 'm'))?.[1];
+    };
+
+    expect(`${url.origin}${url.pathname}`).toBe('https://calendar.google.com/calendar/render');
+    expect(url.searchParams.get('action')).toBe('TEMPLATE');
+    expect(url.searchParams.get('dates')).toBe(`${readField('DTSTART')}/${readField('DTEND')}`);
+    expect(url.searchParams.get('text')).toBe(readField('SUMMARY'));
+    expect(url.searchParams.get('location')).toBe(readField('LOCATION'));
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toBe('noopener');
+  });
+
+  it('keeps the event file at five in the afternoon, Korean time', () => {
+    const file = readStudy('share/wedding.ics');
+
+    expect(file).toContain('DTSTART:20270306T080000Z\r\n');
+    expect(file).toContain('DTEND:20270306T100000Z\r\n');
+    expect(file.split('\r\n').join('')).not.toContain('\n');
+  });
+
+  it('reads the date to screen readers as one sentence and hides the visual date', () => {
+    const section = mountSection('CeremonyInfo.html');
+    const when = section.querySelector('time');
+
+    expect(when?.getAttribute('datetime')).toBe('2027-03-06T17:00:00+09:00');
+    expect(when?.textContent).toBe('2027년 3월 6일 토요일 오후 5시');
+    ['.ceremony__when', '.calendar__month', '.calendar__grid', '.countdown'].forEach((selector) => {
+      expect(section.querySelector(selector)?.getAttribute('aria-hidden'), selector).toBe('true');
+    });
+
+    expect(section.querySelector('.calendar__time')).toBeNull();
+  });
+
+  describe('countdown', () => {
+    const readCountdown = (section: Element) => {
+      return [...section.querySelectorAll('.countdown__value')].map((value) => value.textContent?.trim());
+    };
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('stays hidden without the script', () => {
+      const markup = readStudy('CeremonyInfo.html');
+
+      expect(markup).toMatch(/<div class="countdown"[^>]*\shidden[\s>]/);
+    });
+
+    it('counts down days, hours, minutes and seconds to five in the afternoon, Korean time', () => {
+      vi.useFakeTimers();
+      // 466 days, 5 hours, 12 minutes and 40 seconds before 2027-03-06 08:00 UTC.
+      vi.setSystemTime(new Date(Date.UTC(2027, 2, 6, 8, 0, 0) - (((466 * 24 + 5) * 60 + 12) * 60 + 40) * 1000));
+
+      const section = mountSection('CeremonyInfo.html');
+      const countdown = section.querySelector('.countdown') as HTMLElement;
+      const labels = [...section.querySelectorAll('.countdown__label')].map((label) => label.textContent?.trim());
+
+      expect(countdown.hidden).toBe(false);
+      expect(labels).toEqual(['DAYS', 'HOURS', 'MINS', 'SECS']);
+      expect(readCountdown(section)).toEqual(['466', '05', '12', '40']);
+
+      vi.advanceTimersByTime(1000);
+
+      expect(readCountdown(section)).toEqual(['466', '05', '12', '39']);
+    });
+
+    it('hides itself once the ceremony has begun', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(Date.UTC(2027, 2, 6, 8, 0, 1)));
+
+      const section = mountSection('CeremonyInfo.html');
+
+      expect((section.querySelector('.countdown') as HTMLElement).hidden).toBe(true);
+    });
+
+    it('hides itself when the ceremony begins and stops ticking', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(Date.UTC(2027, 2, 6, 7, 59, 58)));
+
+      const section = mountSection('CeremonyInfo.html');
+      const countdown = section.querySelector('.countdown') as HTMLElement;
+
+      expect(countdown.hidden).toBe(false);
+
+      vi.advanceTimersByTime(2000);
+
+      expect(countdown.hidden).toBe(true);
+      expect(vi.getTimerCount()).toBe(0);
+    });
   });
 });
 
@@ -801,7 +988,24 @@ describe('Directions.html', () => {
     expect(hrefs[0]).toContain('map.naver.com');
     expect(hrefs[1]).toContain('map.kakao.com');
     expect(hrefs[2]).toContain('tmap');
-    expect(document.querySelector('iframe')).toBeNull();
+  });
+
+  it('shows a map of the address under the title instead of a drawing', () => {
+    const section = mountSection('Directions.html');
+    const map = section.querySelector('iframe');
+    const address = section.querySelector('[data-copy]')?.getAttribute('data-copy') ?? '';
+
+    expect(section.querySelector('svg, .crayon-art')).toBeNull();
+    expect(section.querySelectorAll('iframe')).toHaveLength(1);
+
+    const src = new URL(map?.getAttribute('src') ?? '');
+
+    expect(`${src.origin}${src.pathname}`).toBe('https://www.google.com/maps');
+    expect(src.searchParams.get('output')).toBe('embed');
+    expect(src.searchParams.get('q')).toBe(address);
+    expect(map?.getAttribute('loading')).toBe('lazy');
+    expect(map?.getAttribute('title')).toBe('식물관PH 위치 지도');
+    expect(section.querySelector('.section-title')?.nextElementSibling).toBe(map);
   });
 });
 
@@ -961,6 +1165,14 @@ describe('Closing.html', () => {
 
     expect(writeText).toHaveBeenCalledWith(window.location.href);
     expect(copyLink.textContent).toContain(COPIED_LABEL);
+  });
+
+  it('closes on one stamp with photo 06, without a title or a drawing', () => {
+    const section = mountSection('Closing.html');
+    const images = [...section.querySelectorAll('[data-stamp] img')].map((image) => image.getAttribute('src'));
+
+    expect(images).toEqual(['textures/stamp-frame.png', 'photos/photo-06-sm.jpg']);
+    expect(section.querySelector('.section-title, [data-illustration]')).toBeNull();
   });
 
   it('offers a share action and does not repeat the names', () => {
