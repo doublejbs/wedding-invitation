@@ -6,13 +6,14 @@
 
 - 신랑 서진용 (Seo Jinyong), 신부 장하림 (Jang Harim)
 - 2027년 3월 6일 토요일 오후 5시, 식물관PH (유리 온실 예식장)
-- 배포 주소: https://wedding-invitation-beta-sand.vercel.app (Vercel 프로젝트 `wedding-invitation`, 계정 doublejbs)
+- 배포 주소: https://jinyongharim.com (Vercel 프로젝트 `wedding-invitation`, 계정 doublejbs. `www.jinyongharim.com`과 예전 주소 https://wedding-invitation-beta-sand.vercel.app 도 같은 사이트로 열린다)
+- 도메인: 가비아에서 산 `jinyongharim.com`. DNS는 가비아 DNS 관리에 A `@` → `216.198.79.1`, CNAME `www` → `888054b785943ab3.vercel-dns-017.com.` 두 개를 넣었다(2026-11-26)
 - 저장소: https://github.com/doublejbs/wedding-invitation (**공개** — 커밋한 내용은 누구나 볼 수 있다. 계좌번호·연락처 같은 개인정보는 커밋 전에 사용자에게 확인한다)
 
 ## 지금 어디까지 왔나 (2026-11-22)
 
 - 기준 브랜치: `main`. 새 작업은 최신 `origin/main`에서 브랜치를 따서 시작한다. 예전 `feature/*` 브랜치는 모두 `main`에 합쳐졌으니 이어 쓰지 않는다.
-- 배포된 사이트는 2026-11-24에 `feature/ceremony-text-layout` 브랜치의 커밋 전 작업본으로 만든 빌드다(두 사람 영역, 제목 없는 예식 안내, 오시는 길 지도, 그림 없이 가운데 축으로 맞춘 오시는 길~마무리, 알약 버튼까지). `RSVP_ENDPOINT`는 빈 채로 배포했다.
+- 배포된 사이트는 2026-11-26에 `main`과 같은 내용으로 만든 빌드다(네이버 지도, `jinyongharim.com` 주소 기준 공유 미리보기까지). `RSVP_ENDPOINT`는 빈 채로 배포했다.
 - 사용자가 정해 줘야 하는 것
   - 우표 종이 이미지(`textures/stamp-frame.png`)의 출처와 사용 조건.
   - 혼주 실명을 공개해도 되는지. 공개 저장소의 `main` 이력에 이미 들어가 있어, 빼려면 파일 수정뿐 아니라 이력 정리도 필요하다.
@@ -93,7 +94,7 @@
 cd docs/cover-studies && python3 ../../scripts/BuildInvitation.py && cd ../..
 
 # 2. 배포용 site/ 만들기 (공유 미리보기 이미지를 절대 주소로)
-python3 scripts/BuildSite.py https://wedding-invitation-beta-sand.vercel.app
+python3 scripts/BuildSite.py https://jinyongharim.com
 
 # 3. 배포 — git 저장소 밖에서 해야 한다 (아래 주의 참고)
 rm -rf /tmp/wedding-site && cp -R site /tmp/wedding-site

@@ -143,7 +143,7 @@
      - 지도 안에서 끌기·핀치·휠·키보드 이동은 끈다(한 손가락으로 쓸어내릴 때 지도가 스크롤을 가로채지 않게). 확대·축소 버튼만 둔다. 둘러보려면 아래 지도 앱 버튼을 쓴다.
      - 받기 전에는 같은 크기의 빈 칸(`--paper` 위 옅은 면)이라 아래가 움직이지 않는다.
      - 스크립트를 못 받았거나 인증에 실패하면(`window.navermap_authFailure`) 지도 칸을 `hidden`으로 숨긴다. 장소 이름·주소·지도 앱 버튼은 그대로 남는다.
-     - Client ID는 `Directions.html`의 `NAVER_MAP_CLIENT_ID` 상수다. 브라우저에 그대로 보이는 값이고, 네이버 클라우드 콘솔(Maps > Application `wedding-invitation`)에 등록한 Web 서비스 URL에서만 동작한다. 지금 등록한 주소는 `https://wedding-invitation-beta-sand.vercel.app`, `https://localhost:4317`. 주소(도메인)가 바뀌면 콘솔에 추가해야 지도가 뜬다. Client Secret은 쓰지 않으며 저장소에 넣지 않는다.
+     - Client ID는 `Directions.html`의 `NAVER_MAP_CLIENT_ID` 상수다. 브라우저에 그대로 보이는 값이고, 네이버 클라우드 콘솔(Maps > Application `wedding-invitation`)에 등록한 Web 서비스 URL에서만 동작한다. 지금 등록한 주소는 `https://jinyongharim.com`, `https://wedding-invitation-beta-sand.vercel.app`, `https://localhost:4317`. 주소(도메인)가 바뀌면 콘솔에 추가해야 지도가 뜬다. Client Secret은 쓰지 않으며 저장소에 넣지 않는다.
   3. 장소 이름 `식물관PH`(큰 글자), 그 아래 주소 한 줄 `서울 강남구 광평로34길 24`(15px, 크레파스 밑줄). 누르면 복사되고 그 자리 글자가 잠깐 `복사했어요`로 바뀐다. 한 줄 그대로라 아래가 움직이지 않는다.
   4. 지도 앱: `네이버 지도` `카카오맵` `티맵` 테두리 알약(`.pill--line`, 높이 44px) 세 개를 가운데 한 줄에(간격 8px). 320px 화면(내용 폭 272px)에서도 한 줄이 되게 이 줄만 좌우 여백을 14px로 줄였다. 티맵은 앱 링크라 PC에서는 숨기고 두 개가 가운데에 남는다.
   5. 교통: `지하철` `버스` `주차` `셔틀`(있으면). 항목 이름 12px 보조색, 바로 아래 15px 문장, 모두 가운데. 표·아이콘 없음.
