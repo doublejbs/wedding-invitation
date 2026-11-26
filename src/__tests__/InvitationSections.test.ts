@@ -1116,7 +1116,7 @@ describe('Directions.html', () => {
       expect(target).toBe(box);
       expect(options.center).toMatchObject(VENUE);
       expect(options).toMatchObject({
-        zoom: 16,
+        zoom: 14,
         draggable: false,
         scrollWheel: false,
         pinchZoom: false,
