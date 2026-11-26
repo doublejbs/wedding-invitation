@@ -8,7 +8,8 @@
 <link rel="stylesheet" href="SectionKit.css">
 <style>
   /* Families: right after the greeting, the layout of the user's reference image: each family's parents,
-     then the relation and name, then one plain photo. No letters, stickers or cut-outs from that reference. */
+     then the relation and name, then one photo cut out along the person (the user's second reference shows
+     only the cutting; its envelope and hearts are not used). No letters or stickers from the first reference. */
 
   .families {
     padding-block: 96px 104px;
@@ -38,15 +39,15 @@
     letter-spacing: -0.02em;
   }
 
-  /* One photo, no frame or shadow. photo-10 and photo-09, kept by the couple. */
-  .families__photo {
+  /* photo-10 and photo-09, kept by the couple, cut out with a white border (scripts/BuildCutouts.py).
+     Same height as the old 3:4 photo; the width follows the person. One soft shadow below the cut-out. */
+  .families__cutout {
     display: block;
-    width: min(78%, 300px);
-    height: auto;
-    aspect-ratio: 3 / 4;
+    width: auto;
+    max-width: 100%;
+    height: min(104vw, 400px);
     margin: 28px auto 0;
-    object-fit: cover;
-    background: #d9d6cf;
+    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
   }
 </style>
 
@@ -54,13 +55,13 @@
   <div class="families__family">
     <p class="families__parents">서재호 &amp; 김선교의</p>
     <p class="families__name">아들 진용</p>
-    <img class="families__photo" src="photos/photo-10.jpg" srcset="photos/photo-10-sm.jpg 534w, photos/photo-10.jpg 1066w" sizes="min(78vw, 300px)" width="1066" height="1600" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
+    <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
   </div>
 
   <div class="families__family">
     <p class="families__parents">장영인 &amp; 김혜숙의</p>
     <p class="families__name">딸 하림</p>
-    <img class="families__photo" src="photos/photo-09.jpg" srcset="photos/photo-09-sm.jpg 534w, photos/photo-09.jpg 1066w" sizes="min(78vw, 300px)" width="1066" height="1600" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
+    <img class="families__cutout" src="photos/photo-09-cut.webp" width="537" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
   </div>
 </section>
 
