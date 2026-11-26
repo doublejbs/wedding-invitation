@@ -8,6 +8,29 @@
   const COPIED_MS = 1600;
   const root = document.documentElement;
 
+  // Guest links (docs/SectionsSpec.md 2-0): ?to=<name> puts the guest's name on the cover and in the RSVP form.
+  // Read on each call, so it always matches the address bar. Defined before the run-once check below, so the
+  // cover and the sections can rely on it whichever script reaches it first.
+  const GUEST_PARAM = 'to';
+  const GUEST_NAME_MAX_LETTERS = 12;
+
+  const getGuestName = () => {
+    const raw = new URLSearchParams(window.location.search).get(GUEST_PARAM) ?? '';
+    const name = raw.trim().replace(/\s+/g, ' ');
+
+    return Array.from(name).slice(0, GUEST_NAME_MAX_LETTERS).join('');
+  };
+
+  // The address to pass on: without the guest's name, so a forwarded link does not greet someone else by it.
+  const getShareUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(GUEST_PARAM);
+
+    return url.href;
+  };
+
+  window.InvitationKit = { getGuestName, getShareUrl };
+
   if (root.dataset[KIT_FLAG] === 'ready') {
     return;
   }
@@ -138,7 +161,7 @@
     }
 
     if (urlButton) {
-      copyFrom(urlButton, window.location.href);
+      copyFrom(urlButton, getShareUrl());
     }
   };
 

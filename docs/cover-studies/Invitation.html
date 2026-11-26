@@ -310,11 +310,24 @@
     background-image: var(--crayon-underline-bloom);
   }
 
+  /* Section illustrations (docs/SectionsSpec.md 3): small pictures in the cover greenhouse's hand, centred above a
+     section's first line with 24px between. The RSVP section also ends with one, 40px under the form. */
+  .section-art {
+    display: block;
+    width: 192px;
+    height: 120px;
+    margin: 0 auto 24px;
+  }
+
+  .section-art--end {
+    margin: 40px auto 0;
+  }
+
   /* Detail sections: directions, gift and RSVP follow the ceremony (docs/SectionsSpec.md 1-1): one centred
      column under one Korean title, 15px lines, 12px soft labels. The closing (stamp, no title)
      only borrows the prose and spacing. */
   .section--detail {
-    padding-block: 88px;
+    padding-block: 60px;
     text-align: center;
   }
 
@@ -444,6 +457,9 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    /* A guest's handwritten note may run past the card edge before the script pulls it in; clip (not hidden)
+       keeps it from widening the page without making the card a scroll box. */
+    overflow-x: clip;
   }
 
   /* Live weather layer: drawn over the greenhouse, under the title and the date. */
@@ -530,9 +546,53 @@
 
   /* First line spans all three columns, centered on the same axis as the rings. */
   .title__head {
+    position: relative;
     grid-column: 1 / -1;
     justify-self: center;
     white-space: nowrap;
+  }
+
+  /* Guest links (?to=<name>, docs/SectionsSpec.md 2-0): "for <name>" handwritten in red crayon, "for" grazing the
+     lower edge of the title's last letters (ON, 1.9em from its end) and the name running on into the right margin,
+     tilted like a note added by hand. The script pulls a long note back in so it never leaves the screen.
+     The Korean handwriting runs small, so the name is set larger than "for". */
+  .title__for {
+    position: absolute;
+    top: 24%;
+    left: calc(100% - 1.9em);
+    color: #b02a33;
+    font-family: 'Homemade Apple', cursive;
+    font-size: 0.96em;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1;
+    white-space: nowrap;
+    transform: rotate(-6deg);
+    transform-origin: left center;
+    pointer-events: none;
+  }
+
+  /* The guest's name in Nanum YeoReumGeurSsi (bundled, see fonts/README.md). Its strokes are thin next to "for",
+     so they are drawn over once more in the same colour. Declared here but only downloaded when a name shows. */
+  @font-face {
+    font-family: 'Nanum YeoReumGeurSsi';
+    src: url('fonts/NanumYeoReumGeurSsi-ksx1001.woff2') format('woff2');
+    font-display: swap;
+  }
+
+  .title__for-name {
+    font-family: 'Nanum YeoReumGeurSsi', cursive;
+    font-size: 1.95em;
+    -webkit-text-stroke: 0.9px currentColor;
+  }
+
+  /* With a guest note, the names row moves down so the handwriting never runs into it. */
+  .title--guest .title__names {
+    margin-top: 2.6em;
+  }
+
+  .title__for[hidden] {
+    display: none;
   }
 
   /* Names are set smaller than the title so the second line reads as a caption under it. */
@@ -699,7 +759,7 @@
     max-width: none;
     padding-left: max(24px, env(safe-area-inset-left, 0px), calc(50% - 196px));
     padding-right: max(24px, env(safe-area-inset-right, 0px), calc(50% - 196px));
-    padding-block: 72px 80px;
+    padding-block: 56px 60px;
     /* The same stamp-paper grain as the rest of the page, made black (textures/paper-black.png: a seamless
        400px tile shown at 200px). Plain black shows until it loads. */
     background: #000 url("textures/paper-black.png") 0 0 / 200px 200px repeat;
@@ -775,47 +835,56 @@
     color: var(--paper);
   }
 
-  /* Families: right after the greeting, the layout of the user's reference image: each family's parents,
-     then the relation and name, then one photo cut out along the person (the user's second reference shows
-     only the cutting; its envelope and hearts are not used). No letters or stickers from the first reference. */
+  /* Families: right after the greeting. The two families stand side by side (groom left, bride right), each a
+     cut-out photo with its parents and name below; the user found them stacked too empty. The user's second
+     reference shows only the cutting; its envelope and hearts are not used. No letters or stickers either. */
 
   .families {
-    padding-block: 96px 104px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    column-gap: 8px;
+    padding-block: 64px 72px;
     text-align: center;
   }
 
-  .families__family + .families__family {
-    margin-top: 104px;
+  .families__family {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+
+  /* photo-10 and photo-09, kept by the couple, cut out with a white border (scripts/BuildCutouts.py).
+     Both share one height so their feet line up; the width follows the person. One soft shadow below. */
+  .families__cutout {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: min(66vw, 260px);
+    object-fit: contain;
+    object-position: bottom;
+    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
   }
 
   .families__parents {
-    margin: 0;
+    margin: 16px 0 0;
     color: var(--soft);
     font-family: var(--korean);
-    font-size: 15px;
+    font-size: clamp(13px, 3.7vw, 15px);
     line-height: 1.6;
     letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
   .families__name {
     margin: 2px 0 0;
     color: var(--ink);
     font-family: var(--korean);
-    font-size: clamp(18px, 5.2vw, 21px);
+    font-size: clamp(17px, 5vw, 20px);
     font-weight: 500;
     line-height: 1.5;
     letter-spacing: -0.02em;
-  }
-
-  /* photo-10 and photo-09, kept by the couple, cut out with a white border (scripts/BuildCutouts.py).
-     Same height as the old 3:4 photo; the width follows the person. One soft shadow below the cut-out. */
-  .families__cutout {
-    display: block;
-    width: auto;
-    max-width: 100%;
-    height: min(104vw, 400px);
-    margin: 28px auto 0;
-    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
   }
 
   /* Photos: a scrapbook page (the user's reference): photos of clearly different sizes scattered unevenly on
@@ -829,7 +898,7 @@
     box-sizing: border-box;
     max-width: 440px;
     margin: 0 auto;
-    padding: 24px 0 56px;
+    padding: 24px 0 40px;
     overflow: hidden;
     overflow: clip;
     container-type: inline-size;
@@ -977,7 +1046,7 @@
      in crayon, a countdown, then the calendar link (the kit's pill). The families are in the section after the greeting. */
 
   .ceremony {
-    padding-block: 88px;
+    padding-block: 60px;
     text-align: center;
     font-family: var(--korean);
     font-size: 15px;
@@ -1358,8 +1427,8 @@
 
   /* Closing: the greeting's twin on black paper: one stamp, the last words, then two pills. No title, no drawing. */
   .closing {
-    padding-top: 80px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    padding-top: 60px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   /* The greeting's stamp at the same size, with one photo in the whole window. */
@@ -1416,7 +1485,7 @@
 <section class="card" aria-label="커버">
   <canvas class="weather" id="weather" aria-hidden="true"></canvas>
   <h1 class="title" aria-label="WEDDING INVITATION, Seo Jinyong and Jang Harim">
-    <span class="title__head">WEDDING INVITATION</span>
+    <span class="title__head">WEDDING INVITATION<span class="title__for" data-guest-note hidden></span></span>
     <span class="title__left title__names"><span class="name">Seo Jinyong<span class="name__ko" lang="ko">서진용</span></span></span>
     <span class="title__mid title__names title__amp ring" aria-hidden="true">
       <canvas class="glyph ring__art" data-glyph="rings"></canvas>
@@ -1465,15 +1534,15 @@
 
 <section class="section families" aria-label="두 사람">
   <div class="families__family">
+    <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
     <p class="families__parents">서재호 &amp; 김선교의</p>
     <p class="families__name">아들 진용</p>
-    <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
   </div>
 
   <div class="families__family">
+    <img class="families__cutout" src="photos/photo-09-cut.webp" width="537" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
     <p class="families__parents">장영인 &amp; 김혜숙의</p>
     <p class="families__name">딸 하림</p>
-    <img class="families__cutout" src="photos/photo-09-cut.webp" width="537" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
   </div>
 </section>
 
@@ -1502,6 +1571,7 @@
 
 <section class="section ceremony" aria-label="예식 안내">
   <time class="visually-hidden" datetime="2027-03-06T17:00:00+09:00">2027년 3월 6일 토요일 오후 5시</time>
+  <img class="section-art" src="illustrations/arch.png" width="720" height="450" alt="" loading="lazy" decoding="async">
   <p class="ceremony__when" aria-hidden="true">2027년 3월 6일 토요일</p>
   <p class="ceremony__place"><span aria-hidden="true">오후 5시 · </span>식물관PH</p>
   <div class="calendar">
@@ -1560,6 +1630,7 @@
 </section>
 
 <section class="section section--detail directions" aria-label="오시는 길">
+  <img class="section-art" src="illustrations/greenhouse.png" width="720" height="450" alt="" loading="lazy" decoding="async">
   <h2 class="section-title">오시는 길</h2>
   <!-- If the venue changes, change VENUE_POSITION in the script together with data-copy, the aria-label and the text below. -->
   <div class="directions__map" data-naver-map role="region" aria-label="식물관PH 위치 지도"></div>
@@ -1592,6 +1663,7 @@
 </section>
 
 <section class="section section--detail gift" aria-label="마음 전하실 곳">
+  <img class="section-art" src="illustrations/envelope.png" width="720" height="450" alt="" loading="lazy" decoding="async">
   <h2 class="section-title">마음 전하실 곳</h2>
 
   <p class="prose">참석이 어려우신 분들을 위해<br>계좌번호를 적어 둡니다.</p>
@@ -1642,6 +1714,7 @@
 </section>
 
 <section class="section section--detail rsvp" aria-label="참석 여부">
+  <img class="section-art" src="illustrations/reply-card.png" width="720" height="450" alt="" loading="lazy" decoding="async">
   <h2 class="section-title">참석 여부</h2>
 
   <!-- method and action keep a script-less submit from putting the name in the address bar;
@@ -1703,6 +1776,9 @@
   <noscript>
     <p class="prose rsvp__noscript">참석 여부는 전화나 메시지로 알려 주세요.</p>
   </noscript>
+
+  <!-- Two chairs set aside for the guest: stays after sending, so it sits outside the form. -->
+  <img class="section-art section-art--end" src="illustrations/chairs.png" width="720" height="450" alt="" loading="lazy" decoding="async">
 </section>
 
 <section class="section section--detail section--dark closing" data-tone="dark" aria-label="마무리">
@@ -1737,6 +1813,29 @@
     const COPY_FAILED_LABEL = '복사하지 못했어요';
     const COPIED_MS = 1600;
     const root = document.documentElement;
+
+    // Guest links (docs/SectionsSpec.md 2-0): ?to=<name> puts the guest's name on the cover and in the RSVP form.
+    // Read on each call, so it always matches the address bar. Defined before the run-once check below, so the
+    // cover and the sections can rely on it whichever script reaches it first.
+    const GUEST_PARAM = 'to';
+    const GUEST_NAME_MAX_LETTERS = 12;
+
+    const getGuestName = () => {
+      const raw = new URLSearchParams(window.location.search).get(GUEST_PARAM) ?? '';
+      const name = raw.trim().replace(/\s+/g, ' ');
+
+      return Array.from(name).slice(0, GUEST_NAME_MAX_LETTERS).join('');
+    };
+
+    // The address to pass on: without the guest's name, so a forwarded link does not greet someone else by it.
+    const getShareUrl = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(GUEST_PARAM);
+
+      return url.href;
+    };
+
+    window.InvitationKit = { getGuestName, getShareUrl };
 
     if (root.dataset[KIT_FLAG] === 'ready') {
       return;
@@ -1868,7 +1967,7 @@
       }
 
       if (urlButton) {
-        copyFrom(urlButton, window.location.href);
+        copyFrom(urlButton, getShareUrl());
       }
     };
 
@@ -3156,6 +3255,65 @@
 </script>
 
 <script>
+  // Guest links (docs/SectionsSpec.md 2-0): "for <name>" beside the title, with its script fonts loaded only then.
+  (() => {
+    const GUEST_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap';
+    const note = document.querySelector('[data-guest-note]');
+    const title = note?.closest('h1');
+    const name = window.InvitationKit?.getGuestName() ?? '';
+
+    if (!note || !title || !name) {
+      return;
+    }
+
+    const fonts = document.createElement('link');
+    fonts.rel = 'stylesheet';
+    fonts.href = GUEST_FONTS_URL;
+    fonts.dataset.guestFont = '';
+    document.head.append(fonts);
+
+    const nameText = document.createElement('span');
+    nameText.className = 'title__for-name';
+    nameText.textContent = name;
+    note.replaceChildren('for ', nameText);
+    note.hidden = false;
+    title.classList.add('title--guest');
+
+    // A long name runs past the cover's right edge: pull the note left by exactly the overflow (none for a short
+    // name). The edge is the cover card, not the window: on phones an overflowing note widens the window itself.
+    // The start matches .title__for's left.
+    const SCREEN_MARGIN_PX = 8;
+    const card = note.closest('.card') ?? document.documentElement;
+
+    const keepOnScreen = () => {
+      note.style.left = '';
+
+      const overflow = Math.ceil(note.getBoundingClientRect().right - (card.getBoundingClientRect().right - SCREEN_MARGIN_PX));
+
+      if (overflow > 0) {
+        note.style.left = `calc(100% - 1.9em - ${overflow}px)`;
+      }
+    };
+
+    // Measure again once the handwriting faces have really arrived: until then the fallback font sets the width.
+    const measureWithGuestFonts = () => {
+      if (!document.fonts) {
+        return;
+      }
+
+      Promise.all([document.fonts.load("1em 'Homemade Apple'", 'for'), document.fonts.load("1em 'Nanum YeoReumGeurSsi'", name)])
+        .then(keepOnScreen)
+        .catch(() => {});
+    };
+
+    keepOnScreen();
+    fonts.addEventListener('load', measureWithGuestFonts);
+    window.addEventListener('resize', keepOnScreen);
+    title.setAttribute('aria-label', `${title.getAttribute('aria-label')}, for ${name}`);
+  })();
+</script>
+
+<script>
   (() => {
     // Full view of one photo on the paper.
     // The photos and their places are all in the markup; this only opens and closes the view.
@@ -3834,6 +3992,13 @@
     renderGuests();
     syncAttending();
 
+    // A guest link (?to=<name>) fills in the name; the guest can still change it.
+    const guestName = window.InvitationKit?.getGuestName() ?? '';
+
+    if (nameInput && guestName && !nameInput.value) {
+      nameInput.value = guestName;
+    }
+
     // The send pill ships disabled so a page without script cannot submit the form.
     if (submitButton) {
       submitButton.disabled = false;
@@ -3873,7 +4038,7 @@
       isSharing = true;
 
       try {
-        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: window.location.href });
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: window.InvitationKit.getShareUrl() });
       } catch (error) {
         if (error && QUIET_ERRORS.includes(error.name)) {
           return;

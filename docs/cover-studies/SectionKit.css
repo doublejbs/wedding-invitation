@@ -302,11 +302,24 @@ body {
   background-image: var(--crayon-underline-bloom);
 }
 
+/* Section illustrations (docs/SectionsSpec.md 3): small pictures in the cover greenhouse's hand, centred above a
+   section's first line with 24px between. The RSVP section also ends with one, 40px under the form. */
+.section-art {
+  display: block;
+  width: 192px;
+  height: 120px;
+  margin: 0 auto 24px;
+}
+
+.section-art--end {
+  margin: 40px auto 0;
+}
+
 /* Detail sections: directions, gift and RSVP follow the ceremony (docs/SectionsSpec.md 1-1): one centred
    column under one Korean title, 15px lines, 12px soft labels. The closing (stamp, no title)
    only borrows the prose and spacing. */
 .section--detail {
-  padding-block: 88px;
+  padding-block: 60px;
   text-align: center;
 }
 

@@ -9,8 +9,8 @@
 <style>
   /* Closing: the greeting's twin on black paper: one stamp, the last words, then two pills. No title, no drawing. */
   .closing {
-    padding-top: 80px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    padding-top: 60px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   /* The greeting's stamp at the same size, with one photo in the whole window. */
@@ -117,7 +117,7 @@
       isSharing = true;
 
       try {
-        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: window.location.href });
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: window.InvitationKit.getShareUrl() });
       } catch (error) {
         if (error && QUIET_ERRORS.includes(error.name)) {
           return;

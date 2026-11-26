@@ -291,6 +291,24 @@ describe('site/ (deploy build)', () => {
     expect(readPngSize('og-image.png')).toEqual({ width: 1200, height: 630 });
   });
 
+  it('ships the guest-name handwriting font the page declares', () => {
+    const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
+    const fonts = [...new Set([...page.matchAll(/fonts\/([\w.-]+\.woff2)/g)].map((match) => match[1]))];
+
+    expect(fonts).toEqual(['NanumYeoReumGeurSsi-ksx1001.woff2']);
+    expect(existsSync(resolve(SITE_DIR, 'fonts', fonts[0]))).toBe(true);
+  });
+
+  it('ships every section illustration the page shows', () => {
+    const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
+    const names = [...new Set([...page.matchAll(/illustrations\/([\w-]+\.png)/g)].map((match) => match[1]))];
+
+    expect(names.sort()).toEqual(['arch.png', 'chairs.png', 'envelope.png', 'greenhouse.png', 'reply-card.png']);
+    names.forEach((name) => {
+      expect(existsSync(resolve(SITE_DIR, 'illustrations', name)), name).toBe(true);
+    });
+  });
+
   it('ships the cut-out photos the families section shows', () => {
     const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
     const cutNames = [...new Set([...page.matchAll(/photos\/(photo-\d{2}-cut\.webp)/g)].map((match) => match[1]))];
@@ -725,6 +743,23 @@ describe('Families.html', () => {
     ]);
   });
 
+  it('sets the two families side by side, groom on the left, each photo above its names', () => {
+    const section = mountSection('Families.html');
+    const source = readStudy('Families.html');
+    const families = [...section.querySelectorAll('.families__family')];
+
+    expect(source).toMatch(/\.families \{[^}]*display: grid;[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+    expect(families.map((family) => family.querySelector('.families__name')?.textContent?.trim())).toEqual(['아들 진용', '딸 하림']);
+    families.forEach((family) => {
+      expect([...family.children].map((child) => child.className)).toEqual([
+        'families__cutout',
+        'families__parents',
+        'families__name',
+      ]);
+    });
+    expect(source).toMatch(/\.families__cutout \{[^}]*height: min\(66vw, 260px\)/);
+  });
+
   it('shows each person cut out along their outline, described', () => {
     const section = mountSection('Families.html');
 
@@ -759,10 +794,11 @@ describe('CeremonyInfo.html', () => {
     });
   });
 
-  it('has no title or drawing, on white paper, with no sentences', () => {
+  it('has no title and only its one section drawing, on white paper, with no sentences', () => {
     const section = mountSection('CeremonyInfo.html');
 
-    expect(section.querySelector('h2, .ceremony__title, svg, img, .prose, .section-title')).toBeNull();
+    expect(section.querySelector('h2, .ceremony__title, svg, .prose, .section-title')).toBeNull();
+    expect([...section.querySelectorAll('img')].map((image) => image.className)).toEqual(['section-art']);
     expect(section.textContent).not.toContain('The Wedding Day');
     expect(readStudy('CeremonyInfo.html')).not.toContain('ceremony__title');
     expect(section.classList.contains('section--dark')).toBe(false);
@@ -942,6 +978,64 @@ describe('CeremonyInfo.html', () => {
       expect(countdown.hidden).toBe(true);
       expect(vi.getTimerCount()).toBe(0);
     });
+  });
+});
+
+describe('section illustrations', () => {
+  const OPENING_ART = [
+    ['CeremonyInfo.html', 'arch', '.ceremony__when'],
+    ['Directions.html', 'greenhouse', '.section-title'],
+    ['GiftAccounts.html', 'envelope', '.section-title'],
+    ['Rsvp.html', 'reply-card', '.section-title'],
+  ];
+
+  it.each(OPENING_ART)('%s opens with the %s drawing right above its first line', (file, name, firstLine) => {
+    const section = mountSection(file);
+    const art = section.querySelector('img.section-art');
+
+    expect(art?.getAttribute('src')).toBe(`illustrations/${name}.png`);
+    expect(art?.getAttribute('alt')).toBe('');
+    // The first thing a guest sees in the section (screen-reader-only text aside).
+    expect([...section.children].find((child) => !child.classList.contains('visually-hidden'))).toBe(art);
+    expect(art?.nextElementSibling?.matches(firstLine)).toBe(true);
+    expect(existsSync(resolve(STUDIES_DIR, 'illustrations', `${name}.png`))).toBe(true);
+  });
+
+  it('ends the RSVP section with the two chairs, outside the form so they stay after sending', () => {
+    const section = mountSection('Rsvp.html');
+    const chairs = section.querySelector('img.section-art--end');
+
+    expect(chairs?.getAttribute('src')).toBe('illustrations/chairs.png');
+    expect(chairs?.closest('form')).toBeNull();
+    expect(section.lastElementChild).toBe(chairs);
+    expect(existsSync(resolve(STUDIES_DIR, 'illustrations', 'chairs.png'))).toBe(true);
+  });
+
+  it('keeps 24px between a drawing and the line under it, and 40px above the closing chairs', () => {
+    const kit = readStudy('SectionKit.css');
+
+    expect(kit).toMatch(/\.section-art \{[^}]*width: 192px;[^}]*height: 120px;[^}]*margin: 0 auto 24px;/);
+    expect(kit).toMatch(/\.section-art--end \{[^}]*margin: 40px auto 0;/);
+  });
+
+  it('is drawn only in the detail sections, not in the greeting, families, photos or closing', () => {
+    ['GreetingCard.html', 'Families.html', 'PhotosScrapbook.html', 'Closing.html'].forEach((file) => {
+      expect(mountSection(file).querySelector('.section-art'), file).toBeNull();
+    });
+  });
+});
+
+describe('section spacing', () => {
+  // Top and bottom padding of each section, about 30% tighter than before so the page does not feel empty.
+  it.each([
+    ['SectionKit.css', /\.section--detail \{[^}]*padding-block: 60px;/],
+    ['CeremonyInfo.html', /\.ceremony \{[^}]*padding-block: 60px;/],
+    ['Families.html', /\.families \{[^}]*padding-block: 64px 72px;/],
+    ['GreetingCard.html', /padding-block: 56px 60px;/],
+    ['PhotosScrapbook.html', /padding: 24px 0 40px;/],
+    ['Closing.html', /padding-top: 60px;[^}]*padding-bottom: calc\(80px \+ env\(safe-area-inset-bottom, 0px\)\);/],
+  ])('%s keeps the tighter padding', (file, pattern) => {
+    expect(readStudy(file)).toMatch(pattern);
   });
 });
 
@@ -1392,6 +1486,136 @@ describe('Rsvp.html', () => {
     expect(query('[data-rsvp-row="meal"]').hasAttribute('data-missing')).toBe(true);
     expect(query('[data-rsvp-hint]').textContent).toContain('식사');
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('guest name links (?to=)', () => {
+  const visit = (search: string) => {
+    window.history.replaceState({}, '', `/${search}`);
+  };
+
+  afterEach(() => {
+    visit('');
+    document.head.querySelectorAll('link[data-guest-font]').forEach((link) => link.remove());
+  });
+
+  const mountCover = () => {
+    const source = readStudy('GreenhouseCover.html');
+    const markup = source.match(/<main[\s\S]*<\/main>/);
+    const scripts = [...source.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((script) => script[1]);
+
+    if (!markup) {
+      throw new Error('GreenhouseCover.html has no <main>');
+    }
+
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => {
+      return new Proxy({}, { get: () => () => ({ addColorStop: () => {}, width: 0 }), set: () => true }) as never;
+    });
+    vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: () => {}, removeEventListener: () => {} }));
+    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new Error('offline'))));
+    document.body.innerHTML = markup[0];
+    runScript(readStudy('SectionKit.js'));
+    runScript(scripts.join('\n'));
+  };
+
+  it('reads the name from the link: trimmed, inner spaces folded, at most 12 letters', () => {
+    runScript(readStudy('SectionKit.js'));
+    const kit = (window as unknown as { InvitationKit: { getGuestName: () => string } }).InvitationKit;
+
+    visit('?to=%20%EB%AF%BC%EC%A7%80%20');
+    expect(kit.getGuestName()).toBe('민지');
+    visit('?to=Kim%20%20%20Minji');
+    expect(kit.getGuestName()).toBe('Kim Minji');
+    visit('?to=' + encodeURIComponent('가나다라마바사아자차카타파하'));
+    expect(kit.getGuestName()).toBe('가나다라마바사아자차카타');
+    visit('?to=');
+    expect(kit.getGuestName()).toBe('');
+    visit('');
+    expect(kit.getGuestName()).toBe('');
+  });
+
+  it('shares and copies the address without the name, keeping anything else', () => {
+    runScript(readStudy('SectionKit.js'));
+    const kit = (window as unknown as { InvitationKit: { getShareUrl: () => string } }).InvitationKit;
+
+    visit('?to=%EB%AF%BC%EC%A7%80#snow');
+    expect(kit.getShareUrl()).toBe(`${window.location.origin}/#snow`);
+  });
+
+  it('writes "for 민지" by hand under the end of the cover title and loads the handwriting fonts only then', () => {
+    visit('?to=%EB%AF%BC%EC%A7%80');
+    mountCover();
+
+    const note = query('.title__for');
+
+    expect(note.hidden).toBe(false);
+    expect(note.textContent).toBe('for 민지');
+    expect(note.closest('.title__head')).not.toBeNull();
+    expect(note.querySelector('.title__for-name')?.textContent).toBe('민지');
+    expect(query('h1.title').classList.contains('title--guest')).toBe(true);
+    expect(query('h1.title').getAttribute('aria-label')).toBe('WEDDING INVITATION, Seo Jinyong and Jang Harim, for 민지');
+
+    const fontsHref = document.head.querySelector('link[data-guest-font]')?.getAttribute('href') ?? '';
+
+    expect(fontsHref).toContain('Homemade+Apple');
+    expect(fontsHref).not.toContain('Dokdo');
+  });
+
+  it('starts the note under ON in Homemade Apple and Nanum YeoReumGeurSsi, pushing the names row down only for a guest', () => {
+    const source = readStudy('GreenhouseCover.html');
+
+    expect(source).toMatch(/\.title__for \{[^}]*top: 24%;[^}]*left: calc\(100% - 1\.9em\);[^}]*font-family: 'Homemade Apple', cursive;[^}]*font-size: 0\.96em;[^}]*transform-origin: left center;/);
+    expect(source).toMatch(/\.title__for-name \{[^}]*font-family: 'Nanum YeoReumGeurSsi', cursive;[^}]*font-size: 1\.95em;[^}]*-webkit-text-stroke: 0\.9px currentColor;/);
+    expect(source).toMatch(/@font-face \{[^}]*font-family: 'Nanum YeoReumGeurSsi';[^}]*src: url\('fonts\/NanumYeoReumGeurSsi-ksx1001\.woff2'\) format\('woff2'\);/);
+    expect(existsSync(resolve(STUDIES_DIR, 'fonts', 'NanumYeoReumGeurSsi-ksx1001.woff2'))).toBe(true);
+    expect(readStudy('fonts/README.md')).toContain('NAVER');
+    expect(source).toMatch(/\.title--guest \.title__names \{[^}]*margin-top: 2\.6em;/);
+  });
+
+  it('pulls a long note left just enough to stay on screen', async () => {
+    visit('?to=' + encodeURIComponent('김민지 선배님'));
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      // The note runs to 479px; the cover card ends at 390px.
+      const right = this.classList.contains('title__for') ? 479 : 390;
+
+      return { left: 0, right, top: 0, bottom: 0, width: right, height: 0, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+    });
+    mountCover();
+    await flushPromises();
+
+    // 479 - (390 - 8) = 97px too far right. jsdom rewrites calc(100% - 1.9em - 97px), so check its parts.
+    const left = query('.title__for').style.left;
+
+    expect(left).toContain('100%');
+    expect(left).toContain('1.9em');
+    expect(left).toContain('97px');
+  });
+
+  it('leaves the cover as it was without a name', () => {
+    mountCover();
+
+    expect(query('.title__for').hidden).toBe(true);
+    expect(query('h1.title').classList.contains('title--guest')).toBe(false);
+    expect(query('h1.title').getAttribute('aria-label')).toBe('WEDDING INVITATION, Seo Jinyong and Jang Harim');
+    expect(document.head.querySelector('link[data-guest-font]')).toBeNull();
+  });
+
+  it('fills the RSVP name with the guest name, as plain text', () => {
+    visit('?to=' + encodeURIComponent('<b>민지</b>'));
+    mountSection('Rsvp.html');
+
+    expect(query<HTMLInputElement>('#rsvp-name').value).toBe('<b>민지</b>');
+  });
+
+  it('copies the closing address without the guest name', async () => {
+    const writeText = stubClipboard();
+
+    visit('?to=%EB%AF%BC%EC%A7%80');
+    mountSection('Closing.html');
+    query<HTMLButtonElement>('button[data-copy-url]').click();
+    await flushPromises();
+
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/`);
   });
 });
 
