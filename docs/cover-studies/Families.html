@@ -7,61 +7,70 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="SectionKit.css">
 <style>
-  /* Families: right after the greeting, the layout of the user's reference image: each family's parents,
-     then the relation and name, then one photo cut out along the person (the user's second reference shows
-     only the cutting; its envelope and hearts are not used). No letters or stickers from the first reference. */
+  /* Families: right after the greeting. The two families stand side by side (groom left, bride right), each a
+     cut-out photo with its parents and name below; the user found them stacked too empty. The user's second
+     reference shows only the cutting; its envelope and hearts are not used. No letters or stickers either. */
 
   .families {
-    padding-block: 96px 104px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    column-gap: 8px;
+    padding-block: 64px 72px;
     text-align: center;
   }
 
-  .families__family + .families__family {
-    margin-top: 104px;
+  .families__family {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+
+  /* photo-10 and photo-09, kept by the couple, cut out with a white border (scripts/BuildCutouts.py).
+     Both share one height so their feet line up; the width follows the person. One soft shadow below. */
+  .families__cutout {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: min(66vw, 260px);
+    object-fit: contain;
+    object-position: bottom;
+    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
   }
 
   .families__parents {
-    margin: 0;
+    margin: 16px 0 0;
     color: var(--soft);
     font-family: var(--korean);
-    font-size: 15px;
+    font-size: clamp(13px, 3.7vw, 15px);
     line-height: 1.6;
     letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
   .families__name {
     margin: 2px 0 0;
     color: var(--ink);
     font-family: var(--korean);
-    font-size: clamp(18px, 5.2vw, 21px);
+    font-size: clamp(17px, 5vw, 20px);
     font-weight: 500;
     line-height: 1.5;
     letter-spacing: -0.02em;
-  }
-
-  /* photo-10 and photo-09, kept by the couple, cut out with a white border (scripts/BuildCutouts.py).
-     Same height as the old 3:4 photo; the width follows the person. One soft shadow below the cut-out. */
-  .families__cutout {
-    display: block;
-    width: auto;
-    max-width: 100%;
-    height: min(104vw, 400px);
-    margin: 28px auto 0;
-    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
   }
 </style>
 
 <section class="section families" aria-label="두 사람">
   <div class="families__family">
+    <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
     <p class="families__parents">서재호 &amp; 김선교의</p>
     <p class="families__name">아들 진용</p>
-    <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
   </div>
 
   <div class="families__family">
+    <img class="families__cutout" src="photos/photo-09-cut.webp" width="537" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
     <p class="families__parents">장영인 &amp; 김혜숙의</p>
     <p class="families__name">딸 하림</p>
-    <img class="families__cutout" src="photos/photo-09-cut.webp" width="537" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
   </div>
 </section>
 

@@ -205,9 +205,31 @@
 
   /* First line spans all three columns, centered on the same axis as the rings. */
   .title__head {
+    position: relative;
     grid-column: 1 / -1;
     justify-self: center;
     white-space: nowrap;
+  }
+
+  /* Guest links (?to=<name>, docs/SectionsSpec.md 2-0): "for <name>" handwritten in red crayon over the right end of
+     the title, a little inside its edge and across its lower half, tilted like a note added by hand. */
+  .title__for {
+    position: absolute;
+    right: 0.1em;
+    top: 62%;
+    color: #b02a33;
+    font-family: 'Dancing Script', 'Nanum Pen Script', cursive;
+    font-size: 0.62em;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1;
+    transform: rotate(-6deg);
+    transform-origin: right center;
+    pointer-events: none;
+  }
+
+  .title__for[hidden] {
+    display: none;
   }
 
   /* Names are set smaller than the title so the second line reads as a caption under it. */
@@ -367,7 +389,7 @@
 <main class="card" aria-label="커버">
   <canvas class="weather" id="weather" aria-hidden="true"></canvas>
   <h1 class="title" aria-label="WEDDING INVITATION, Seo Jinyong and Jang Harim">
-    <span class="title__head">WEDDING INVITATION</span>
+    <span class="title__head">WEDDING INVITATION<span class="title__for" data-guest-note hidden></span></span>
     <span class="title__left title__names"><span class="name">Seo Jinyong<span class="name__ko" lang="ko">서진용</span></span></span>
     <span class="title__mid title__names title__amp ring" aria-hidden="true">
       <canvas class="glyph ring__art" data-glyph="rings"></canvas>
@@ -1669,4 +1691,28 @@
       }
     }).observe(weatherCanvas);
   }
+</script>
+
+<script>
+  // Guest links (docs/SectionsSpec.md 2-0): "for <name>" beside the title, with its script fonts loaded only then.
+  (() => {
+    const GUEST_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nanum+Pen+Script&display=swap';
+    const note = document.querySelector('[data-guest-note]');
+    const title = note?.closest('h1');
+    const name = window.InvitationKit?.getGuestName() ?? '';
+
+    if (!note || !title || !name) {
+      return;
+    }
+
+    const fonts = document.createElement('link');
+    fonts.rel = 'stylesheet';
+    fonts.href = GUEST_FONTS_URL;
+    fonts.dataset.guestFont = '';
+    document.head.append(fonts);
+
+    note.textContent = `for ${name}`;
+    note.hidden = false;
+    title.setAttribute('aria-label', `${title.getAttribute('aria-label')}, for ${name}`);
+  })();
 </script>

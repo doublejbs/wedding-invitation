@@ -1,0 +1,116 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>영역 그림</title>
+<!-- Section illustrations, drawn in the cover greenhouse's hand: the same greens and reds, two-pass wobbly crayon
+     lines, white grain specks and yellow flower centres (helpers copied from GreenhouseCover.html).
+     Open with ?n=<name> to draw one picture on a transparent 240x150 canvas; scripts/BuildIllustrations.mjs saves
+     each as <name>.png beside this file. The user picked these from several sketches (docs/SectionsSpec.md 3). -->
+<style>body{margin:0;background:transparent}canvas{display:block}</style>
+<canvas id="c"></canvas>
+<script>
+const W = 240, H = 150, R = 3;
+const c = document.getElementById('c'); c.width = W * R; c.height = H * R; c.style.width = W + 'px'; c.style.height = H + 'px';
+let CONTEXT = c.getContext('2d'); CONTEXT.scale(R, R);
+const GREENS = ['#2f7d4a', '#4f9a3e', '#7fb069', '#3d6e5f', '#97c160', '#5b8f7b'];
+const BLOOMS = ['#d8433b', '#b02a33', '#e8735f', '#f0a99c'];
+const FRAME_COLOR = '#7f8b8a', IVORY = '#f3efe4', EDGE = '#a9a397', GOLD = '#c9a24d', TRUNK = '#6d5a43', POT = '#c97b5a';
+const createRandom = (seed) => { let s = seed >>> 0; return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+const pick = (l, r) => l[Math.floor(r() * l.length)];
+const crayonLine = (x1, y1, x2, y2, lw, color, random) => {
+  const len = Math.hypot(x2 - x1, y2 - y1), steps = Math.max(3, Math.round(len / 9));
+  CONTEXT.strokeStyle = color; CONTEXT.lineCap = 'round'; CONTEXT.lineJoin = 'round';
+  for (let pass = 0; pass < 2; pass++) {
+    CONTEXT.globalAlpha = pass === 0 ? 0.85 : 0.45; CONTEXT.lineWidth = lw * (pass === 0 ? 1 : 0.7);
+    CONTEXT.beginPath(); CONTEXT.moveTo(x1 + (random() - .5) * 1.6, y1 + (random() - .5) * 1.6);
+    for (let i = 1; i <= steps; i++) { const t = i / steps; CONTEXT.lineTo(x1 + (x2 - x1) * t + (random() - .5) * 1.8, y1 + (y2 - y1) * t + (random() - .5) * 1.8); }
+    CONTEXT.stroke();
+  }
+  CONTEXT.globalAlpha = 1;
+};
+const addGrain = (radius, random) => { CONTEXT.save(); CONTEXT.clip(); CONTEXT.globalAlpha = .26; CONTEXT.fillStyle = '#fff';
+  for (let i = 0, n = Math.round(radius * 4); i < n; i++) CONTEXT.fillRect((random() - .5) * radius * 2.2, (random() - .5) * radius * 2.2, .6 + random() * 1.3, .6 + random() * .8);
+  CONTEXT.restore(); };
+const traceLeaf = (length, width, random) => { const w = width * .18; CONTEXT.beginPath(); CONTEXT.moveTo(0, 0);
+  CONTEXT.bezierCurveTo(width + (random() - .5) * w, length * .3, width * .7, length * .75, (random() - .5) * w, length);
+  CONTEXT.bezierCurveTo(-width * .7, length * .75, -width + (random() - .5) * w, length * .3, 0, 0); CONTEXT.closePath(); };
+const drawLeaf = (it, random) => { traceLeaf(it.size, it.size * it.slim, random); CONTEXT.fillStyle = it.color; CONTEXT.fill(); addGrain(it.size * .6, random);
+  CONTEXT.globalAlpha = .35; CONTEXT.strokeStyle = '#fff'; CONTEXT.lineWidth = Math.max(.6, it.size * .03); CONTEXT.beginPath(); CONTEXT.moveTo(0, it.size * .08); CONTEXT.lineTo(0, it.size * .85); CONTEXT.stroke(); CONTEXT.globalAlpha = 1; };
+const drawPalm = (it, random) => { const fronds = 7 + Math.floor(random() * 3), trunk = it.size * (it.trunk ?? .9);
+  crayonLine(0, trunk, 0, 0, Math.max(1.4, it.size * .07), TRUNK, random);
+  for (let i = 0; i < fronds; i++) { const sp = (i / (fronds - 1) - .5) * 2.9 + (random() - .5) * .2; CONTEXT.save(); CONTEXT.rotate(Math.PI + sp);
+    traceLeaf(it.size * (.75 + random() * .35), it.size * .11, random); CONTEXT.fillStyle = pick(GREENS, random); CONTEXT.fill(); addGrain(it.size * .4, random); CONTEXT.restore(); } };
+const drawBloom = (it, random) => { const p = it.size * .42;
+  for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2 + random() * .3; CONTEXT.beginPath(); CONTEXT.ellipse(Math.cos(a) * p, Math.sin(a) * p, p * .78, p * .62, a, 0, Math.PI * 2); CONTEXT.fillStyle = it.color; CONTEXT.fill();
+    if (it.color === IVORY) { CONTEXT.globalAlpha = .5; CONTEXT.strokeStyle = '#b7b2a6'; CONTEXT.lineWidth = .8; CONTEXT.stroke(); CONTEXT.globalAlpha = 1; } }
+  CONTEXT.beginPath(); CONTEXT.arc(0, 0, p * .38, 0, Math.PI * 2); CONTEXT.fillStyle = '#e8c65a'; CONTEXT.fill(); };
+const DRAW = { leaf: drawLeaf, palm: drawPalm, bloom: drawBloom };
+let seedN = 1;
+const put = (kind, x, y, size, extra = {}) => { const random = createRandom(9000 + seedN++ * 31); CONTEXT.save(); CONTEXT.translate(x, y); CONTEXT.rotate(extra.angle ?? 0); DRAW[kind]({ size, slim: .4, color: GREENS[0], ...extra }, random); CONTEXT.restore(); };
+const fillCrayon = (color, radius, random, edge) => { CONTEXT.fillStyle = color; CONTEXT.fill(); addGrain(radius, random); if (edge) { CONTEXT.globalAlpha = .8; CONTEXT.strokeStyle = edge; CONTEXT.lineWidth = 1; CONTEXT.stroke(); CONTEXT.globalAlpha = 1; } };
+const leafUp = (r) => Math.PI + (r() - .5) * 2.2;
+const bush = (cx, base, width, height, count, blooms, seed) => {
+  const r = createRandom(seed);
+  for (let i = 0; i < count; i++) { const x = cx + (r() - .5) * width, y = base - r() * height * (1 - Math.abs(x - cx) / width); put('leaf', x, y, 10 + r() * 12, { slim: .3 + r() * .2, angle: leafUp(r), color: pick(GREENS, r) }); }
+  for (let i = 0; i < blooms; i++) { const x = cx + (r() - .5) * width * .85, y = base - r() * height * .8 * (1 - Math.abs(x - cx) / width); put('bloom', x, y, 5 + r() * 5, { angle: r() * 3, color: pick(BLOOMS, r) }); }
+};
+
+const SCENES = {
+  'arch'() { // a wedding arch with flowers climbing up both sides
+    const r = createRandom(41), cx = 120;
+    // Each post is drawn twice so it reads as firmly as the arch over it.
+    for (let pass = 0; pass < 2; pass++) { crayonLine(80, 144, 80, 66, 2, FRAME_COLOR, r); crayonLine(160, 144, 160, 66, 2, FRAME_COLOR, r); }
+    CONTEXT.strokeStyle = FRAME_COLOR; CONTEXT.lineWidth = 2; CONTEXT.globalAlpha = .85; CONTEXT.beginPath(); CONTEXT.arc(cx, 66, 40, Math.PI, 0); CONTEXT.stroke(); CONTEXT.globalAlpha = 1;
+    for (let i = 0; i <= 20; i++) { const a = Math.PI + i / 20 * Math.PI, x = cx + Math.cos(a) * 40, y = 66 + Math.sin(a) * 40; put('leaf', x, y, 12 + r() * 6, { slim: .35, angle: a + Math.PI / 2 + (r() - .5), color: pick(GREENS, r) }); if (i % 3 === 0) put('bloom', x, y, 9 + r() * 4, { color: pick(BLOOMS, r) }); }
+    for (let side of [80, 160]) for (let y = 70; y < 140; y += 9) { put('leaf', side + (r() - .5) * 6, y, 11 + r() * 5, { slim: .35, angle: (r() - .5) * 3 + Math.PI, color: pick(GREENS, r) }); if (r() < .35) put('bloom', side, y, 8, { color: pick(BLOOMS, r) }); }
+    bush(80, 146, 34, 14, 8, 2, 3); bush(160, 146, 34, 14, 8, 2, 4);
+  },
+  'greenhouse'() { // a small glass house full of plants
+    const r = createRandom(5), L = 70, Rt = 170, B = 142, E = 72, A = 22, C = 120;
+    put('palm', 98, 62, 32, { trunk: 1.9 }); put('palm', 143, 70, 28, { trunk: 2 }); put('palm', 120, 40, 26, { trunk: 2.6 });
+    bush(120, 140, 92, 46, 34, 12, 77);
+    [[L, B, L, E], [Rt, B, Rt, E], [L, E, C, A], [Rt, E, C, A], [L, B, Rt, B], [L, E, Rt, E], [L, 107, Rt, 107], [C, A, C, B], [95, 47, 95, B], [145, 47, 145, B]].forEach(([a, b, c2, d], i) => crayonLine(a, b, c2, d, i < 5 ? 2.2 : 1.1, FRAME_COLOR, r));
+  },
+  'envelope'() { // an ivory envelope with a sprig tucked behind
+    const r = createRandom(21);
+    put('leaf', 150, 62, 34, { angle: -2.5, color: GREENS[0] }); put('leaf', 160, 66, 28, { angle: -1.9, color: GREENS[2] }); put('leaf', 140, 60, 26, { angle: -3.0, color: GREENS[4] });
+    put('bloom', 152, 48, 16, { color: BLOOMS[0] }); put('bloom', 168, 56, 12, { color: BLOOMS[3] });
+    CONTEXT.beginPath(); CONTEXT.rect(72, 62, 96, 66); fillCrayon(IVORY, 50, r, EDGE);
+    CONTEXT.beginPath(); CONTEXT.moveTo(72, 62); CONTEXT.lineTo(120, 100); CONTEXT.lineTo(168, 62); fillCrayon(IVORY, 30, r, EDGE);
+    CONTEXT.beginPath(); CONTEXT.arc(120, 100, 6, 0, Math.PI * 2); fillCrayon(BLOOMS[1], 6, r, null);
+  },
+  'reply-card'() { // a reply card with a pencil and a sprig
+    const r = createRandom(83);
+    put('leaf', 82, 64, 30, { angle: 2.9, color: GREENS[0] }); put('leaf', 74, 76, 26, { angle: 2.2, color: GREENS[2] }); put('bloom', 84, 58, 14, { color: BLOOMS[0] }); put('bloom', 70, 70, 10, { color: BLOOMS[2] });
+    CONTEXT.save(); CONTEXT.translate(120, 98); CONTEXT.rotate(-.06);
+    CONTEXT.beginPath(); CONTEXT.rect(-42, -36, 84, 64); fillCrayon(IVORY, 46, r, EDGE);
+    crayonLine(-28, -14, 28, -14, 1.1, '#9a958a', r); crayonLine(-28, 0, 28, 0, 1.1, '#9a958a', r); crayonLine(-28, 14, 12, 14, 1.1, '#9a958a', r);
+    CONTEXT.strokeStyle = BLOOMS[0]; CONTEXT.lineWidth = 2; CONTEXT.lineCap = 'round'; CONTEXT.beginPath(); CONTEXT.moveTo(16, 12); CONTEXT.lineTo(21, 18); CONTEXT.lineTo(30, 6); CONTEXT.stroke();
+    CONTEXT.restore();
+    CONTEXT.save(); CONTEXT.translate(166, 104); CONTEXT.rotate(.75);
+    CONTEXT.beginPath(); CONTEXT.rect(-3.5, -34, 7, 56); fillCrayon('#e8c65a', 20, r, null);
+    CONTEXT.beginPath(); CONTEXT.moveTo(-3.5, 22); CONTEXT.lineTo(3.5, 22); CONTEXT.lineTo(0, 31); CONTEXT.closePath(); fillCrayon('#e9d7b6', 6, r, null);
+    CONTEXT.beginPath(); CONTEXT.rect(-3.5, -40, 7, 6); fillCrayon(BLOOMS[3], 6, r, null);
+    CONTEXT.restore();
+  },
+  'chairs'() { // two ceremony chairs with flowers tied to the backs
+    const r = createRandom(71);
+    for (const cx of [92, 148]) {
+      const L = cx - 18, Rt = cx + 18;
+      crayonLine(L, 56, L, 144, 2, '#b99b72', r); crayonLine(Rt, 56, Rt, 144, 2, '#b99b72', r);
+      crayonLine(L, 56, Rt, 56, 2, '#b99b72', r); crayonLine(L, 70, Rt, 70, 1.4, '#b99b72', r); crayonLine(L, 84, Rt, 84, 1.4, '#b99b72', r);
+      CONTEXT.beginPath(); CONTEXT.rect(L - 3, 104, 42, 7); fillCrayon(IVORY, 20, r, EDGE);
+      crayonLine(L + 2, 111, L - 2, 144, 1.8, '#b99b72', r); crayonLine(Rt - 2, 111, Rt + 2, 144, 1.8, '#b99b72', r);
+      put('leaf', cx - 6, 60, 16, { angle: 2.4, color: GREENS[0] }); put('leaf', cx + 6, 60, 16, { angle: -2.4, color: GREENS[2] }); put('leaf', cx, 62, 14, { angle: 0.2, color: GREENS[3] });
+      put('bloom', cx - 5, 56, 11, { color: BLOOMS[0] }); put('bloom', cx + 6, 54, 10, { color: BLOOMS[3] }); put('bloom', cx, 64, 8, { color: IVORY });
+    }
+  },
+};
+
+const scene = SCENES[new URLSearchParams(location.search).get('n')];
+
+if (scene) {
+  scene();
+}
+
+document.documentElement.dataset.ready = 'true';
+</script>

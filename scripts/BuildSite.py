@@ -20,6 +20,7 @@ import BuildInvitation  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 STUDIES = ROOT / 'docs' / 'cover-studies'
 TEXTURES = STUDIES / 'textures'
+ILLUSTRATIONS = STUDIES / 'illustrations'
 SHARE = STUDIES / 'share'
 SITE = ROOT / 'site'
 SITE_URL = sys.argv[1].rstrip('/') if len(sys.argv) > 1 else ''
@@ -128,11 +129,19 @@ missing_textures = sorted(name for name in textures if not (TEXTURES / name).is_
 if missing_textures:
     sys.exit(f'BuildSite failed: textures not found in docs/cover-studies/textures: {missing_textures}')
 
+# Section illustrations named in the page (docs/SectionsSpec.md 3), made by scripts/BuildIllustrations.mjs.
+illustrations = set(re.findall(r'illustrations/([\w-]+\.png)', every_page))
+missing_illustrations = sorted(name for name in illustrations if not (ILLUSTRATIONS / name).is_file())
+
+if missing_illustrations:
+    sys.exit(f'BuildSite failed: illustrations not found in docs/cover-studies/illustrations: {missing_illustrations}')
+
 if SITE.exists():
     shutil.rmtree(SITE)
 
 (SITE / 'photos').mkdir(parents=True)
 (SITE / 'textures').mkdir()
+(SITE / 'illustrations').mkdir()
 
 for site_name, document in documents.items():
     (SITE / site_name).write_text(document, encoding='utf-8')
@@ -143,10 +152,13 @@ for name in sorted(used):
 for name in sorted(textures):
     shutil.copy(TEXTURES / name, SITE / 'textures' / name)
 
+for name in sorted(illustrations):
+    shutil.copy(ILLUSTRATIONS / name, SITE / 'illustrations' / name)
+
 for name in SHARE_FILES:
     shutil.copy(SHARE / name, SITE / name)
 
-print(f'site/{" + site/".join(documents)} + {len(used)} photos + {len(textures)} textures + {len(SHARE_FILES)} share files')
+print(f'site/{" + site/".join(documents)} + {len(used)} photos + {len(textures)} textures + {len(illustrations)} illustrations + {len(SHARE_FILES)} share files')
 
 # An empty endpoint means the RSVP form only says it is a preview; guests would see that sentence.
 endpoint = re.search(r"const RSVP_ENDPOINT = '([^']*)';", documents['index.html'])

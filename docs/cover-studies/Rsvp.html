@@ -131,6 +131,7 @@
 </style>
 
 <section class="section section--detail rsvp" aria-label="참석 여부">
+  <img class="section-art" src="illustrations/reply-card.png" width="720" height="450" alt="" loading="lazy" decoding="async">
   <h2 class="section-title">참석 여부</h2>
 
   <!-- method and action keep a script-less submit from putting the name in the address bar;
@@ -192,6 +193,9 @@
   <noscript>
     <p class="prose rsvp__noscript">참석 여부는 전화나 메시지로 알려 주세요.</p>
   </noscript>
+
+  <!-- Two chairs set aside for the guest: stays after sending, so it sits outside the form. -->
+  <img class="section-art section-art--end" src="illustrations/chairs.png" width="720" height="450" alt="" loading="lazy" decoding="async">
 </section>
 
 <script src="SectionKit.js"></script>
@@ -511,6 +515,13 @@
 
     renderGuests();
     syncAttending();
+
+    // A guest link (?to=<name>) fills in the name; the guest can still change it.
+    const guestName = window.InvitationKit?.getGuestName() ?? '';
+
+    if (nameInput && guestName && !nameInput.value) {
+      nameInput.value = guestName;
+    }
 
     // The send pill ships disabled so a page without script cannot submit the form.
     if (submitButton) {
