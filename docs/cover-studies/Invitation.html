@@ -776,7 +776,8 @@
   }
 
   /* Families: right after the greeting, the layout of the user's reference image: each family's parents,
-     then the relation and name, then one plain photo. No letters, stickers or cut-outs from that reference. */
+     then the relation and name, then one photo cut out along the person (the user's second reference shows
+     only the cutting; its envelope and hearts are not used). No letters or stickers from the first reference. */
 
   .families {
     padding-block: 96px 104px;
@@ -806,20 +807,20 @@
     letter-spacing: -0.02em;
   }
 
-  /* One photo, no frame or shadow. photo-10 and photo-09, kept by the couple. */
-  .families__photo {
+  /* photo-10 and photo-09, kept by the couple, cut out with a white border (scripts/BuildCutouts.py).
+     Same height as the old 3:4 photo; the width follows the person. One soft shadow below the cut-out. */
+  .families__cutout {
     display: block;
-    width: min(78%, 300px);
-    height: auto;
-    aspect-ratio: 3 / 4;
+    width: auto;
+    max-width: 100%;
+    height: min(104vw, 400px);
     margin: 28px auto 0;
-    object-fit: cover;
-    background: #d9d6cf;
+    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
   }
 
   /* Photos: a scrapbook page (the user's reference): photos of clearly different sizes scattered unevenly on
      the paper, one big landscape hero in the middle, smaller ones staggered left and right above and below it,
-     all kept inside the screen so every crayon frame shows whole. Each photo is outlined by a hand-drawn crayon rectangle (the cover's greenhouse frame color, two loose passes),
+     all kept inside the screen so every crayon frame shows whole. Each photo is outlined by a hand-drawn crayon rectangle (neutral near-black grey, two loose passes),
      no shadow, no rotation. Photos only: no words.
 
      Every place is in cqw (1% of the section's width), so the page scales as one piece from 375px to 440px.
@@ -862,12 +863,12 @@
 
   /* Crayon frame: a wobbly rectangle drawn over the photo's edge, stretched to the photo (non-scaling stroke).
      Four drawings cycle so no two neighbours look stamped. Colors are literal: url() cannot read custom properties
-     (#7f8b8a is the cover's FRAME_COLOR). */
+     (#333333: a neutral grey close to black, no green tint). */
   .scrap__page {
-  --scrap-frame-1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M1.7 1.7C33.7 2.5 65.4 1.2 100.2 1.9M97.7 0.2C98.5 33.7 97.3 65.4 98.1 99.4M98.1 98.1C66.3 98.5 34.6 98 0.4 98.1M1.7 98.5C2.6 66.3 2.3 34.6 1.7 1' fill='none' stroke='%237f8b8a' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2.3 2C34.2 3.1 65.6 2.2 98.7 2.7M98.4 1.6C97.3 34.2 97.2 65.6 97.9 99.1M98.3 97.6C66.1 97.6 34.5 98.3 0.2 98.1M2.5 98.6C3 66.2 3.2 34.8 2.9 1.7' fill='none' stroke='%237f8b8a' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
-  --scrap-frame-2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M1.5 2.2C33.7 1.5 65.4 1.9 100.4 1.7M98.4 1C98.9 33.7 98.2 65.4 98.5 99.5M98.8 97.4C66.3 97.7 34.6 97.7 1.3 97.9M2.5 99.1C2.8 66.3 1.4 34.6 1.6 0.2' fill='none' stroke='%237f8b8a' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M1.8 2.4C34.2 2.6 65.6 3.2 99.6 2.9M98.5 2.6C97 34.2 97.5 65.6 97.4 99.1M97.9 98.5C66 97.9 34.5 97.1 1.5 97.9M2 98.7C3.2 66.2 3.1 34.8 2.8 0.6' fill='none' stroke='%237f8b8a' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
-  --scrap-frame-3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-0.1 1.6C33.7 2.3 65.4 2.9 98.5 1.4M97.8 1.5C97.4 33.7 97.5 65.4 98.3 99.2M100 98.1C66.3 98.3 34.6 97.2 0.5 98.5M2.4 99.4C1.1 66.3 1.4 34.6 2 0.7' fill='none' stroke='%237f8b8a' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2.4 2C34.2 2.5 65.6 2.2 99.8 2.8M97.8 1.3C98.3 34.2 97.3 65.6 97.2 99.1M98 97.6C66 97 34.5 97.3 0.1 97.8M2 98.8C1.6 66.2 3.3 34.8 2.9 0.7' fill='none' stroke='%237f8b8a' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
-  --scrap-frame-4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-0.1 2.6C33.7 1.7 65.4 1.5 98.8 1.5M97.9 -0.1C97.6 33.7 97.3 65.4 97.8 99.1M98.7 97.9C66.3 97.9 34.6 97.8 1.1 97.7M1.8 98.6C1.4 66.3 2.3 34.6 2.5 -0.4' fill='none' stroke='%237f8b8a' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2 2.1C34.2 3.3 65.6 2.3 100.4 3M98.5 1.9C97.3 34.2 97.2 65.6 97.2 99.7M98.4 97.4C66.1 98 34.5 98.3 0.6 98.1M2.1 98.6C1.4 66.2 3.1 34.8 2.4 1.8' fill='none' stroke='%237f8b8a' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --scrap-frame-1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M1.7 1.7C33.7 2.5 65.4 1.2 100.2 1.9M97.7 0.2C98.5 33.7 97.3 65.4 98.1 99.4M98.1 98.1C66.3 98.5 34.6 98 0.4 98.1M1.7 98.5C2.6 66.3 2.3 34.6 1.7 1' fill='none' stroke='%23333333' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2.3 2C34.2 3.1 65.6 2.2 98.7 2.7M98.4 1.6C97.3 34.2 97.2 65.6 97.9 99.1M98.3 97.6C66.1 97.6 34.5 98.3 0.2 98.1M2.5 98.6C3 66.2 3.2 34.8 2.9 1.7' fill='none' stroke='%23333333' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --scrap-frame-2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M1.5 2.2C33.7 1.5 65.4 1.9 100.4 1.7M98.4 1C98.9 33.7 98.2 65.4 98.5 99.5M98.8 97.4C66.3 97.7 34.6 97.7 1.3 97.9M2.5 99.1C2.8 66.3 1.4 34.6 1.6 0.2' fill='none' stroke='%23333333' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M1.8 2.4C34.2 2.6 65.6 3.2 99.6 2.9M98.5 2.6C97 34.2 97.5 65.6 97.4 99.1M97.9 98.5C66 97.9 34.5 97.1 1.5 97.9M2 98.7C3.2 66.2 3.1 34.8 2.8 0.6' fill='none' stroke='%23333333' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --scrap-frame-3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-0.1 1.6C33.7 2.3 65.4 2.9 98.5 1.4M97.8 1.5C97.4 33.7 97.5 65.4 98.3 99.2M100 98.1C66.3 98.3 34.6 97.2 0.5 98.5M2.4 99.4C1.1 66.3 1.4 34.6 2 0.7' fill='none' stroke='%23333333' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2.4 2C34.2 2.5 65.6 2.2 99.8 2.8M97.8 1.3C98.3 34.2 97.3 65.6 97.2 99.1M98 97.6C66 97 34.5 97.3 0.1 97.8M2 98.8C1.6 66.2 3.3 34.8 2.9 0.7' fill='none' stroke='%23333333' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  --scrap-frame-4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-0.1 2.6C33.7 1.7 65.4 1.5 98.8 1.5M97.9 -0.1C97.6 33.7 97.3 65.4 97.8 99.1M98.7 97.9C66.3 97.9 34.6 97.8 1.1 97.7M1.8 98.6C1.4 66.3 2.3 34.6 2.5 -0.4' fill='none' stroke='%23333333' stroke-width='2.6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2 2.1C34.2 3.3 65.6 2.3 100.4 3M98.5 1.9C97.3 34.2 97.2 65.6 97.2 99.7M98.4 97.4C66.1 98 34.5 98.3 0.6 98.1M2.1 98.6C1.4 66.2 3.1 34.8 2.4 1.8' fill='none' stroke='%23333333' stroke-width='1.2' stroke-linecap='round' opacity='.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
   }
 
   .scrap__photo::after {
@@ -989,18 +990,20 @@
     margin: 0;
   }
 
+  /* The date written out in Korean, the largest words in the section so it reads at a glance. */
   .ceremony .ceremony__when {
-    font-family: var(--latin), var(--korean);
-    font-size: 15px;
+    font-family: var(--korean);
+    font-size: clamp(21px, 6.2vw, 24px);
     font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
-    line-height: 1.6;
+    letter-spacing: -0.02em;
+    line-height: 1.45;
   }
 
-  .ceremony__place {
+  .ceremony .ceremony__place {
+    margin-top: 4px;
     color: var(--soft);
     font-family: var(--korean);
+    font-size: 17px;
     line-height: 1.6;
   }
 
@@ -1011,7 +1014,7 @@
     padding-bottom: 12px;
     background: var(--crayon-underline-ink) bottom center / 100% 8px no-repeat;
     font-family: var(--latin), var(--korean);
-    font-size: clamp(22px, 6.6vw, 26px);
+    font-size: clamp(19px, 5.6vw, 21px);
     font-weight: 500;
     line-height: 1.3;
     letter-spacing: -0.02em;
@@ -1464,13 +1467,13 @@
   <div class="families__family">
     <p class="families__parents">서재호 &amp; 김선교의</p>
     <p class="families__name">아들 진용</p>
-    <img class="families__photo" src="photos/photo-10.jpg" srcset="photos/photo-10-sm.jpg 534w, photos/photo-10.jpg 1066w" sizes="min(78vw, 300px)" width="1066" height="1600" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
+    <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
   </div>
 
   <div class="families__family">
     <p class="families__parents">장영인 &amp; 김혜숙의</p>
     <p class="families__name">딸 하림</p>
-    <img class="families__photo" src="photos/photo-09.jpg" srcset="photos/photo-09-sm.jpg 534w, photos/photo-09.jpg 1066w" sizes="min(78vw, 300px)" width="1066" height="1600" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
+    <img class="families__cutout" src="photos/photo-09-cut.webp" width="537" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신부">
   </div>
 </section>
 
@@ -1499,8 +1502,8 @@
 
 <section class="section ceremony" aria-label="예식 안내">
   <time class="visually-hidden" datetime="2027-03-06T17:00:00+09:00">2027년 3월 6일 토요일 오후 5시</time>
-  <p class="ceremony__when" aria-hidden="true">2027.03.06 SAT PM 5:00</p>
-  <p class="ceremony__place">식물관PH</p>
+  <p class="ceremony__when" aria-hidden="true">2027년 3월 6일 토요일</p>
+  <p class="ceremony__place"><span aria-hidden="true">오후 5시 · </span>식물관PH</p>
   <div class="calendar">
     <p class="calendar__month" aria-hidden="true">2027.03</p>
     <div class="calendar__grid" aria-hidden="true">
@@ -1572,20 +1575,18 @@
     <li data-map-app-only><a class="pill pill--line" data-map="tmap" href="tmap://search?name=%EC%8B%9D%EB%AC%BC%EA%B4%80PH">티맵</a></li>
   </ul>
 
-  <!-- TODO: fill in the transit details from the venue (station, exit, walk time, bus stop and lines, parking).
-       Add a 셔틀 item in the same form if there is a shuttle bus. -->
   <div class="directions__transit">
     <p class="directions__item">
       <span class="label">지하철</span>
-      <span class="prose">○○선 ○○역 ○번 출구에서 걸어서 ○분입니다.</span>
-    </p>
-    <p class="directions__item">
-      <span class="label">버스</span>
-      <span class="prose">○○○ 정류장에서 내리시면 걸어서 ○분입니다.<br>간선 ○○○, 지선 ○○○○</span>
+      <span class="prose">수서역 하차 후 3호선, 수인분당선 1번 출구<br>앞 셔틀버스 이용</span>
     </p>
     <p class="directions__item">
       <span class="label">주차</span>
-      <span class="prose">건물 주차장을 이용하실 수 있고, ○시간 무료입니다.</span>
+      <span class="prose">수서역 1번 출구 공영주차장 이용 후<br>셔틀버스 탑승 (무료 주차권은 축의대에서 수령)</span>
+    </p>
+    <p class="directions__item">
+      <span class="label">셔틀버스</span>
+      <span class="prose">수서역 1번 출구 신동아 아파트 앞 탑승</span>
     </p>
   </div>
 </section>
@@ -2869,19 +2870,17 @@
     weatherFlash = 0;
   };
 
+  // A plain cloud shape with no outline.
   const drawCloud = (x, y, size, alpha) => {
     weatherContext.save();
     weatherContext.globalAlpha = alpha;
     weatherContext.fillStyle = '#e9ebec';
-    weatherContext.strokeStyle = 'rgba(140, 150, 152, 0.55)';
-    weatherContext.lineWidth = 1.2;
     weatherContext.beginPath();
     weatherContext.arc(x, y, size * 0.42, Math.PI * 0.5, Math.PI * 1.5);
     weatherContext.arc(x + size * 0.45, y - size * 0.32, size * 0.5, Math.PI * 1.05, Math.PI * 1.95);
     weatherContext.arc(x + size * 1.0, y - size * 0.1, size * 0.4, Math.PI * 1.3, Math.PI * 0.5);
     weatherContext.closePath();
     weatherContext.fill();
-    weatherContext.stroke();
     weatherContext.restore();
   };
 
@@ -3384,7 +3383,7 @@
     const NAVER_MAP_CLIENT_ID = 'p3b51v6ck2';
     const NAVER_MAP_SCRIPT_URL = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + NAVER_MAP_CLIENT_ID;
     const VENUE_POSITION = { lat: 37.4826902, lng: 127.0943672 };
-    const MAP_ZOOM = 16;
+    const MAP_ZOOM = 14;
     const LOAD_MARGIN = '600px 0px';
     const box = document.querySelector('.directions [data-naver-map]');
 

@@ -1386,19 +1386,17 @@
     weatherFlash = 0;
   };
 
+  // A plain cloud shape with no outline.
   const drawCloud = (x, y, size, alpha) => {
     weatherContext.save();
     weatherContext.globalAlpha = alpha;
     weatherContext.fillStyle = '#e9ebec';
-    weatherContext.strokeStyle = 'rgba(140, 150, 152, 0.55)';
-    weatherContext.lineWidth = 1.2;
     weatherContext.beginPath();
     weatherContext.arc(x, y, size * 0.42, Math.PI * 0.5, Math.PI * 1.5);
     weatherContext.arc(x + size * 0.45, y - size * 0.32, size * 0.5, Math.PI * 1.05, Math.PI * 1.95);
     weatherContext.arc(x + size * 1.0, y - size * 0.1, size * 0.4, Math.PI * 1.3, Math.PI * 0.5);
     weatherContext.closePath();
     weatherContext.fill();
-    weatherContext.stroke();
     weatherContext.restore();
   };
 

@@ -291,6 +291,17 @@ describe('site/ (deploy build)', () => {
     expect(readPngSize('og-image.png')).toEqual({ width: 1200, height: 630 });
   });
 
+  it('ships the cut-out photos the families section shows', () => {
+    const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
+    const cutNames = [...new Set([...page.matchAll(/photos\/(photo-\d{2}-cut\.webp)/g)].map((match) => match[1]))];
+
+    expect(cutNames.sort()).toEqual(['photo-09-cut.webp', 'photo-10-cut.webp']);
+
+    cutNames.forEach((name) => {
+      expect(existsSync(resolve(SITE_DIR, 'photos', name)), name).toBe(true);
+    });
+  });
+
   it('ships both sizes of every photo the page shows', () => {
     const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
     const smallNames = [...new Set([...page.matchAll(/photos\/(photo-\d{2})-sm\.jpg/g)].map((match) => match[1]))];
@@ -439,6 +450,9 @@ describe('GreenhouseCover.html weather', () => {
 
   let frames: Frame[] = [];
 
+  // How many times the weather layer painted a line or a fill, to tell outlined shapes from plain ones.
+  let paints = { stroke: 0, fill: 0 };
+
   // Records the geometry the weather layer draws, one list of shapes per frame (a frame starts at clearRect).
   // Each recorder writes to the list it was made with, so a loop left over from an earlier test cannot leak in.
   const createRecorder = (target: Frame[]) => {
@@ -462,6 +476,12 @@ describe('GreenhouseCover.html weather', () => {
 
           if (property === 'createLinearGradient' || property === 'createRadialGradient') {
             return () => gradient;
+          }
+
+          if (property === 'stroke' || property === 'fill') {
+            return () => {
+              paints[property] += 1;
+            };
           }
 
           return () => {};
@@ -513,6 +533,7 @@ describe('GreenhouseCover.html weather', () => {
     const recorded: Frame[] = [];
 
     frames = recorded;
+    paints = { stroke: 0, fill: 0 };
     vi.useFakeTimers();
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function (this: HTMLCanvasElement) {
       return (this.id === 'weather' ? createRecorder(recorded) : createSilentContext()) as never;
@@ -572,6 +593,14 @@ describe('GreenhouseCover.html weather', () => {
 
     expect(drawn.length).toBeGreaterThan(20);
     expect(measureShift(drawn[5], drawn.at(-1) ?? [])).toBeGreaterThanOrEqual(MIN_SHIFT_PX);
+  });
+
+  it('paints the cloudy scene as soft shapes with no outline', async () => {
+    mountCoverWithWeather('cloudy');
+    await vi.advanceTimersByTimeAsync(WATCH_MS);
+
+    expect(paints.fill).toBeGreaterThan(0);
+    expect(paints.stroke).toBe(0);
   });
 });
 
@@ -691,15 +720,16 @@ describe('Families.html', () => {
     });
 
     expect(families).toEqual([
-      { parents: '서재호 & 김선교의', name: '아들 진용', photos: ['photos/photo-10.jpg'] },
-      { parents: '장영인 & 김혜숙의', name: '딸 하림', photos: ['photos/photo-09.jpg'] },
+      { parents: '서재호 & 김선교의', name: '아들 진용', photos: ['photos/photo-10-cut.webp'] },
+      { parents: '장영인 & 김혜숙의', name: '딸 하림', photos: ['photos/photo-09-cut.webp'] },
     ]);
   });
 
-  it('keeps the photos plain and described', () => {
+  it('shows each person cut out along their outline, described', () => {
     const section = mountSection('Families.html');
 
     section.querySelectorAll('img').forEach((image) => {
+      expect(image.classList.contains('families__cutout')).toBe(true);
       expect(image.getAttribute('alt')).toMatch(/신랑|신부/);
       expect(image.getAttribute('loading')).toBe('lazy');
     });
@@ -743,10 +773,18 @@ describe('CeremonyInfo.html', () => {
     const when = section.querySelector('.ceremony__when');
     const place = section.querySelector('.ceremony__place');
 
-    expect(when?.textContent?.trim()).toBe('2027.03.06 SAT PM 5:00');
+    expect(when?.textContent?.trim()).toBe('2027년 3월 6일 토요일');
     expect(when?.getAttribute('aria-hidden')).toBe('true');
-    expect(place?.textContent?.trim()).toBe('식물관PH');
+    expect(place?.textContent?.trim()).toBe('오후 5시 · 식물관PH');
     expect(place?.hasAttribute('aria-hidden')).toBe(false);
+    expect(place?.querySelector('[aria-hidden="true"]')?.textContent).toBe('오후 5시 · ');
+  });
+
+  it('makes the date line larger than the month above the calendar', () => {
+    const source = readStudy('CeremonyInfo.html');
+
+    expect(source).toMatch(/\.ceremony \.ceremony__when \{[^}]*font-size: clamp\(21px, 6\.2vw, 24px\)/);
+    expect(source).toMatch(/\.ceremony \.calendar__month \{[^}]*font-size: clamp\(19px, 5\.6vw, 21px\)/);
   });
 
   it('draws one crayon line under the month', () => {
@@ -907,7 +945,34 @@ describe('CeremonyInfo.html', () => {
   });
 });
 
+describe('PhotosScrapbook.html frames', () => {
+  it('draws every crayon frame in a neutral near-black grey', () => {
+    const source = readStudy('PhotosScrapbook.html');
+    const strokes = [...source.matchAll(/stroke='%23([0-9a-f]{6})'/g)].map((match) => match[1]);
+
+    expect(strokes).toHaveLength(8);
+    expect(new Set(strokes)).toEqual(new Set(['333333']));
+  });
+});
+
 describe('Directions.html', () => {
+  it('lists subway, parking and shuttle bus in the words the couple gave', () => {
+    const section = mountSection('Directions.html');
+    const items = [...section.querySelectorAll('.directions__item')].map((item) => {
+      return {
+        label: item.querySelector('.label')?.textContent?.trim(),
+        text: item.querySelector('.prose')?.textContent?.trim(),
+      };
+    });
+
+    expect(items).toEqual([
+      { label: '지하철', text: '수서역 하차 후 3호선, 수인분당선 1번 출구앞 셔틀버스 이용' },
+      { label: '주차', text: '수서역 1번 출구 공영주차장 이용 후셔틀버스 탑승 (무료 주차권은 축의대에서 수령)' },
+      { label: '셔틀버스', text: '수서역 1번 출구 신동아 아파트 앞 탑승' },
+    ]);
+    expect(section.textContent).not.toContain('○');
+  });
+
   // Every mount may append the Naver map script to <head> and set its auth-failure global.
   afterEach(() => {
     document.querySelectorAll('script[src^="https://oapi.map.naver.com"]').forEach((script) => {
@@ -1116,7 +1181,7 @@ describe('Directions.html', () => {
       expect(target).toBe(box);
       expect(options.center).toMatchObject(VENUE);
       expect(options).toMatchObject({
-        zoom: 16,
+        zoom: 14,
         draggable: false,
         scrollWheel: false,
         pinchZoom: false,

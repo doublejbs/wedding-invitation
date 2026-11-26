@@ -25,18 +25,20 @@
     margin: 0;
   }
 
+  /* The date written out in Korean, the largest words in the section so it reads at a glance. */
   .ceremony .ceremony__when {
-    font-family: var(--latin), var(--korean);
-    font-size: 15px;
+    font-family: var(--korean);
+    font-size: clamp(21px, 6.2vw, 24px);
     font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
-    line-height: 1.6;
+    letter-spacing: -0.02em;
+    line-height: 1.45;
   }
 
-  .ceremony__place {
+  .ceremony .ceremony__place {
+    margin-top: 4px;
     color: var(--soft);
     font-family: var(--korean);
+    font-size: 17px;
     line-height: 1.6;
   }
 
@@ -47,7 +49,7 @@
     padding-bottom: 12px;
     background: var(--crayon-underline-ink) bottom center / 100% 8px no-repeat;
     font-family: var(--latin), var(--korean);
-    font-size: clamp(22px, 6.6vw, 26px);
+    font-size: clamp(19px, 5.6vw, 21px);
     font-weight: 500;
     line-height: 1.3;
     letter-spacing: -0.02em;
@@ -134,8 +136,8 @@
 
 <section class="section ceremony" aria-label="예식 안내">
   <time class="visually-hidden" datetime="2027-03-06T17:00:00+09:00">2027년 3월 6일 토요일 오후 5시</time>
-  <p class="ceremony__when" aria-hidden="true">2027.03.06 SAT PM 5:00</p>
-  <p class="ceremony__place">식물관PH</p>
+  <p class="ceremony__when" aria-hidden="true">2027년 3월 6일 토요일</p>
+  <p class="ceremony__place"><span aria-hidden="true">오후 5시 · </span>식물관PH</p>
   <div class="calendar">
     <p class="calendar__month" aria-hidden="true">2027.03</p>
     <div class="calendar__grid" aria-hidden="true">
