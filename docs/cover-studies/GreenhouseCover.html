@@ -119,6 +119,9 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    /* A guest's handwritten note may run past the card edge before the script pulls it in; clip (not hidden)
+       keeps it from widening the page without making the card a scroll box. */
+    overflow-x: clip;
   }
 
   /* Live weather layer: drawn over the greenhouse, under the title and the date. */
@@ -211,21 +214,43 @@
     white-space: nowrap;
   }
 
-  /* Guest links (?to=<name>, docs/SectionsSpec.md 2-0): "for <name>" handwritten in red crayon over the right end of
-     the title, a little inside its edge and across its lower half, tilted like a note added by hand. */
+  /* Guest links (?to=<name>, docs/SectionsSpec.md 2-0): "for <name>" handwritten in red crayon, "for" grazing the
+     lower edge of the title's last letters (ON, 1.9em from its end) and the name running on into the right margin,
+     tilted like a note added by hand. The script pulls a long note back in so it never leaves the screen.
+     The Korean handwriting runs small, so the name is set larger than "for". */
   .title__for {
     position: absolute;
-    right: 0.1em;
-    top: 62%;
+    top: 24%;
+    left: calc(100% - 1.9em);
     color: #b02a33;
-    font-family: 'Dancing Script', 'Nanum Pen Script', cursive;
-    font-size: 0.62em;
-    font-weight: 600;
+    font-family: 'Homemade Apple', cursive;
+    font-size: 0.96em;
+    font-weight: 400;
     letter-spacing: 0;
     line-height: 1;
+    white-space: nowrap;
     transform: rotate(-6deg);
-    transform-origin: right center;
+    transform-origin: left center;
     pointer-events: none;
+  }
+
+  /* The guest's name in Nanum YeoReumGeurSsi (bundled, see fonts/README.md). Its strokes are thin next to "for",
+     so they are drawn over once more in the same colour. Declared here but only downloaded when a name shows. */
+  @font-face {
+    font-family: 'Nanum YeoReumGeurSsi';
+    src: url('fonts/NanumYeoReumGeurSsi-ksx1001.woff2') format('woff2');
+    font-display: swap;
+  }
+
+  .title__for-name {
+    font-family: 'Nanum YeoReumGeurSsi', cursive;
+    font-size: 1.95em;
+    -webkit-text-stroke: 0.9px currentColor;
+  }
+
+  /* With a guest note, the names row moves down so the handwriting never runs into it. */
+  .title--guest .title__names {
+    margin-top: 2.6em;
   }
 
   .title__for[hidden] {
@@ -1696,7 +1721,7 @@
 <script>
   // Guest links (docs/SectionsSpec.md 2-0): "for <name>" beside the title, with its script fonts loaded only then.
   (() => {
-    const GUEST_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nanum+Pen+Script&display=swap';
+    const GUEST_FONTS_URL = 'https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap';
     const note = document.querySelector('[data-guest-note]');
     const title = note?.closest('h1');
     const name = window.InvitationKit?.getGuestName() ?? '';
@@ -1711,8 +1736,43 @@
     fonts.dataset.guestFont = '';
     document.head.append(fonts);
 
-    note.textContent = `for ${name}`;
+    const nameText = document.createElement('span');
+    nameText.className = 'title__for-name';
+    nameText.textContent = name;
+    note.replaceChildren('for ', nameText);
     note.hidden = false;
+    title.classList.add('title--guest');
+
+    // A long name runs past the cover's right edge: pull the note left by exactly the overflow (none for a short
+    // name). The edge is the cover card, not the window: on phones an overflowing note widens the window itself.
+    // The start matches .title__for's left.
+    const SCREEN_MARGIN_PX = 8;
+    const card = note.closest('.card') ?? document.documentElement;
+
+    const keepOnScreen = () => {
+      note.style.left = '';
+
+      const overflow = Math.ceil(note.getBoundingClientRect().right - (card.getBoundingClientRect().right - SCREEN_MARGIN_PX));
+
+      if (overflow > 0) {
+        note.style.left = `calc(100% - 1.9em - ${overflow}px)`;
+      }
+    };
+
+    // Measure again once the handwriting faces have really arrived: until then the fallback font sets the width.
+    const measureWithGuestFonts = () => {
+      if (!document.fonts) {
+        return;
+      }
+
+      Promise.all([document.fonts.load("1em 'Homemade Apple'", 'for'), document.fonts.load("1em 'Nanum YeoReumGeurSsi'", name)])
+        .then(keepOnScreen)
+        .catch(() => {});
+    };
+
+    keepOnScreen();
+    fonts.addEventListener('load', measureWithGuestFonts);
+    window.addEventListener('resize', keepOnScreen);
     title.setAttribute('aria-label', `${title.getAttribute('aria-label')}, for ${name}`);
   })();
 </script>

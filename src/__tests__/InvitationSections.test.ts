@@ -291,6 +291,14 @@ describe('site/ (deploy build)', () => {
     expect(readPngSize('og-image.png')).toEqual({ width: 1200, height: 630 });
   });
 
+  it('ships the guest-name handwriting font the page declares', () => {
+    const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
+    const fonts = [...new Set([...page.matchAll(/fonts\/([\w.-]+\.woff2)/g)].map((match) => match[1]))];
+
+    expect(fonts).toEqual(['NanumYeoReumGeurSsi-ksx1001.woff2']);
+    expect(existsSync(resolve(SITE_DIR, 'fonts', fonts[0]))).toBe(true);
+  });
+
   it('ships every section illustration the page shows', () => {
     const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
     const names = [...new Set([...page.matchAll(/illustrations\/([\w-]+\.png)/g)].map((match) => match[1]))];
@@ -1534,7 +1542,7 @@ describe('guest name links (?to=)', () => {
     expect(kit.getShareUrl()).toBe(`${window.location.origin}/#snow`);
   });
 
-  it('writes "for 민지" in script beside the cover title and loads the script fonts only then', () => {
+  it('writes "for 민지" by hand under the end of the cover title and loads the handwriting fonts only then', () => {
     visit('?to=%EB%AF%BC%EC%A7%80');
     mountCover();
 
@@ -1543,14 +1551,51 @@ describe('guest name links (?to=)', () => {
     expect(note.hidden).toBe(false);
     expect(note.textContent).toBe('for 민지');
     expect(note.closest('.title__head')).not.toBeNull();
+    expect(note.querySelector('.title__for-name')?.textContent).toBe('민지');
+    expect(query('h1.title').classList.contains('title--guest')).toBe(true);
     expect(query('h1.title').getAttribute('aria-label')).toBe('WEDDING INVITATION, Seo Jinyong and Jang Harim, for 민지');
-    expect(document.head.querySelector('link[data-guest-font]')?.getAttribute('href')).toContain('Nanum+Pen+Script');
+
+    const fontsHref = document.head.querySelector('link[data-guest-font]')?.getAttribute('href') ?? '';
+
+    expect(fontsHref).toContain('Homemade+Apple');
+    expect(fontsHref).not.toContain('Dokdo');
+  });
+
+  it('starts the note under ON in Homemade Apple and Nanum YeoReumGeurSsi, pushing the names row down only for a guest', () => {
+    const source = readStudy('GreenhouseCover.html');
+
+    expect(source).toMatch(/\.title__for \{[^}]*top: 24%;[^}]*left: calc\(100% - 1\.9em\);[^}]*font-family: 'Homemade Apple', cursive;[^}]*font-size: 0\.96em;[^}]*transform-origin: left center;/);
+    expect(source).toMatch(/\.title__for-name \{[^}]*font-family: 'Nanum YeoReumGeurSsi', cursive;[^}]*font-size: 1\.95em;[^}]*-webkit-text-stroke: 0\.9px currentColor;/);
+    expect(source).toMatch(/@font-face \{[^}]*font-family: 'Nanum YeoReumGeurSsi';[^}]*src: url\('fonts\/NanumYeoReumGeurSsi-ksx1001\.woff2'\) format\('woff2'\);/);
+    expect(existsSync(resolve(STUDIES_DIR, 'fonts', 'NanumYeoReumGeurSsi-ksx1001.woff2'))).toBe(true);
+    expect(readStudy('fonts/README.md')).toContain('NAVER');
+    expect(source).toMatch(/\.title--guest \.title__names \{[^}]*margin-top: 2\.6em;/);
+  });
+
+  it('pulls a long note left just enough to stay on screen', async () => {
+    visit('?to=' + encodeURIComponent('김민지 선배님'));
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      // The note runs to 479px; the cover card ends at 390px.
+      const right = this.classList.contains('title__for') ? 479 : 390;
+
+      return { left: 0, right, top: 0, bottom: 0, width: right, height: 0, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+    });
+    mountCover();
+    await flushPromises();
+
+    // 479 - (390 - 8) = 97px too far right. jsdom rewrites calc(100% - 1.9em - 97px), so check its parts.
+    const left = query('.title__for').style.left;
+
+    expect(left).toContain('100%');
+    expect(left).toContain('1.9em');
+    expect(left).toContain('97px');
   });
 
   it('leaves the cover as it was without a name', () => {
     mountCover();
 
     expect(query('.title__for').hidden).toBe(true);
+    expect(query('h1.title').classList.contains('title--guest')).toBe(false);
     expect(query('h1.title').getAttribute('aria-label')).toBe('WEDDING INVITATION, Seo Jinyong and Jang Harim');
     expect(document.head.querySelector('link[data-guest-font]')).toBeNull();
   });

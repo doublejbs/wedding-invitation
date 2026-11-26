@@ -21,6 +21,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 STUDIES = ROOT / 'docs' / 'cover-studies'
 TEXTURES = STUDIES / 'textures'
 ILLUSTRATIONS = STUDIES / 'illustrations'
+FONTS = STUDIES / 'fonts'
 SHARE = STUDIES / 'share'
 SITE = ROOT / 'site'
 SITE_URL = sys.argv[1].rstrip('/') if len(sys.argv) > 1 else ''
@@ -136,12 +137,20 @@ missing_illustrations = sorted(name for name in illustrations if not (ILLUSTRATI
 if missing_illustrations:
     sys.exit(f'BuildSite failed: illustrations not found in docs/cover-studies/illustrations: {missing_illustrations}')
 
+# Bundled web fonts named in the page (the guest-name handwriting, docs/SectionsSpec.md 2-0), with their README.
+fonts = set(re.findall(r'fonts/([\w.-]+\.woff2)', every_page))
+missing_fonts = sorted(name for name in fonts if not (FONTS / name).is_file())
+
+if missing_fonts:
+    sys.exit(f'BuildSite failed: fonts not found in docs/cover-studies/fonts: {missing_fonts}')
+
 if SITE.exists():
     shutil.rmtree(SITE)
 
 (SITE / 'photos').mkdir(parents=True)
 (SITE / 'textures').mkdir()
 (SITE / 'illustrations').mkdir()
+(SITE / 'fonts').mkdir()
 
 for site_name, document in documents.items():
     (SITE / site_name).write_text(document, encoding='utf-8')
@@ -155,10 +164,16 @@ for name in sorted(textures):
 for name in sorted(illustrations):
     shutil.copy(ILLUSTRATIONS / name, SITE / 'illustrations' / name)
 
+for name in sorted(fonts):
+    shutil.copy(FONTS / name, SITE / 'fonts' / name)
+
+if fonts:
+    shutil.copy(FONTS / 'README.md', SITE / 'fonts' / 'README.md')
+
 for name in SHARE_FILES:
     shutil.copy(SHARE / name, SITE / name)
 
-print(f'site/{" + site/".join(documents)} + {len(used)} photos + {len(textures)} textures + {len(illustrations)} illustrations + {len(SHARE_FILES)} share files')
+print(f'site/{" + site/".join(documents)} + {len(used)} photos + {len(textures)} textures + {len(illustrations)} illustrations + {len(fonts)} fonts + {len(SHARE_FILES)} share files')
 
 # An empty endpoint means the RSVP form only says it is a preview; guests would see that sentence.
 endpoint = re.search(r"const RSVP_ENDPOINT = '([^']*)';", documents['index.html'])
