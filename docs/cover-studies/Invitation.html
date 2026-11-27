@@ -836,10 +836,11 @@
   }
 
   /* Families: right after the greeting. The two families stand side by side (groom left, bride right), each a
-     cut-out photo with its parents and name below; the user found them stacked too empty. The user's second
+     torn-out photo with its parents and name below; the user found them stacked too empty. The user's second
      reference shows only the cutting; its envelope and hearts are not used. No letters or stickers either. */
 
   .families {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: end;
@@ -865,6 +866,21 @@
     object-fit: contain;
     object-position: bottom;
     filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
+  }
+
+  /* Their own bouquet (photo-02), torn like the two photos, small in the gap at hand height: the groom's hands and
+     the bride's raised elbow (SectionsSpec 2-1b). The section's top padding is 64px; 58% of the photo height below
+     that. Higher, at the shoulders, the bride's raised arm leaves no room. Checked on 320, 390 and 430px phones not
+     to touch either photo, even 4px around it. */
+  .families__bouquet {
+    position: absolute;
+    left: 50%;
+    top: calc(64px + min(66vw, 260px) * 0.58);
+    width: 36px;
+    height: auto;
+    transform: translateX(calc(-50% - 4px)) rotate(-6deg);
+    filter: drop-shadow(0 3px 5px rgba(40, 30, 20, 0.22));
+    pointer-events: none;
   }
 
   .families__parents {
@@ -1533,6 +1549,8 @@
 </section>
 
 <section class="section families" aria-label="두 사람">
+  <img class="families__bouquet" src="photos/photo-02-bouquet-cut.webp" width="240" height="242" alt="" loading="lazy" decoding="async">
+
   <div class="families__family">
     <img class="families__cutout" src="photos/photo-10-cut.webp" width="348" height="800" loading="lazy" decoding="async" alt="들판에 홀로 선 신랑">
     <p class="families__parents">서재호 &amp; 김선교의</p>

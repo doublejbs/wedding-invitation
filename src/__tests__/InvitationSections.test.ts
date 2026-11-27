@@ -311,9 +311,9 @@ describe('site/ (deploy build)', () => {
 
   it('ships the cut-out photos the families section shows', () => {
     const page = readFileSync(resolve(SITE_DIR, 'index.html'), 'utf-8');
-    const cutNames = [...new Set([...page.matchAll(/photos\/(photo-\d{2}-cut\.webp)/g)].map((match) => match[1]))];
+    const cutNames = [...new Set([...page.matchAll(/photos\/(photo-\d{2}(?:-bouquet)?-cut\.webp)/g)].map((match) => match[1]))];
 
-    expect(cutNames.sort()).toEqual(['photo-09-cut.webp', 'photo-10-cut.webp']);
+    expect(cutNames.sort()).toEqual(['photo-02-bouquet-cut.webp', 'photo-09-cut.webp', 'photo-10-cut.webp']);
 
     cutNames.forEach((name) => {
       expect(existsSync(resolve(SITE_DIR, 'photos', name)), name).toBe(true);
@@ -760,10 +760,25 @@ describe('Families.html', () => {
     expect(source).toMatch(/\.families__cutout \{[^}]*height: min\(66vw, 260px\)/);
   });
 
-  it('shows each person cut out along their outline, described', () => {
+  it('puts their torn bouquet small between the two people, as decoration', () => {
+    const section = mountSection('Families.html');
+    const bouquet = section.querySelector('img.families__bouquet');
+    const source = readStudy('Families.html');
+
+    expect(bouquet?.getAttribute('src')).toBe('photos/photo-02-bouquet-cut.webp');
+    expect(bouquet?.getAttribute('alt')).toBe('');
+    expect(bouquet?.parentElement).toBe(section);
+    expect(bouquet?.closest('.families__family')).toBeNull();
+    expect(source).toMatch(/\.families__bouquet \{[^}]*position: absolute;[^}]*left: 50%;[^}]*top: calc\(64px \+ min\(66vw, 260px\) \* 0\.58\);[^}]*width: 36px;/);
+    expect(existsSync(resolve(STUDIES_DIR, 'photos', 'photo-02-bouquet-cut.webp'))).toBe(true);
+    expect(existsSync(resolve(STUDIES_DIR, 'illustrations', 'hearts.png'))).toBe(false);
+  });
+
+  it('shows each person torn out along their outline, described', () => {
     const section = mountSection('Families.html');
 
-    section.querySelectorAll('img').forEach((image) => {
+    expect(section.querySelectorAll('img:not(.families__bouquet)')).toHaveLength(2);
+    section.querySelectorAll('img:not(.families__bouquet)').forEach((image) => {
       expect(image.classList.contains('families__cutout')).toBe(true);
       expect(image.getAttribute('alt')).toMatch(/신랑|신부/);
       expect(image.getAttribute('loading')).toBe('lazy');

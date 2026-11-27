@@ -111,8 +111,8 @@ documents = {
 every_page = '\n'.join(documents.values())
 
 # Photos named in the pages: the greeting stamp's photo-12.jpg and photo-04.jpg, the photos section's small copies
-# and the families section's cut-outs (photo-NN-cut.webp).
-used = set(re.findall(r'photos/(photo-\d+(?:-sm)?\.jpg|photo-\d+-cut\.webp)', every_page))
+# and the families section's torn cut-outs (photo-NN-cut.webp, photo-02-bouquet-cut.webp).
+used = set(re.findall(r'photos/(photo-\d+(?:-sm)?\.jpg|photo-\d+(?:-bouquet)?-cut\.webp)', every_page))
 
 # The photos section opens each small photo (photo-NN-sm.jpg) as its original (photo-NN.jpg) in the full view,
 # so every small copy the page names ships with its original.
