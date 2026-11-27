@@ -90,6 +90,10 @@
 
 ## 빌드와 배포
 
+`main`에 푸시(또는 PR 병합)하면 Vercel이 알아서 빌드해 https://jinyongharim.com 에 배포한다. Vercel 프로젝트 `wedding-invitation`이 이 GitHub 저장소에 연결되어 있고(2026-11-27), 빌드 방법은 저장소 루트의 `vercel.json`에 있다(`python3 scripts/BuildSite.py https://jinyongharim.com` → `site/`). 배포 주소가 바뀌면 `vercel.json`의 주소도 같이 고친다. `main`이 아닌 브랜치를 푸시하면 미리보기 배포가 만들어진다(네이버 지도는 등록한 주소가 아니라서 숨겨진다).
+
+아래는 푸시 없이 손으로 배포할 때의 순서다.
+
 ```bash
 # 1. 영역별 파일을 최종본(Invitation.html)으로 합치기
 cd docs/cover-studies && python3 ../../scripts/BuildInvitation.py && cd ../..
