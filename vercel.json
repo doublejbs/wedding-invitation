@@ -3,5 +3,11 @@
   "framework": null,
   "installCommand": "python3 --version",
   "buildCommand": "python3 scripts/BuildSite.py https://jinyongharim.com",
-  "outputDirectory": "site"
+  "outputDirectory": "site",
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  }
 }
